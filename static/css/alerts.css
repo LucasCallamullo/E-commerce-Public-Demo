@@ -1,0 +1,82 @@
+
+
+/* ==========================================================================================
+        Alerts - Estilos generales para el contenedor de la alerta
+========================================================================================== */
+/* Contenedor de alertas */
+.cont__alerts {
+    position: fixed;
+
+    display: none;
+    pointer-events: none;
+    bottom: 150px;     /* mobile */
+    left: 50%;
+    z-index: var(--z-index-cart);
+    transform: translateX(-50%);
+
+    gap: 10px;
+    padding: 1rem;
+
+    min-width: min-content;
+    width: 100%;    /* mobile */
+
+    /* Prevent text selection */
+    -webkit-user-select: none; /* Safari/Chrome */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* IE/Edge */
+    user-select: none;         /* Standard syntax */
+    
+    /* Prevent touch callouts on mobile */
+    -webkit-touch-callout: none;
+}
+
+.cont__alerts[data-state="closed"] {
+    display: none;
+    pointer-events: none;
+}
+
+.cont__alerts[data-state="open"] {
+    display: flex;
+    flex-direction: column-reverse; /* Cambiado a column-reverse para apilar desde abajo */
+    pointer-events: all;
+}
+
+/* Estilo base para las alertas */
+.alerts__alert {
+    display: none;
+    opacity: 0;
+    padding: 8px;  /* mobile */
+    transform: translateY(100%); /* Empuja la alerta hacia abajo inicialmente */
+    transition: transform 0.6s ease, opacity 0.6s ease;
+}
+
+.alerts__alert.show {
+    display: block;
+    pointer-events: auto;
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 993px) {
+    .cont__alerts {
+        bottom: 70px;     /* mobile */
+        width: 35%;    /* mobile */
+        min-width: min-content;    /* mobile */
+    }
+
+    /* Styles for large desktops */
+    .alerts__alert {
+        padding: 12px;  /* mobile */
+    }
+}

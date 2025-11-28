@@ -1,0 +1,159 @@
+
+
+{% load static %}
+<nav class="mobile-nav bg-color cont-page">
+
+    <div class="d-grid grid-navbar-sm">
+        {# toggle button para el menu #}
+        <button class="btn btn-nav-mobile" id="nav-toggle">
+            <i class="ri-menu-line font-lg text-white"></i>
+        </button>
+
+        <button class="btn btn-nav-mobile" id="top-btn-search" aria-expanded="false">
+            <i class="ri-search-line font-lg text-white"></i>
+        </button>
+
+        {# formulario de busqueda mobile #}
+        <div class="search-bar-mobile" id="search-bar-mobile" data-state="null">
+            <form class="d-flex bg-primary top-bar-search" action="{% url 'product_top_search' %}">
+                <input class="text-primary" type="text" name="topQuery" placeholder="Buscar..." autocomplete="off">
+
+                <div class="cont-space-between">
+                    <button class="btn d-flex" type="submit">
+                        <i class="ri-search-line text-primary font-lg"></i>
+                    </button>
+
+                    <button class="btn d-flex" type="button" id="back-search-form">
+                        <i class="ri-close-line text-primary font-lg"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <a href="{% url 'Home' %}" class="cont-100">
+            <img src="{% static 'ico/logo.jpg' %}" class="img-cover" alt="Logo {{store.name}}"
+                loading="lazy" width="100" height="100">
+        </a>
+
+        {# Icon widget cart, el widget esta en base.html en el header #}
+        <button class="btn btn-nav-mobile cart-button" aria-expanded="false"">
+            <i class="ri-shopping-cart-2-line font-lg text-white"></i>
+        </button>
+
+        {# Icon user login, el widget esta en base.html en el header #}
+        <button class="btn btn-nav-mobile user-button text-white" aria-expanded="false">
+            <i class="ri-user-3-line font-lg"></i>
+        </button>
+    </div>
+
+    {# Content of toggle #}
+    <div class="menu-mobile bg-primary" id="menu-mobile" data-state="closed">
+        <div class="d-grid cont__menu-mobile">
+            <ul class="d-flex-col scroll-y">
+                
+                <li class="item__menu-mobile bg-primary bolder">
+                    Menú
+                    <button class="btn btn__menu-mobile" id="menu-mobile-close">
+                        <i class="ri-close-large-line font-lg"></i>
+                    </button>
+                </li>
+                
+                <li>
+                    {# Botón para desplegar el menú #}
+                    <button class="dropdown-btn bg-primary text-primary bolder font-md" aria-expanded="false">
+                        Nuestros Productos
+                        <div class="btn btn__menu-mobile">
+                            <i class="ri-arrow-down-s-line font-lg arrow-drop"></i>
+                        </div>
+                    </button>
+
+                    {# Lista de categorías #}
+                    <ul class="dropdown-menu" data-state="null">
+
+                    {# Viene del contexto values, category & subcategories, son dicts values #}
+                    {% for item in categories_dropmenu.values %}
+                        <li>
+                        {# si tiene subcategories lo hacemos de esta forma #}
+                        {% if item.subcategories %}
+                            <button class="dropdown-btn bg-gray-light text-primary bolder font-md" aria-expanded="false">
+                                {{ item.category.name }}
+                                <div class="btn btn__menu-mobile">
+                                    <i class="ri-arrow-down-s-line font-lg arrow-drop"></i>
+                                </div>
+                            </button>
+
+                            {# Submenú #}
+                            <ul class="dropdown-menu text-primary" data-state="null">
+                            {% for subcat in item.subcategories %}
+                                {% if forloop.first %}
+                                <li class="item__menu-mobile border__menu-mobile bg-secondary">
+                                    <a href="{% url 'pl_category' item.category.slug %}" 
+                                    class="cont-space-between cont-100 bolder">
+                                        Todos
+                                    </a>
+                                </li>  
+                                {% endif %}
+                                    
+                                <li class="item__menu-mobile border__menu-mobile bg-secondary">
+                                    <a href="{% url 'pl_subcategory' item.category.slug subcat.slug %}" 
+                                    class="cont-space-between cont-100 bolder">
+                                        {{ subcat.name }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                            </ul>
+
+                        {% else %}
+                            {# Item without sub menu #}
+                            <div class="item__menu-mobile bg-gray-light text-primary"> 
+                                <a href="{% url 'pl_category' item.category.slug %}" 
+                                class="cont-space-between cont-100 bolder">
+                                    {{ item.category.name }}
+                                </a>
+                            </div>
+                        {% endif %}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </li>
+
+                <li class="item__menu-mobile">
+                    <a class="bolder" href="{% url 'Home' %}">Home</a>
+                </li>
+
+                <li class="item__menu-mobile">
+                    <a class="bolder" href="#">¿Quienes Somos?</a>
+                </li>
+        
+                <li class="item__menu-mobile">
+                    <a class="bolder" href="{% url 'contact' %}">Contacto</a>
+                </li>
+            </ul>
+        
+            {# Iconos para redireccion a redes #}
+            <div class="d-flex ms-2 gap-4">
+                <a href="{{ store.google_url }}" target="_blank" class="btn text-primary">
+                    <i class="ri-whatsapp-line font-lg"></i>
+                </a>
+
+                <a href="{{ store.ig_url }}" target="_blank" class="btn text-primary">
+                    <i class="ri-instagram-line font-lg"></i>
+                </a>
+
+                <a href="{{ store.tt_url }}" target="_blank" class="btn text-primary">
+                    <i class="ri-tiktok-fill font-lg"></i>
+                </a>
+
+                <a href="{{ store.fb_url }}" target="_blank" class="btn text-primary">
+                    <i class="ri-facebook-box-fill font-lg"></i>
+                </a>
+
+                <button class="theme-toggle btn text-primary">
+                    <i class="theme-icon ri-moon-line font-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay-menu-mobile"></div>
+</nav>

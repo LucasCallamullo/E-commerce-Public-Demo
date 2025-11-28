@@ -1,0 +1,28 @@
+# Ignorar el entorno virtual
+venv/
+.venv/
+
+# Archivos de caché de Python
+__pycache__/
+*.pyc
+
+# Migraciones
+*/migrations/
+
+# Ignorar mi carpeta de steps y proofs
+z_retirados/
+z-steps/
+z_steps/
+proofs/
+
+# Carpeta del collecstatic que se genera
+staticfiles
+
+# Base de datos de prueba
+db.sqlite3
+
+# archivo de entorno .env no subir posee keys
+.env
+
+# archivo de pruebas
+proof.http

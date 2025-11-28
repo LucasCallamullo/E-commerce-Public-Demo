@@ -1,0 +1,328 @@
+
+
+
+
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap");
+
+:root {
+    /* color-scheme: light dark;  Permite ambos, pero no fuerza ninguno */
+    color-scheme: light; /* Fuerza solo el modo claro */
+
+    /* main color de la empresa */
+    --main-color: #5e08e7; 
+    --main-light-color: #9554ff;
+
+    /* Primary Colors */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f7f7f7;
+    --text-primary: #000000;
+    --text-secondary: #6c757d;
+
+    /* Extended Grayscale */
+    --bg-secondary-light: #c9c9c96e;  /* Más claro que el secondary */
+    --bg-secondary-dark: #6c757d;   /* Más oscuro que el secondary */
+    
+    /* basic colors */
+    --white-color: #fff;
+    --black-color: #000;
+    --red-color: #e40707;
+    --green-color: #28a745;
+    --orange-color: #ff9900 ;
+    --green-wsp-color: #2db742;
+
+    --border-cont: rgba(0, 0, 0, .125);
+    --bg-images: #fff;    /* this is for bg on some images space
+
+    /* Font Sizes */
+    --font-x-small: 0.75rem;     /* 12px */
+    --font-small: 0.875rem;      /* 14px */
+    --font-normal: 1rem;         /* 16px */
+    --font-large: 1.25rem;       /* 20px */
+    --font-x-large: 1.5rem;      /* 24px */
+    --font-xx-large: 1.75rem;   /* 28px Mobile */
+    --font-xxx-large: 2rem;     /* 32px Mobile */
+    
+    /* Fonts */
+    --font-main: 'Montserrat';
+    --font-slim: 'Montserrat';
+
+    /* z index */
+    --z-fixed: 100;
+    --z-index: 150;
+    --z-index-overlay: 200;
+    --z-index-plus: 300;
+    --z-index-overlay-cart: 400;
+    --z-index-cart: 500;
+
+    /* for animations generic variabels */
+    --max-height-vertical-anim: 0;
+}
+
+/* Dark mode por preferencia del SO @media (prefers-color-scheme: dark) */
+.dark-mode {
+    --bg-primary: #343a40;
+    --bg-secondary: #212529;
+    --bg-secondary-light: #c9c9c936;  /* Más claro que el secondary */
+    --bg-secondary-dark: #212529;   /* Más oscuro que el secondary */
+
+    --text-primary: #ffffff;
+    --text-secondary: #b3b5b6;
+
+    --border-cont: rgba(255, 255, 255, 0.125);
+}
+
+.light-mode {
+    /* Primary Colors */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f7f7f7;
+    --bg-secondary-light: #c9c9c9ab;  /* Más claro que el secondary */
+    --bg-secondary-dark: #7d8083c5;   /* Más oscuro que el secondary */
+
+    /* Extended Grayscale */
+    --text-primary: #000000;
+    --text-secondary: #6c757d;
+    
+    --border-cont: rgba(0, 0, 0, .125);
+}
+
+/* Estilos para alturas de 900px o más, no es necesario alturas en pixeles ahora..
+@media (min-height: 1000px) { :root { --height-header: 10vh; --height-item-main-nav: 60px; } } */
+
+:root {
+    /* heigths */
+    --height-header: 64px;
+    --height-item-main-nav: 48px;
+
+    /* width responsive 24 50 26 */
+    --padding-container-page: 3%;
+}
+
+/* Styles for lil - desktops (mín. 769px to max. 992px+)) */
+@media (min-width: 480px) {
+    :root {
+        /* heigths 10vh */
+        --height-header: 84px;
+        --height-item-main-nav: 50px;
+    }
+}
+
+/* Styles for lil - desktops (mín. 769px to max. 992px+)) */
+@media (min-width: 768px) {
+    :root {
+        /* heigths 10vh */
+        --height-header: 110px;
+        --height-item-main-nav: 60px;
+        --padding-container-page: 4%;    /* padding responsive useful some times */
+        /* --font-xx-large: 2rem;       /* 32px tablet & desktop */
+        --font-xxx-large: 2.5rem;    /* 40px tablet & desktop */
+    }
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 992px) {
+    :root {
+        /* heigths 25vh */
+        --height-header: 180px;    /* 180px */
+        --height-item-main-nav: 48px;
+        --padding-container-page: 84px;     /* padding responsive useful some times */
+    }
+}
+
+@media (min-width: 1280px) {
+    :root {
+        --padding-container-page: 100px;
+    }
+}
+
+/* ======================================================================
+        GENERAL STYLES AND CLASSES
+====================================================================== */
+/* Propiedades comunes para <html> y <body> */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+    min-height: 100vh;  /*  Fallback adicional  
+    height: calc(var(--vh, 1vh) * 100); */
+
+    /* svh (small viewport height) = altura visible real, sin la barra.
+    dvh (dynamic vh) = cambia dinámicamente cuando la barra aparece/desaparece.  
+    height: 100svh; 
+    max-height: 100dvh;  */
+    
+    line-height: 1.25;
+    color: var(--text-primary);
+    font-size: var(--font-normal);
+    font-family: var(--font-main), sans-serif;
+    background-color: var(--bg-secondary); 
+    transform: none;
+
+    scroll-behavior: smooth; /* Desplazamiento suave */
+    -webkit-font-smoothing: antialiased; /* Mejora la renderización de fuentes en WebKit */
+    transition: background-color .2s ease-in-out; /* Transición suave para el color de fondo */
+    -webkit-tap-highlight-color: transparent; /* Elimina el resaltado al tocar en móviles */
+}
+
+/* Para navegadores WebKit (Chrome, Safari, Edge) */
+::-webkit-scrollbar-track {
+    background: #2b2b2b;  /* Color negro/oscuro */
+}
+
+html {
+    -webkit-text-size-adjust: 100%; /* Evita que el texto se escale en iOS */
+    /* Para Firefox */
+    scrollbar-color: #797979 #2b2b2b; /* thumb track */
+}
+
+body {
+    text-align: left;
+    direction: ltr;
+    overflow-x: hidden;
+    -webkit-backface-visibility: hidden; /* Evita problemas de renderizado en Safari */
+    backface-visibility: hidden; /* Evita problemas de renderizado en otros navegadores */
+
+    /* mobile only */
+    overscroll-behavior-y: contain; /* Evita el pull-to-refresh */
+    touch-action: manipulation; /*  Mejora la interactividad táctil */
+    -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+    -webkit-tap-highlight-color: transparent; /* Evita el resaltado al tocar */
+}
+
+/* Estilos base (móvil) */
+header {
+    height: var(--height-header);
+    width: 100%;
+     /* padding: 0;             /* mobile edit */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-index);
+}
+
+/* style for mobile device to open correctly modal on another modal */
+header.cart-open {
+    z-index: calc(var(--z-index-plus) + 2);
+}
+
+main {
+    width: 100%;
+    background-color: var(--bg-secondary);
+    padding-top: 20px; /* mobile edit */
+    padding-bottom: 20px;
+    margin-top: var(--height-header);    /* mobile edit */
+}
+
+footer {
+    width: 100%;
+    padding-top: 32px;
+    padding-bottom: 32px;
+}
+
+/* Media queries para pantallas más grandes (desktop) */
+@media (min-width: 992px) {
+    header {
+        padding-top: 8px; /* mobile edit */
+        position: relative; /* mobile edit */
+        z-index: auto;    
+        /* esto es necesario por una cuestion de stacking context que sucede entre padres 
+        con position relative */
+    }
+
+    main {
+        margin-top: 0; /* mobile edit */
+    }
+
+    footer { 
+        padding-top: 24px;
+        padding-bottom: 12px;
+    }
+}
+
+
+/* ======================================================================
+        Containers Pages
+====================================================================== */
+/*  Main container for all the contents of header, main, footer with paddings */
+.cont-page {
+    width: 100% !important;
+    max-width: 1280px !important;  
+    padding-left: var(--padding-container-page) !important;       
+    padding-right: var(--padding-container-page) !important;
+    margin: 0 auto;
+}
+
+/* ====================================================================
+        Basic adjustments to classes
+==================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body * {
+    /* esto fue hecho para que se incluya la fuente en los include de la base.html */
+    font-family: var(--font-main), sans-serif;
+}
+
+ul {
+    list-style: none;
+    /* Color highlighting when pressed on mobile devices */
+    -webkit-tap-highlight-color: transparent;
+}
+
+a {
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+button i { pointer-events: none; }
+b, strong { font-weight: bolder; }
+
+input, select, textarea {
+    font-size: var(--font-small);
+    font-weight: bolder;
+
+    color: var(--text-primary);
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--text-primary);
+
+    outline: none;
+    padding: 5px;
+    padding-left: 8px;
+    height: 36px;
+    width: 100%;
+}
+
+select, option { cursor: pointer; font-weight: bolder; color: var(--text-primary); }
+
+/* Para cuando está autocompletado */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text-primary);
+    -webkit-box-shadow: 0 0 0px 1000px var(--bg-secondary) inset;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="url"] {
+    transition: box-shadow 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="url"]:focus {
+    box-shadow: 0 0 1px var(--text-primary), 0 0 4px var(--text-primary);
+}
+
+/* Safari/Chrome: quita highlight especial */
+input[type="text"]::-webkit-focus-inner {
+    border: 0;
+}
+
+input[type="text"]:-moz-focusring {
+    outline: none;
+}

@@ -1,0 +1,107 @@
+
+
+{% extends "home/base.html" %}
+{% load static compress %}
+{% load custom_filters %}
+
+
+{% block extra_head %}
+    <title> Home | {{ store.name }} </title>
+
+    {# Swiper CSS #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+
+    {% compress css %}
+        <link href="{% static 'home/css/home.css' %}" rel="stylesheet">
+        <link href="{% static 'products/css/products_carousel.css' %}" rel="stylesheet">
+        <link href="{% static 'products/css/cards_products.css' %}" rel="stylesheet">
+    {% endcompress %}
+{% endblock %}
+
+
+{# To place banners without the page limit #}
+{% block top_banner_image %}
+    {# Carousel Headers #}
+    <div class="swiper-container home-header-container">
+        <div class="swiper-wrapper w-100 h-100">
+            {% for image in headers_active %}
+                <div class="swiper-slide">
+                    <img class="header-img" src="{{ image.image_url }}" alt="header {{ store.name }}"
+                    loading="lazy" width="100" height="100">
+                </div>
+            {% endfor %}
+        </div>
+        
+        {% comment %}
+            {# mostrar los botones de navegación #}
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div> 
+        {% endcomment %}
+        
+        {# mostrar la paginación #}
+        <div class="swiper-pagination"></div>
+    </div>
+{% endblock top_banner_image %}
+
+
+
+{% block main_content %}
+    <div class="w-100 mt-3" id="cont-swipers-home"> </div>
+
+    {# componente reutilizable modal uno solo #}
+    {% include "products/components/card__modal.html" %}
+    
+{% endblock main_content %}
+
+
+
+{% block extra_scripts %}
+    {# Swiper JS sirve para el carousel #}
+    <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+
+    {% comment %}
+        {# favorites/urls #}
+        favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
+
+        {# cart/urls_api #}
+        cartActions: "{% url 'cart-api' 0 %}".replace('/0/', '/{product_id}/'),
+
+        {# products/urls #}
+        productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
+        category: "{% url 'pl_category' cat_slug='__CAT__' %}",
+        subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
+        brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}",
+
+        {# products/urls_api #}
+        productList: "{% url 'product-update-api' 0 %}".replace('/0/', '{product_id}'),
+        productImages: "{% url 'product-images-api' 0 %}".replace('/0/', '/{product_id}/')
+
+        {# Parses the JSON string `productos_json` injected by Django's server-side rendering (SSR). #}
+        window.productList = JSON.parse('{{ products_json|escapejs }}');
+    {% endcomment %}
+
+    <script>
+        window.TEMPLATE_URLS = {
+            favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
+            cartActions: "{% url 'cart-api' 0 %}".replace('/0/', '/{product_id}/'),
+            productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
+            category: "{% url 'pl_category' cat_slug='__CAT__' %}",
+            subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
+            brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}",
+            productList: "{% url 'product-update-api' 0 %}".replace('/0/', '{product_id}'),
+            productImages: "{% url 'product-images-api' 0 %}".replace('/0/', '/{product_id}/')
+        };
+
+        window.productList = JSON.parse('{{ products_json|escapejs }}');
+        window.BRAND_LIST = JSON.parse('{{ brands_json|escapejs }}');
+        window.CATEGORIES_LIST = JSON.parse('{{ categories|escapejs }}');
+    </script>
+
+    {% compress js %}
+        <script src="{% static 'favorites/js/add_favorites.js' %}"></script>
+        <script src="{% static 'products/js/logic/cards_products.js' %}"></script>
+        <script src="{% static 'products/js/components/cards_products.js' %}"></script>
+        <script src="{% static 'products/js/components/carousel_products.js' %}"></script>
+        <script src="{% static 'home/js/home.js' %}"></script>
+    {% endcompress %}
+{% endblock %}

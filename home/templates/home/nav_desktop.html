@@ -1,0 +1,109 @@
+
+
+{% load static %}
+
+{# NAV DESKTOP PARTE TOP - LOGO - FORM SEARCH - ICONS #}
+<nav class="d-desktop-grid cont-page d-grid grid-navbar-top top-nav relative gap-2">
+    
+    <a href="{% url 'Home' %}" class="w-100 h-100 logo-navbar-top">
+        <img src="{% static 'ico/logo.jpg' %}" class="img-cover" alt="Logo {{store.name}}"
+            loading="lazy" width="100" height="100">
+    </a>
+
+    <form class="top-bar-search bg-primary cont-space-between align-self-center" action="{% url 'product_top_search' %}">
+        <input class="text-primary" type="text" placeholder="Buscar..." name="topQuery" 
+        autocomplete="off" required minlength="2">
+        <button class="btn text-primary scale-on-touch" type="submit">
+            <i class="ri-search-line font-lg"></i>
+        </button>
+    </form>
+    
+    <div class="d-flex justify-end gap-3">
+        <a href="{{ store.google_url }}" target="_blank" class="text-white hover-up">
+            <i class="ri-whatsapp-line font-xxl"></i>
+        </a>
+        <a href="{{ store.ig_url }}" target="_blank" class="text-white hover-up">
+            <i class="ri-instagram-line font-xxl"></i>
+        </a>
+        <a href="{{ store.tt_url }}" target="_blank" class="text-white hover-up">
+            <i class="ri-tiktok-fill font-xxl"></i>
+        </a>
+        <a href="{{ store.fb_url }}" target="_blank" class="text-white hover-up">
+            <i class="ri-facebook-box-fill font-xxl"></i>
+        </a>
+    </div>
+
+    {% comment %}
+        Si bien el boton esta mas abajo se pone aca para evitar el cambio de
+        static a fixed y que se mueva este widget en la pantalla
+    {% endcomment %}
+    
+</nav>
+
+
+{# NAV DESKTOP MAIN PART ( categories - list links - register icon ) #}
+<nav class="d-desktop-grid d-grid h-min w-100" id="cont-main-nav">
+
+    {% comment %}
+        Este div='cont-page' aunque parezca demas es necesario para delimitar el futuro fixed que se hace
+        con la navbar asiqeu no lo toquen... 
+    {% endcomment %}
+    <div class="cont-page">
+        <div class="d-grid grid-navbar-main gap-2" id="main-nav-list">
+
+            {# to pass image url to the script #}
+            <a href="{% url 'Home'%}" class="cont-logo-fixed cont-100" data-state="closed">
+                <img src="{% static 'ico/logo.jpg' %}" class="img-cover" alt="LOGO">
+            </a>
+
+            {# drop down menu - hoods #}
+            <div class="d-flex relative dropdown">
+                <div class="w-100">
+                    {% include "products/dropmenu_categories.html" %}
+                </div>
+            </div>
+            
+            {# list useful links #}
+            <ul class="d-flex h-100 gap-1">
+                <li class="cont-nav__link">
+                    <a href="{% url 'Home' %}" class="underline-anim h-100 w-100 d-flex py-1 px-2">
+                        <span class="text-white bolder font-sm">Home</span>
+                    </a>
+                </li>
+
+                <li class="cont-nav__link">
+                    <a href="{% url 'contact' %}" class="underline-anim h-100 w-100 d-flex py-1 px-2">
+                        <span class="text-white bolder font-sm">Contacto</span>
+                    </a>
+                </li>
+        
+                <li class="cont-nav__link">
+                    <a href="{% url 'help_mp' %}" class="underline-anim h-100 w-100 d-flex py-1 px-2">
+                        <span class="text-white bolder font-sm">¿Quienes Somos?</span>
+                    </a>
+                </li>
+            </ul>
+
+            {# icons sections #}
+            <div class="d-flex justify-end gap-2 relative">
+                {# Icon Dark mode #}
+                <button class="theme-toggle btn btn-40 btn-main">
+                    <i class="theme-icon ri-moon-line font-xl"></i>
+                </button>
+
+                {# Icon Cart Overlay, el widget esta en base.html en el header #}
+                <button class="btn btn-main btn-40 relative cart-button" aria-expanded="false"">
+                    <i class="ri-shopping-cart-2-line font-xl"></i>
+                    {# Badge para mostrar el número de productos #}
+                    <span class="cart-badge" id="badge-cart-button">{{ total_items }}</span>
+                </button>
+        
+                {# Icon user login, el widget esta en base.html en el header #}
+                <button class="btn btn-main btn-40 user-button" aria-expanded="false">
+                    <i class="ri-user-3-line font-xl"></i>
+                </button>
+                
+            </div>
+        </div>
+    </div>
+</nav>

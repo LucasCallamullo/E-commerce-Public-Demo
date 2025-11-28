@@ -1,0 +1,12 @@
+
+
+.address-label {
+    width: 100%;
+}
+
+
+@media (min-width: 992px) {
+    .address-label {
+        width: calc(50% - 8px);
+    }
+}

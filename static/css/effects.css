@@ -1,0 +1,193 @@
+
+
+
+
+/* generic effects to use:
+    show or hidden
+    scale-on-touch
+    border-hover
+    slideOpenToggle        (animation)
+    slideCloseToggle       (animation)
+*/
+.show { display: block !important; }
+.hidden { display: none !important; visibility: hidden !important; /* opcional */ }
+
+/* scale on touch the element */
+.scale-on-touch {
+    /* transition: transform 0.3s ease-in-out; */
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+}
+
+.scale-on-touch:active {
+    transform: scale(0.9);
+}
+
+/* get a effect border-radius and effect to see perfect borders on hover */
+.border-hover {
+    border: 1px solid var(--border-cont);
+    border-radius: .25rem;
+    transition: border-radius 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Efecto genérico de levantado */
+.hover-up {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  /* will-change: transform; */
+  cursor: pointer;
+}
+
+.hover-up:active,
+.hover-up:focus-visible {
+    transform: translateY(-0.25rem) translateZ(0);
+}
+
+/* href -main */
+.main-ref {
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: color 0.3s ease-in-out;
+}
+
+@media (min-width: 992px) {
+    .main-ref:hover,
+    .main-ref:active {
+        color: var(--main-color);
+    }
+
+    .scale-on-touch:hover { transform: scale(0.9); }
+    .hover-up:hover { transform: translateY(-0.25rem) translateZ(0); }
+
+    .border-hover {
+        border-radius: 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+}
+
+/* 
+    ANIMATIONS GENERIC 
+        depends on the change of this variable in the different associated 
+        classes --max-anim-vertical-height
+*/
+@keyframes slideOpenToggle {
+    from {
+        max-height: 0;
+        opacity: 1;
+    }
+    to {
+        max-height: var(--max-height-vertical-anim);
+        opacity: 1;
+    }
+}
+
+@keyframes slideCloseToggle {
+    from {
+        max-height: var(--max-height-vertical-anim);
+        opacity: 1;
+    }
+    to {
+        max-height: 0;
+        opacity: 1;
+        /* display: none; */
+    }
+}
+
+.bg-color { background-color: var(--main-color); }
+.bg-primary { background-color: var(--bg-primary); }
+.bg-secondary { background-color: var(--bg-secondary); }
+.bg-gray-light { background-color: var(--bg-secondary-light); }
+.bg-gray-dark  { background-color: var(--bg-secondary-dark); }
+
+.border-main { border: 2px solid var(--main-color); }
+.border-primary { border: 1px solid var(--text-primary); }
+.border-secondary { border: 1px solid var(--text-secondary); }
+.not-border-bottom { border-bottom: 1px transparent !important; }
+
+.border-bot-prim { border-bottom: 2px solid var(--text-primary); }
+.border-top-prim { border-top: 2px solid var(--text-primary); }
+.border-bot-second { border-bottom: 1px solid var(--text-secondary); }
+
+.scroll-y { overflow-y: auto; }
+.scroll-x { overflow-x: auto; }
+
+
+@media (min-width: 992px) {
+    .underline-anim {
+        position: relative;
+        color: var(--white-color);
+        font-weight: bolder;
+        transition: opacity .4s;
+    }
+
+    .underline-anim span {
+        position: relative;
+        transition: margin .4s;
+    }
+
+    .underline-anim span::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -4px;
+        width: 0;
+        height: 2px;
+        background-color: var(--white-color);    /* this is only you have to change */
+        transition: width .4s ease-out;
+    }
+    
+    /* Animation link on hover */
+    .underline-anim:hover span::after { width: 100%; }
+    
+    /* Sibling fade animation */
+    .underline-anim:has(.underline-anim:hover) .underline-anim:not(:hover) { opacity: .4; }
+}
+
+
+/* Base class for highlight effect */
+.highlight-red {
+    box-shadow: 0 0 0 2px var(--red-color);
+    transition: box-shadow 0.3s ease;
+}
+
+.highlight-main {
+    box-shadow: 0 0 0 2px var(--main-color);
+    transition: box-shadow 0.3s ease;
+}
+
+.hr-custom {
+    display: block;
+    overflow: hidden;
+    border: none;
+    height: 6px;
+    background: linear-gradient(
+        to right,
+        var(--main-color),    /* Inicio (color principal) */
+        var(--main-color),    /* Inicio (color principal) */
+        var(--main-light-color),    /* Inicio (color principal) */
+        var(--white-color),   /* Punto intermedio */
+        var(--main-light-color),
+        var(--main-color),
+        var(--main-color) 100% /* Extendemos el color principal hasta el 70% */
+    );
+    background-size: 200% 100%; 
+    margin: 16px 0;
+    animation: gradientScroll 4s linear infinite; /* Aumentamos la duración para más fluidez */
+    will-change: background-position;
+	filter: blur(0.5px); /* Difumina el corte (opcional) */
+	
+}
+
+@keyframes gradientScroll {
+    100% {
+        background-position: 0% 50%;   /* Inicio */
+    }
+    0% {
+        background-position: 100% 50%; /* Final */
+    }
+}
+
+.hr-primary {
+	border: none;
+    height: 3px;
+	background: var(--text-primary);
+}

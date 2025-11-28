@@ -1,0 +1,89 @@
+
+
+{% load static %}
+
+<div class="d-grid cont-grid-123 gap-2">
+
+    {# Primera columna: Logo + Texto de la compañía #} 
+    <div class="d-flex-col gap-2 w-100">
+        
+        <a class="w-100 h-150" href="{% url 'Home' %}">
+            <img src="{% static 'ico/logo.jpg' %}" alt="Logo {{store.name}}" class="img-cover"
+                loading="lazy" width="100" height="100">
+        </a>
+
+        <h2 class="text-justify"> {{ store.name }} </h2>
+
+        <p class="ms-1 text-justify">
+            ¡Tu cueva Gamer en Córdoba! 🎮
+        </p>
+        <p class="ms-1 text-justify">
+            Somos la tienda de computación y videojuegos que hacía falta en Córdoba.
+            Nacida con el propósito de satisfacer a todo jugador PC Gamer, Playstation, 
+            Nintendo y Xbox.
+        </p>
+        <p class="ms-1 text-justify">
+            Grandes marcas nos acompañan como Asus, Corsair, Hyperx, Gigabyte, Logitech,
+            Samsung o Redragon entre otras.
+        </p>
+
+        <h3 class="text-justify"> 
+            Información adicional! 
+        </h3>
+        
+        <span class="d-flex gap-1">
+            <i class="ri-map-pin-line font-xl"></i>
+            {{store.address}}, Córdoba, Argentina.
+        </span>
+
+        <span class="d-flex gap-1">
+            <i class="ri-whatsapp-line font-xl"></i>
+            {{store.cellphone}}
+        </span>
+
+        <div class="d-flex gap-1">
+            <i class="ri-time-line font-xl"></i>
+            <span class="d-flex-col gap-1 text-justify">
+                <p>Lunes a Viernes de 10hs a 14hs y de 15hs a 18:50hs.</p>
+                <p>Sábado mediodía.</p>
+            </span>
+        </div>
+
+        <span class="d-flex gap-1">
+            <i class="ri-mail-line font-xl"></i>
+            {{store.email}}
+        </span>
+    </div>
+
+    {# Segunda columna #} 
+    <div class="d-flex-col gap-2 w-100">
+        <h2>Columna 2</h2>
+        <p>Más contenido...</p>
+    </div>
+
+    {# Tercera columna #} 
+    <div class="d-flex-col gap-2 w-100">
+
+        <h2>Seguinos!</h2>
+
+        {# Icon Container  #} 
+        <div class="d-flex ms-1 gap-3 icons-footer">
+            <a href="{{store.tt_url}}" class="hover-up" target="_blank">
+                <i class="ri-tiktok-fill font-xxl"></i>
+            </a>
+            <a href="{{store.fb_url}}" class="hover-up" target="_blank">
+                <i class="ri-facebook-box-fill font-xxl"></i>
+            </a>
+            <a href="{{store.ig_url}}" class="hover-up" target="_blank">
+                <i class="ri-instagram-line font-xxl"></i>
+            </a>
+            <a href="{{store.google_url}}" class="hover-up" target="_blank">
+                <i class="ri-google-fill font-xxl"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="border-top-prim w-100 grid-col-all d-flex justify-center bolder font-md p-2 mt-1">
+        © 2024 Ecommerce Generic. All rights reserved.
+    </div>
+</div>

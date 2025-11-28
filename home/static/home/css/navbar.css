@@ -1,0 +1,416 @@
+
+
+/*  ============================================= 
+    TOP NAV  - DESKTOP Y MOBILE
+=============================================    */
+/* TOP BAR SEARCH */
+.top-bar-search {
+    border-radius: 0;    /* mobile */
+    width: 100%;    /* mobile */
+    padding-left: 10px;
+    height: var(--height-header);
+}
+
+.top-bar-search input {
+    width: calc(100% - 100px);
+
+    border: none;
+    outline: none;
+    box-shadow: none;
+    height: auto;
+    background-color: var(--bg-primary);
+}
+
+.top-bar-search input[type="text"]:focus {
+    box-shadow: none;
+}
+
+.top-bar-search button {
+    width: 48px;
+    height: var(--height-header);
+}
+
+/* Desktop (min. 993px) */
+@media (min-width: 992px) {
+    /* containers from top nav bar in desktop mode */
+    .top-nav {
+        height: 110px;    /*  180px - 110px = 70px; */
+        max-height: 110px;
+    }
+
+    .grid-navbar-top {
+        padding: 4px 0;
+        grid-template-columns: 1fr 2.1fr 0.9fr;
+    }
+
+    .top-bar-search {
+        min-height: 44px;
+        height: 44px;
+        width: 100%;
+        padding-left: 15px;
+        border-radius: 20px;
+    }
+    
+    .top-bar-search input {
+        height: 100%;
+        width: calc(100% - 50px);
+    }
+
+    .top-bar-search button {
+        height: 48px;
+    }
+}
+
+/* Hide the search form by default */
+.search-bar-mobile {
+    position: absolute;
+    display: block;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: var(--z-index);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+    height: 0;
+    overflow: hidden;
+    transition: height 0.3s ease, opacity 0.3s ease;
+}
+
+.search-bar-mobile[data-state="closed"] {
+    height: 0; /* Cerrado */
+    opacity: 0;
+}
+
+.search-bar-mobile[data-state="open"] {
+    height: var(--height-header);
+    opacity: 1;
+}
+
+#back-search-form { 
+    border-left: solid 2px var(--text-secondary); 
+    margin-left: 4px;
+}
+
+
+/* ========================================================================
+    Main Nav Bar - DESKTOP
+======================================================================== */
+@media (min-width: 992px) {
+    .grid-navbar-main {
+        grid-template-columns: 1fr 2.1fr 0.9fr;
+        padding-bottom: 4px;
+        width: 100%;
+        height: calc(70px - 4px);    /* 204px - 134 px (top bar) = 70px */
+    }
+
+    .cont-nav__link {
+        height: 40px;
+        background-color: var(--main-light-color);
+    }
+
+    /* ============================================= 
+        fixed-nav in desktop css
+    ============================================= */
+    .fixed-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0; /* Asegura que cubra todo el ancho */
+        height: 80px !important;    /* 11vh */
+        min-width: 100vw;
+        max-width: 100vw;
+        padding-right: 2px;
+        /*  margin-right: 12px; */
+
+        padding-top: 10px;
+        background-color: var(--main-color);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);     /* Sombra para destacar */
+        transition: all 0.3s ease-in-out;
+        transform: translateY(-10px); /* */
+        opacity: 0;
+        z-index: var(--z-index);
+    }
+
+    .fixed-nav.active {
+        transform: translateY(0); 
+        /*   transform: translate3d(0, 0, 0);   */
+        opacity: 1;
+    }
+
+    /* Cuando está fijo: 4 columnas */
+    .grid-navbar-main.fixed-layout {
+        grid-template-columns: 0.8fr 1fr 1.2fr 1fr;
+    }
+
+    /* Styles for the logo when navigation is fixed */
+    .cont-logo-fixed {
+        width: 100%;
+        height: 60px;
+        max-height: 100%;
+        overflow: hidden;
+    }
+
+    .cont-logo-fixed[data-state="closed"] {
+        display: none;
+    }
+    .cont-logo-fixed[data-state="open"] {
+        display: block;
+    }
+}
+
+@media (min-width: 1280px) {
+    .fixed-nav {
+        padding-right: 12px;
+    }
+}
+
+/* ===================================================================================
+           NAVEMENU MOBILE CSS
+=================================================================================== */ 
+/* Navigation for mobile devices */
+.mobile-nav {
+    height: var(--height-header);
+    max-height: var(--height-header);
+    
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+    padding: 0 4px;
+    position: relative;
+}
+
+.grid-navbar-sm {
+    gap: 0;
+    padding: 0;
+    grid-template-columns: 42px 42px auto 42px 42px;
+}
+
+.btn-nav-mobile {
+    width: 42px;
+    max-width: var(--height-header);
+    max-height: var(--height-header);
+}
+
+/* Some Tablets or Mobile */
+@media (min-width: 480px) {
+    .mobile-nav {
+        padding: 6px 6px;
+    }
+
+    .grid-navbar-sm {
+        gap: 12px;
+        grid-template-columns: 64px 64px auto 64px 64px;
+    }
+
+    .btn-nav-mobile {
+        width: 64px;
+    }
+}
+
+/* Tablets (máx. 768px) */
+@media (min-width: 768px) {
+    .mobile-nav {
+        padding: 8px 8px;
+    }
+
+    .grid-navbar-sm {
+        gap: 16px;
+        grid-template-columns: 70px 70px auto 70px 70px;
+    }
+
+    .btn-nav-mobile {
+        width: 70px;
+    }
+}
+
+/* Desktop (máx. 992px) */
+@media (min-width: 992px) {
+    .mobile-nav {
+        display: none;
+    }
+}
+
+
+/* =====================================================================================
+                            BARRA DROP CONTENT TIPO PRODUCTO todo
+/* ===================================================================================== */
+/* hide menu mobile togle */
+.menu-mobile {
+    position: absolute; 
+    top: 0;
+    left: -100%;
+
+    width: 82%;
+    height: 100vh;
+    transition: left 0.5s;
+    z-index: var(--z-index-plus);
+}
+
+.menu-mobile[data-state="closed"] {
+    left: -100%;
+}
+
+.menu-mobile[data-state="open"] {
+    left: 0;
+}
+
+.cont__menu-mobile {
+    height: 100%;
+    overflow-y: auto;
+    
+    grid-template-columns: 1fr;  /* 1 columna */
+    grid-template-rows: 0.92fr 0.08fr;  /* 2 filas, proporción vertical */
+    row-gap: 8px;
+    padding: 0;
+}
+
+/* Main dropdown button */
+.dropdown-btn,
+.item__menu-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+
+    padding-left: 5%;
+    width: 100%;
+    height: var(--height-item-main-nav);     /* 48px */
+    min-height: var(--height-item-main-nav);     /* 48px */
+
+    border: none;
+    border-bottom: 1px solid var(--text-secondary);
+
+    transition: color 0.3s ease;
+}
+
+.btn__menu-mobile {
+    color: var(--text-primary);
+    height: var(--height-item-main-nav); 
+    width: calc(var(--height-item-main-nav) + 1px);
+    border-left: 1px solid var(--text-secondary);
+}
+
+.border__menu-mobile {
+    border-left: 1px solid var(--text-secondary);
+    margin-left: 24px;
+    width: calc(100% - 24px);
+}
+
+.dropdown-btn:active i { color: var(--text-primary) !important; }
+
+/* Add animation for the arrow icon when the dropmenu opens  */
+.arrow-drop { transition: transform 0.3s ease; }
+.rotate { transform: rotate(180deg); }
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 993px) {
+    .dropdown-btn {
+        cursor: pointer;    /* edit mobile */
+        border: 2px solid var(--main-color);    /* edit mobile */
+        padding: 3%;
+        margin-left: -2px;    
+        width: calc(100% + 4px);
+    }
+
+    .dropdown-btn:hover i {
+        color: var(--text-primary) !important;
+    }
+}
+
+
+/* 
+    Drop down main categories menu
+*/
+/* MOBILE */
+.dropdown-menu { 
+    display: none;
+    position: relative; /* edit mobile */
+    box-shadow: none; /* edit mobile */
+    border: none;    /* edit mobile */
+    margin: 0;    /* edit mobile */
+    width: 100%;    /* edit mobile */
+    height: auto;    /* edit mobile */
+    max-height: 40vh;    /* edit mobile */
+
+    /* general stuff */
+    opacity: 0;
+    pointer-events: none;
+    background-color: var(--bg-primary);
+    z-index: var(--z-index);
+
+    /* should be added to the class in general not to the animation   */
+    overflow-y: auto; 
+    scrollbar-width: none; /* Hide the bar in Firefox */
+    -ms-overflow-style: none; /* Hide the bar in Internet Explorer/Edge */
+
+    /* should be added to the class in general not to the animation 
+    see .show and .hide events for more info */
+    --max-height-vertical-anim: 50vh;
+}
+
+.dropdown-menu::-webkit-scrollbar {
+    display: none; /* Hide the bar in Chrome, Safari and Edge */
+}
+
+/* Classes to apply the animations animation: slideDownCat 0.5s ease forwards;*/
+.dropdown-menu[data-state="open"] {
+    display: block;
+    pointer-events: all;
+    --max-height-vertical-anim: 70vh;
+    animation: slideOpenToggle 0.6s ease forwards;
+}
+
+.dropdown-menu[data-state="closed"] {
+    display: block;
+    pointer-events: none;
+    --max-height-vertical-anim: 70vh;
+    animation: slideCloseToggle 0.6s ease forwards; 
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 993px) {
+    .dropdown-menu {
+        position: absolute;        /* edit mobile */
+        width: 100%;    /* edit mobile */
+        box-shadow: 2px 2px 5px 0px var(--black-color);     /* edit mobile */
+        border: 2px solid var(--main-color);    /* edit mobile */
+        margin-left: -2px;    /* edit mobile */
+        width: calc(100% + 4px);    /* edit mobile */
+        border-top: none;    /* edit mobile */
+        max-height: 70vh;    /* edit mobile */
+    }
+
+    /* Submenú  */
+    .sub-dropdown-content {
+        display: none;
+
+        /* 1fr 2.1fr 0.9fr */
+        width: 21%;
+
+        background-color: var(--bg-primary);
+        border: 2px solid var(--main-color);
+        box-shadow: 1px 1px 5px 0px var(--black-color); 
+
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+
+    .dropdown-item,
+    .sub-dropdown-item {
+
+        padding: 0 5px;
+        width: 100%;
+        cursor: pointer;
+        background-color: var(--bg-primary);
+        border-bottom: 1px solid var(--main-color);
+        
+        height: calc(var(--height-item-main-nav) - 6px);
+    }
+
+    .dropdown-item:hover,
+    .sub-dropdown-item:hover {
+        background-color: var(--bg-secondary-dark);
+        opacity: 1;
+    }
+}

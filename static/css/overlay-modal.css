@@ -1,0 +1,45 @@
+
+
+.overlay {
+    position: fixed;
+    display: none;
+    top: 0;
+    left: 0;
+    right: 0;
+    min-width: 100vw;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+    z-index: var(--z-index-overlay);
+    /*    pointer-events: none;  Prevents interference when not visible
+    pointer-events: all;  Allows interaction when visible */
+}
+
+/* Estilos generales para el modal */
+.modal {
+    display: none;
+    position: fixed; 
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--bg-primary);
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+    height: 85vh;
+    width: 80%;
+    z-index: var(--z-index-plus);
+    padding: 16px;
+    overflow-y: auto;
+    border: 1px solid var(--text-secondary)
+}
+
+.modal[data-state="closed"] {
+    display: none;
+    pointer-events: none;
+}
+
+.modal[data-state="open"] {
+    display: block;
+    pointer-events: auto;
+}

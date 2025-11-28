@@ -1,0 +1,84 @@
+
+
+main { padding-top: 0;    /* mobile changes */ }
+
+/* Styles for small mobile phones (hasta 480px) */
+.home-header-container {
+    display: flex;
+    width: 100%;
+    height: calc(100vh - var(--height-header)); /* edit mobile      */
+    max-height: 300px;
+    position: relative;
+}
+
+/* Styles for tablets (mín. 481px to max. 768px) */
+@media (min-width: 480px) {
+    .home-header-container {
+        max-height: 310px;
+    }
+}
+
+/* Styles for desktops (mín. 769px to max. 992px+)) */
+@media (min-width: 768px) {
+    /* Styles for desktops */
+    .home-header-container {
+        max-height: 330px;
+    }
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 992px) {
+    .home-header-container {
+        max-height: calc(100vh - var(--height-header));
+    }
+}
+
+.home-header-container .swiper-button-next,
+.home-header-container .swiper-button-prev {
+    color: var(--main-color);
+}
+
+/* this styles is for banner on header */
+.swiper-slide {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.swiper-slide .header-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.swiper-pagination {
+    position: absolute;
+    background-color: #ffffff85;
+    margin-left: 50%;
+    transform: translateX(-50%); /* Ajusta la posición exacta del centro */
+
+    width: min-content !important;
+    height: 22px !important;
+
+    display: flex;
+    justify-content: center !important;
+    align-items: center !important;
+    border-radius: 5px;
+}
+
+.swiper-pagination-bullet {
+    width: 13px;
+    height: 13px;
+    background-color: #ffffff;
+    opacity: 0.5;
+    margin: 0 6px;
+}
+
+.swiper-pagination-bullet-active {
+    background-color: var(--main-light-color); 
+    opacity: 1; 
+}

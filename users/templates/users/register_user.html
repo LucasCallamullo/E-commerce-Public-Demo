@@ -1,0 +1,107 @@
+{% extends "home/base.html" %}
+{% load static compress %}
+
+
+{% block extra_head %}
+    {% compress css %}
+        <link rel="stylesheet" href="{% static 'users/css/register_user.css' %}">
+    {% endcompress %}
+{% endblock %}
+    
+
+{% block main_content %}
+    <div class="d-flex mb-2 gap-1">
+        <a class="btn btn-parallelogram" href="{% url 'Home' %}">
+            <span class="font-md px-1">Home</span>
+        </a>
+
+        <button class="btn btn-parallelogram px-1">
+            <span class="font-md px-1">Registro</span>
+        </button>
+    </div>
+
+    <div class="d-grid cont-grid-11-13 gap-2">
+        {# Primera Fila #}
+        <div class="d-flex-col gap-2 bg-primary border-hover h-min p-2">
+            <h2 class="text-start">Registrarse</h2>
+            <p class="text-start">
+                Puedes registrarte como un usuario del sitio, podras gestionar tus compras, 
+                consultas y datos personales.
+            </p>
+            {# este mensaje es para cuando quieren continuar con la compra sin cuenta #}
+            {% if flag_to_login %}		
+                <span class="p-1 border-hover border-main text-start bolder">
+                    Por favor para continuar con su compra debe registrarse con una cuenta, 
+                    o puede logearse si asi lo desea.
+                </span>
+            {% endif %}
+        </div>
+
+        {# Segunda Fila #}
+        <form class="d-grid cont-grid-122 gap-2 h-min bg-primary border-hover p-3" id="register-form">
+            {% csrf_token %}
+            
+            {# Fila para Email y Password #}
+            <label class="d-flex-col gap-1 bolder">
+                E-mail
+                <input type="email" name="email" required>
+            </label>
+
+            <label class="d-flex-col gap-1 bolder">
+                Password
+                <input type="password" name="password" required>
+            </label>
+
+            {# Fila para Nombre y Apellido #}
+            <label class="d-flex-col gap-1 bolder">
+                Nombre
+                <input type="text" name="first_name" required>
+            </label>
+
+            <label class="d-flex-col gap-1 bolder">
+                Apellido
+                <input type="text" name="last_name" required>
+            </label>
+
+            {# Fila para Teléfono y Provincia #}
+            <label class="d-flex-col gap-1 bolder">
+                Celular
+                <input type="text" name="cellphone" required>
+            </label>
+
+            <label class="d-flex-col gap-1 bolder">
+                Provincia
+                <select name="province" id="id_province">
+                    {% for key, value in provinces %}
+                        <option value="{{ key }}">{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            {# Fila para Dirección #}
+            <label class="d-flex-col gap-1 bolder address-label grid-col-all">
+                Dirección
+                <input type="text" name="address" required>
+            </label>
+
+            {# buttons form #}
+            <div class="mt-2 grid-col-all d-flex gap-2">
+                <button class="btn btn-32 w-50 p-2 btn-main font-md bolder" type="submit"
+                data-action="Register" data-url="{% url 'register_user' %}">
+                    Crear
+                </button>
+
+                <button class="btn btn-32 w-50 py-1 px-2 btn-alt" id="have-account" type="button">
+                    <span class="text-truncate font-md bolder">Ya tengo cuenta</span>
+                </button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+    {% compress js %}
+        <script src="{% static 'users/js/register_user.js' %}"></script>
+    {% endcompress %}
+{% endblock extra_scripts %}

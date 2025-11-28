@@ -1,0 +1,113 @@
+
+
+.bolder {
+    font-weight: bolder;
+}
+
+.bold-red {
+    /* color: #ff0808 !important; */
+    color: var(--red-color) !important;
+    font-weight: bolder;
+}
+
+.bold-green {
+    color: var(--green-color) !important;
+    font-weight: bolder;
+}
+
+.bold-orange {
+    color: var(--orange-color) !important;
+    font-weight: bolder;
+}
+
+.bold-main {
+    color: var(--main-light-color);
+    font-weight: bolder;
+}
+
+.gray { color: gray !important; }
+
+/* font sizes generics */
+.font-xs { font-size: var(--font-x-small); }
+.font-sm { font-size: var(--font-small); }
+.font-md { font-size: var(--font-normal); }
+.font-lg { font-size: var(--font-large); }
+.font-xl { font-size: var(--font-x-large); }
+.font-xxl { font-size: var(--font-xx-large); }
+.font-xxxl { font-size: var(--font-xxx-large); }
+
+/* Colors */
+.text-white { color: var(--white-color) !important; }
+.text-black { color: var(--black-color) !important; }
+.text-primary { color: var(--text-primary) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
+
+/* .text-success { color: var(--color-success) !important; }
+.text-error { color: var(--color-error) !important; } */
+
+/* Alignment */
+.text-start { text-align: left !important; }
+.text-end { text-align: right !important; }
+.text-center { text-align: center !important; }
+.text-justify { text-align: justify !important; }
+
+/* Transform */
+.text-uppercase { text-transform: uppercase !important; }
+.text-lowercase { text-transform: lowercase !important; }
+.text-capitalize { text-transform: capitalize !important; }
+
+/* Font weight */
+.fw-light { font-weight: 300 !important; }
+.fw-normal { font-weight: 400 !important; }
+.fw-normal-plus { font-weight: 500 !important; }
+.fw-bold { font-weight: 700 !important; }
+
+/* Decoration */
+.text-underline { text-decoration: underline !important; }
+.text-line-through { text-decoration: line-through !important; }
+.text-no-decoration { text-decoration: none !important; }
+
+/* Overflow */
+.text-truncate {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.text-truncate-multiline {
+    display: -webkit-box;             /* Define flexbox de tipo caja */
+    /* -webkit-line-clamp: 4;             Número máximo de líneas */
+    -webkit-box-orient: vertical;     /* Orientación vertical */
+    overflow: hidden;                 /* Oculta el texto sobrante */
+    
+    /* Fallback para navegadores que no soportan line-clamp */
+    max-height: calc(22px * 3);     /*   3 líneas con altura de línea aprox. */
+    line-height: 20px;
+    text-overflow: ellipsis;
+}
+
+.text-break {
+	word-break: break-word;
+	overflow-wrap: break-word;
+	white-space: normal;
+}
+
+/*
+.text-truncate-fade {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;       
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+
+    position: relative;
+
+    /* Fallback para Firefox y otros /
+    max-height: calc(1.3em * 4);        
+    line-height: 1.3em;
+
+    /* Efecto fade-out al final /
+    mask-image: linear-gradient(180deg, black 60%, transparent 100%);
+    -webkit-mask-image: linear-gradient(180deg, black 60%, transparent 100%);
+} 
+*/
+

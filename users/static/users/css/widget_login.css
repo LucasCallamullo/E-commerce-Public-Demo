@@ -1,0 +1,80 @@
+
+
+.user-dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+
+    background-color: var(--bg-primary);
+    box-shadow: 1px 1px 3px 0px var(--black-color);
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+    padding: 12px 10px;        /* mobile */
+    width: 250px;        /* mobile */
+    z-index: var(--z-index-plus);
+
+    transform: translateY(-10px) scale(0.95);
+    transform-origin: top right;
+    /* transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), */
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s ease;
+}
+
+.user-dropdown[data-state="open"] {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.user-dropdown[data-state="closed"] {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-10px) scale(0.95);
+}
+
+.user-dropdown input {
+    transition: box-shadow 0.3s ease;
+}
+
+.user-dropdown input:focus {
+    outline: none;
+    box-shadow: 0 0 1px var(--main-color), 0 0 4px var(--main-color);
+}
+
+/* Tablets (máx. 768px) */
+@media (min-width: 480px) {
+    .user-dropdown {
+        right: var(--padding-container-page);
+    }
+}
+
+@media (min-width: 992px) {
+    .user-dropdown {
+        position: absolute;    /* or fixed, ver navbar.js for more info */
+        top: var(--height-header);
+        right: var(--padding-container-page); 
+        padding: 12px 12px;    /* desktop */
+        width: 260px;        /* desktop */
+    }
+
+    /* Posición fija para cuando la nav está fija */
+    .user-dropdown.fixed-dropdown {
+        position: fixed;
+        top: 80px;
+        right: var(--padding-container-page);
+    }
+}
+
+@media (min-width: 1280px) {
+    .user-dropdown {
+        right: calc(((100vw - 1300px) / 2) + var(--padding-container-page));
+    }
+
+    .user-dropdown.fixed-dropdown {
+        right: calc(((100vw - 1300px) / 2) + var(--padding-container-page));
+    }
+}
