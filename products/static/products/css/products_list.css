@@ -1,0 +1,157 @@
+
+
+/* Some class of products_cards.css overwritten */
+.product__card {
+    width: 100%;
+    height: 410px;
+    max-height: 410px;
+    position: relative;
+    overflow: visible;
+    flex-shrink: 0;
+    margin: 0 !important;
+}
+
+.product-card__extender-btn {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    bottom: 0;
+    opacity: 1;    /* edit mobile */
+    pointer-events: auto;        /* edit mobile */
+    height: 50px;    /* edit mobile */
+    z-index: 20;     /* edit mobile */
+}
+
+@media (min-width: 992px) {
+    .product__card {
+        width: 100%;
+        height: 350px;
+        max-height: 350px;
+    }
+    .product__card:hover { max-height: 400px; }
+    .grid-start-col-2 { grid-column: 2; }
+
+    .product-card__extender-btn {
+        bottom: -50px;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(50px); /* 50px hacia abajo */
+        height: 50px; /* Puedes mantener la altura real */
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Mostrar el extensor y el botón al pasar el mouse */
+    .product__card:hover .product-card__extender-btn,
+    .product-card__extender-btn:hover {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0); /* Vuelve a su posición normal */
+    }
+}
+/* ajustá esto al alto de tu header fijo */
+#cont-product-cards { scroll-margin-top: 80px; }
+
+
+/* Estilos para el buscador de la sidebar lateral */
+#form-product-input {
+  transition: box-shadow 0.3s ease;
+}
+
+#form-product-input:focus-within {
+    box-shadow: 0 0 6px 2px var(--main-color);
+}
+
+/* brands filters stuff */
+input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #333;
+    border-radius: 50%;
+    position: relative;
+}
+
+input[type="radio"]:checked::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 8px;
+    height: 8px;
+    background-color: #333;
+    border-radius: 50%;
+}
+
+/* price filters stuff */
+.slider-track {
+    position: absolute;
+    height: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    border-radius: 0.25rem;
+    z-index: 1;
+}
+
+input[type="range"] {
+    position: absolute;
+    width: 100%;
+    padding: 0;
+    border-radius: 0.25rem;
+    pointer-events: none; /* Desactivamos eventos para superponer ambos */
+    outline: none;
+    border: none;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--bg-primary);
+}
+
+/* TRACK */
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    background: var(--text-primary);
+    border-radius: 0.25rem;
+}
+
+input[type="range"]::-moz-range-track {
+    height: 8px;
+    background: var(--text-primary);
+    border-radius: 0.25rem;
+} 
+
+/* THUMB (la bolita) */
+input[type="range"]::-webkit-slider-thumb {
+    pointer-events: all;
+    appearance: none; /* */
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    background: var(--white-color);
+    border: 6px solid var(--main-color);
+    margin-top: -6px; /* Alinear con el track */
+
+    border-radius: 50%;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+    transition: background 0.3s;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  background: var(--white-color);
+  border: 6px solid var(--main-color);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 2px rgba(0,0,0,0.3);
+  transition: background 0.3s;
+}
+
+/*
+input[type="range"]:hover::-webkit-slider-thumb {
+  background: var(--main-light-color);
+} */

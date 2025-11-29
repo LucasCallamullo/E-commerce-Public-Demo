@@ -1,0 +1,97 @@
+
+
+<div class="modal product-card__modal" id="product-card__modal" data-state="null">
+
+    <button class="btn btn-close btn-28 justify-self-end">
+        <i class="ri-close-line font-xl"></i>
+    </button>
+
+    <div class="d-grid cont-grid-122 gap-2 p-1">
+
+        <div class="d-flex-col gap-2 h-min">
+            {# Primera Columna Modal #}
+            <figure class="cont-prod-images border-hover" id="prod-container">
+               
+                <div class="cont-img-100 cont-prod__h-img"> 
+                    <img id="prod-main-image" class="img-scale-down prod-image-preview modal-img"
+                        src="" alt="{{ product.name }}">
+                </div> 
+
+                {# Flechas de navegación #}
+                <figcaption class="w-100 d-flex justify-center mt-2 gap-3">
+                    <button class="btn arrow-button left">
+                        <i class="ri-arrow-drop-left-line font-xxl"></i>
+                    </button>
+                    
+                    <button class="btn arrow-button right">
+                        <i class="ri-arrow-drop-right-line font-xxl"></i>
+                    </button>
+                </figcaption>
+            </figure>
+            
+            {# Contenedor de abajo con las imagenes #}
+            <div class="cont-grid-344" id="modal-lil-images">
+                
+            </div>
+        </div>
+        
+        <div class="d-flex-col gap-1">
+            {# Category - Subcategory Groups #}
+            <div class="d-flex gap-1 modal-cat-group">
+                <a class="w-min bg-secondary btn-primary p-1 text-truncate bolder font-sm border-hover" 
+                    href="#" id="modal-category">
+                </a>
+
+                <a class="w-min bg-secondary btn-primary p-1 text-truncate bolder font-sm border-hover" 
+                    href="#" id="modal-subcategory">
+                </a>
+            </div>
+            
+            {# Brand - Stock Groups	#}
+            <div class="d-flex gap-1 text-truncate font-sm text-start bolder text-secondary">
+                <div class="w-min p-1 px-2 border-hover bg-secondary">
+                    Stock
+                    <p class="modal-stock font-md"> </p>    
+                </div>
+
+                <div class="w-min p-1 px-2 border-hover bg-secondary modal-brand-group">
+                    <p>Marca</p>
+                    <a class="font-md modal-brand bold-main" href="#"> </a>
+                </div>
+            </div>
+        
+            {# Name product - Price - Offer	#}
+            <h2 class="mt-2 ms-1 modal-title"> </h2>
+
+            <div class="d-flex-col w-100 p-2 border-hover bg-secondary relative mt-3">
+                <span class="offer-tag modal-group-discount">
+                    <b class="text-truncate text-white modal-discount"> </b>
+                </span>
+
+                <p class="text-center mt-1"> 
+                    <i class="ri-fire-line font-xl bold-orange modal-group-discount"></i>
+                    <b class="font-xl modal-price">  </b>
+                    <b class="text-line-through text-secondary modal-group-discount font-lg modal-price-offer"> </b>
+                </p>
+                
+                <p class="text-center text-secondary font-xs mb-1 bolder">
+                    Precio especial pagando por depósito o transferencia bancaria.
+                </p>
+            </div>
+
+            <form class="mt-3 align-self-center" id="form-modal-add" data-stock="1">
+                <button class="btn btn-main btn-40 w-min px-2 py-1 font-md gap-1 bolder text-truncate" type="submit">
+                    Agregar al Carrito 
+                    <i class="ri-shopping-basket-2-fill font-xl fw-normal"></i> 
+                </button>
+            </form>
+
+            <a class="mt-3 mb-2 modal-detail bold-main grid-col-all justify-self-center" href="#">
+                Ver Producto Completo.
+            </a>
+        </div>
+    </div>
+</div>
+    
+
+<div class="overlay product-card__overlay" id="product-card__overlay"></div>

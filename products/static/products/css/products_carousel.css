@@ -1,0 +1,107 @@
+
+
+.swiper-slide {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+
+/* =========================================================================================
+            CAROUSEL PRODUCTS CONTAINERS
+/* ========================================================================================= */
+/* Carousel container tittle and tittle stuff */
+.cont_carousel__title{
+    height: 50px;
+    margin-bottom: 5px;
+    border-bottom: 4px solid var(--main-color);
+}
+
+.carousel__title {
+    background-color: var(--main-color);
+    width: 65%;
+    position: relative;
+    z-index: 1;
+}
+
+/* Efecto de inclinación */
+.carousel__title:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: -10%;
+    width: 50%;
+    background: var(--main-color);
+    background-color: var(--main-color);
+    -webkit-transform: skew(22deg); /* Para Safari y versiones antiguas de Chrome */
+    -ms-transform: skew(22deg); /* Para versiones antiguas de IE */
+    transform: skew(25deg);
+    z-index: -1;
+}
+
+
+/* Buttons */
+.swiper-button-prev-product::after,
+.swiper-button-next-product::after {
+    content: ''; /* Elimina el contenido predeterminado */
+    display: none; /* Asegúrate de que no se muestren */
+}
+
+.swiper-button-prev-product,
+.swiper-button-next-product {
+    position: static;     /* Elimina el posicionamiento automático */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--text-primary);
+    border: 1px solid var(--text-secondary);
+    background-color: var(--bg-primary);
+
+    border-radius: 5px;
+    width: 30px;
+    height: 30px;
+
+    transition: transform 0.5s ease;
+}
+
+.swiper-button-prev-product:active,
+.swiper-button-next-product:active {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+/* desktop (min. 992px) */
+@media (min-width: 992px) {
+    .carousel__title {
+        width: 50%;
+    }
+
+    .swiper-button-prev-product:hover,
+    .swiper-button-next-product:hover {
+        transform: scale(1.1);
+        cursor: pointer;
+    }
+}
+
+
+/*
+    Carousel products containers stuff
+*/
+.swiper-products {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden; /* Evita que el contenido desborde */
+}
+
+.swiper-products .swiper-wrapper {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0.6%;
+
+    transition: transform 0.2s ease-in-out;  /*  Swiper gestiona esto automáticamente */
+    height: 470px;    /* so important this height */
+}
+

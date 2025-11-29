@@ -1,0 +1,145 @@
+
+
+{% load static %}
+{% load custom_filters %}
+
+
+<div class="w-100 mt-3">
+    {% for category, products in products_by_category.items %}
+        <!-- title of each swiper container -->
+        <div class="cont-space-between cont_carousel__title">
+            <div class="d-flex justify-start px-2 h-100 carousel__title">
+                <a class="font-md" href="#"> 
+                    <b class="text-white">{{ category }}</b>
+                </a>
+            </div>
+    
+            <div class="d-flex gap-1"> 
+                <!-- Buttons will be handled with Swiper -->
+                <div class="swiper-button-prev-product" id="prev-{{ forloop.counter }}">
+                    <i class="ri-arrow-left-s-line font-lg"></i>
+                </div>
+                <div class="swiper-button-next-product" id="next-{{ forloop.counter }}">
+                    <i class="ri-arrow-right-s-line font-lg"></i>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Swiper Carousel Container -->
+        <div class="swiper-products" id="swiper-{{ forloop.counter }}">
+            <div class="swiper-wrapper">
+                {% for product in products %}
+                
+                <article class="swiper-slide product__card">
+
+                    <!-- Botón de la esquina -->
+                    <button class="btn corner-box" data-product='{
+                        "id": "{{ product.id|escape_data }}",
+                        "name": "{{ product.name|escape_data }}",
+                        "slug": "{{ product.slug|escape_data }}",
+
+                        "cat": "{{ product.category.name|escape_data }}",
+                        "catSlug": "{{ product.category.slug|escape_data }}",
+
+                        "subcat": "{{ product.subcategory.name|escape_data }}",
+                        "subcatSlug": "{{ product.subcategory.slug|escape_data }}",
+
+                        "brand": "{{ product.brand.name|escape_data }}",
+                        "brandSlug": "{{ product.brand.slug|escape_data }}",
+
+                        "stock": "{{ product.stock|escape_data }}",
+                        "price": "{{ product.price|escape_data }}",
+                        "discount": "{{ product.discount|escape_data }}",
+
+                        "image": "{{ product.main_image|escape_data }}"
+                    }'>
+                        <i class="ri-focus-mode font-xl"></i>
+                    </button>
+                    
+                    <!-- Contenedor de productos -->
+                    <div class="d-grid cont-100 product-card__info">
+                        <!-- Imagen del Producto -->
+                        <a href="{% url 'product_detail' product.id product.slug %}" class="cont-img-100">
+                            <img class="img-scale-down" src="{{ product.main_image }}" alt="{{ product.name }}">
+                        </a>
+
+                        <!-- Titulo ref -->
+                        <a class="ms-2 text-sm me-2 text-truncate-multiline" 
+                        href="{% url 'product_detail' product.id product.slug %}">
+                            <b class="font-md">{{ product.name }}</b>
+                        </a>
+
+                        <!-- stock -->
+                        <div class="ms-2 me-2 cont-space-between">
+                            {% if not product.available or product.stock == 0 %}
+                                <b class="bold-red font-sm">No disponible {{product.stock}}</b>
+                            {% elif product.stock <= 3 %}
+                                <b class="bold-orange font-sm">Stock Bajo {{product.stock}}</b>
+                            {% else %}
+                                <b class="bold-green font-sm">Disponible {{product.stock}}</b>
+                            {% endif %}
+                        
+                        <!-- </div>    container stars - likes
+                        <div class="ms-2 me-2 cont-space-between">
+                            <div class="d-flex gap-1"> 
+                                <b> { { product . stars } } </b>
+                                <i class="ri-star-fill font-lg"></i>
+                            </div>
+                        -->
+                            <!-- Botón de la corazon -->
+                            <form class="form-btn__like" data-index="{{product.id}}">
+                                {% if product.id in favorite_product_ids %}
+                                    <button class="btn btn-like liked" type="submit">
+                                        <i class="ri-heart-fill font-xl"></i>
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-like" type="submit">
+                                        <i class="ri-heart-line font-xl"></i>
+                                    </button>
+                                {% endif %}
+                            </form>
+                            
+                        </div>
+                        
+                        <!-- discount -->
+                        <div class="ms-2 d-flex-col gap-1 font-md me-2">
+                            {% if product.discount %}
+                                <!-- descuento -->
+                                <div class="cont-space-between w-100">
+                                    <b class="font-sm d-desktop-block">Descuento:</b>
+                                    <b class="bold-red">% {{product.discount}} OFF</b>
+                                </div>
+                
+                                <!-- Precios: Normal y Oferta -->
+                                <div class="cont-space-between w-100 font-sm">
+                                    <b class="text-line-through text-secondary">Normal:</b>
+                                    <b class="text-line-through text-secondary">$ {{product.price|intdot}}</b>
+                                </div>
+        
+                                <!-- Precio con descuento (calculado por JavaScript) -->
+                                <div class="cont-space-between w-100">
+                                    <b class="bold-red">Oferta:</b>
+                                    <b class="bold-red">$ {{product.calc_discount|intdot}}</b>
+                                </div>
+                            {% else %}
+                                <b> $ {{ product.price|intdot }} </b>
+                            {% endif %}
+                        </div>
+                    </div>
+    
+                    <!-- Botón de agregar al carrito -->
+                    <form class="d-flex justify-center product-card__extender-btn" 
+                    data-index="{{ product.id }}" data-stock="{{product.stock}}">
+                        <button class="btn btn-main gap-1 btn-32 w-75 btn-add-product-pc" type="submit">
+                            <b>Agregar</b> 
+                            <i class="ri-shopping-basket-2-fill font-md"></i>
+                        </button>
+                    </form>
+                </article>
+
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+
+</div>

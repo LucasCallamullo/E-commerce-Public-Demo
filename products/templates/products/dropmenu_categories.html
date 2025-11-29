@@ -1,0 +1,36 @@
+
+
+{# Botón para desplegar el menú #}
+<button class="dropdown-btn bg-primary text-primary" aria-expanded="false">
+    <span class="d-flex gap-1 bolder font-sm">
+        <i class="ri-menu-line text-secondary font-lg"></i>
+        Nuestro Productos
+    </span>
+    <i class="ri-arrow-down-s-line arrow-drop text-secondary font-lg"></i>
+</button>
+
+{# Lista de categorías #}
+<ul class="dropdown-menu" id="main-dropdown-menu">
+    {% for item in categories_dropmenu.values %}
+        <li class="dropdown-item font-sm">
+            <a href="{% url 'pl_category' item.category.slug %}" class="cont-space-between h-100 bolder">
+                {{ item.category.name }}
+                {% if item.subcategories %}
+                    <i class="ri-arrow-right-s-line font-md"></i>
+                {% endif %}
+            </a>
+
+            {# Submenú #}
+            {% if item.subcategories %}
+                <ul class="sub-dropdown-content">
+                    {% for subcat in item.subcategories %}
+                        <li class="sub-dropdown-item font-sm">
+                            <a href="{% url 'pl_subcategory' item.category.slug subcat.slug %}" 
+                            class="cont-space-between h-100 w-100 bolder">{{ subcat.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>

@@ -1,0 +1,284 @@
+{% extends "home/base.html" %}
+{% load static custom_filters compress %}
+
+
+{# For More CSS Modules #}
+{% block extra_head %}
+    <title> {{ store.name }} | {{ product.name}} </title>
+    {% compress css %}
+        <link href="{% static 'products/css/products_detail.css' %}" rel="stylesheet">
+    {% endcompress %}
+{% endblock %}
+
+
+{#  ========== SEPARADOR MAIN_CONTENT ========== #}
+{% block main_content %}
+
+{# Primera fila #}
+<div class="d-flex mb-3 gap-1">
+    <a class="btn btn-parallelogram d-desktop-flex" href="{% url 'product_list' %}">
+        <span>Todos Nuestros Productos</span>
+    </a>
+    
+    {% if category %}
+        <a class="btn btn-parallelogram" href="{% url 'pl_category' category.slug %}">
+            <span>{{ category.name }}</span>
+        </a>
+    {% endif %}
+
+    {% if subcategory %}
+        <a class="btn btn-parallelogram" href="{% url 'pl_subcategory' category.slug subcategory.slug %}">
+            <span>{{ subcategory.name }}</span>
+        </a>
+    {% endif %}
+</div>
+
+<div class="d-grid grid-product-detail">
+
+    {# PRIMERA COLUMNA #}
+    <div class="d-flex-col gap-2 product">
+
+        <figure class="cont-prod-images border-hover" id="prod-container">
+            {# Contenedor de imagen principal  #}
+            <div class="cont-img-100 cont-prod__h-img"> 
+                {# Botón de la esquina #}
+                <button class="btn btn-40 corner-box btn-zoom-prod">
+                    <i class="ri-focus-mode font-xl"></i>
+                </button>
+
+                <img id="prod-main-image" class="img-scale-down prod-image-preview prod-zoomed"
+                    src="{{ product.main_image }}" alt="{{ product.name }}">
+            </div> 
+
+            {# Flechas de navegación #}
+            <figcaption class="w-100 d-flex justify-center mt-2 gap-3">
+                {# Flecha izquierda #}
+                <button class="btn arrow-button left">
+                    <i class="ri-arrow-drop-left-line font-xxl"></i>
+                </button>
+                
+                {# Flecha derecha #}
+                <button class="btn arrow-button right">
+                    <i class="ri-arrow-drop-right-line font-xxl"></i>
+                </button>
+            </figcaption>
+        </figure>
+        
+        {# Contenedor de abajo con las imagenes #}
+        <div class="cont-grid-344">
+            {% for image in images_urls %}
+                <div class="cont-img-100-off cont-lil-prod-img {% if forloop.first %}border-main{% endif %}" >
+                    <img class="img-scale-down" src="{{image}}" alt="No Imagen">
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# SEGUNDA COLUMNA #}
+    <div class="d-flex-col gap-2 categories">
+        <div class="d-flex-col border-hover bg-primary p-2 gap-2">
+            <h3>{{ product.name }}</h3>
+
+            <div class="d-flex gap-1">
+                {% if category %}
+                    <a class="btn btn-alt px-2 font-sm bolder" 
+                    href="{% url 'pl_category' category.slug %}">
+                        {{category.name}}
+                    </a>
+                {% endif %}
+
+                {% if subcategory %}
+                    <a class="btn btn-alt px-2 font-sm bolder" 
+                    href="{% url 'pl_subcategory' category.slug subcategory.slug %}">
+                        {{ subcategory.name }}
+                    </a>
+                {% endif %}
+            </div>
+
+            {# Cuadros de Stock Y Marca #}
+            <div class="d-flex gap-1">
+                <div class="bg-secondary border-hover text-start d-flex-col p-1 px-2 font-sm bolder">
+                    <p class="text-secondary text-truncate">Código:</p>
+                    # {{ product.id }}
+                </div>
+
+                {% if brand %}
+                    <div class="bg-secondary border-hover text-start d-flex-col p-1 px-2
+                    text-secondary font-sm bolder">
+                        Marca:
+                        <a href="{% url 'pl_brand' brand.slug %}" class="bold-main font-md">
+                            {{brand.name}}
+                        </a>
+                    </div>
+                {% endif %}
+                
+                <div class="bg-secondary border-hover text-start d-flex-col p-1 
+                px-2 text-secondary font-sm bolder">
+                    Stock:
+                    {% if product.stock > 4 %}
+                        <b class="text-truncate bold-green font-md">Disponible</b>
+                    {% elif product.stock == 0 %}
+                        <b class="text-truncate bold-red font-md">No Stock</b>
+                    {% else %}
+                        <b class="text-truncate bold-orange font-md">Stock Bajo</b>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# Cuadro de metodo de pago #}
+        <div class="border-hover bg-primary p-2 d-grid d-grid-payments gap-2">
+            
+            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/tarjeta-de-credito-bloqueada-12012016-9801418.png"
+            class="img-64 img-scale-down" alt="Icono de Tarjetas">
+            
+            <div class="d-flex-col text-start bolder">
+                Medios de Pagos:
+                <button class="btn bold-main justify-start font-sm m-0 py-1">
+                    Consultar formas de Pago en Whatsapp
+                </button>
+            </div>
+
+            <img class="grid-col-all w-100 img-scale-down" 
+            src="{% static 'img/metodos_de_pago.webp' %}" alt="Logo de Medios de Pago">
+        </div>
+    </div>
+
+    {# TERCERA COLUMNA #}
+    <div class="d-flex-col border-hover bg-primary h-min p-2 price">
+
+    {% if product.price_list %}  {% endif %}
+        <b class="text-center mt-1">
+            Precio Lista: ${{product.price_list|intdot}}
+        </b>
+        <span class="text-center font-sm bold-main">
+            Precio de lista para pagos en cuotas.
+        </span>
+    
+    {% if product.discount %}
+        <span class="offer-tag font-sm text-truncate text-white bolder mt-1">
+            % {{product.discount}} OFF
+        </span>
+        <span class="font-xl text-center gap-1 bolder">
+            <i class="ri-fire-line bold-orange"></i>
+            $ {{ product.calc_discount|intdot }}
+        </span>
+        <del class="font-md text-center text-secondary bolder">
+            $ {{ product.price|intdot }}
+        </del>
+    {% else %}
+        <b class="font-xl text-center mt-1">
+            $ {{ product.price|intdot }}
+        </b>
+    {% endif %}
+
+        <b class="text-center font-sm mt-1">
+            PRECIO ESPECIAL EFECTIVO O TRANSFERENCIA
+        </b>
+
+        {# Promos bancarias relleno #}
+        <b class="font-sm border-primary text-start p-1 mt-2">Promociones Bancarias: </b>
+
+        <div class="w-100">
+            <img src="{% static 'img/galicia_promo.jpg' %}" alt="Logo Banco" class="img-scale-down">
+        </div>
+
+        <form class="d-flex gap-2 mt-2 product-detail-form" data-index="{{product.id}}" data-stock="{{product.stock}}">
+
+            {# Contador y botón de eliminar #}
+            <div class="cont-numeric-add-less w-50 cont-space-between">
+                <button type="button" class="btn btn-32 scale-on-touch prod-detail-minus" data-index="{{value.id}}">
+                    <i class="ri-subtract-fill font-lg text-primary"></i>
+                </button>
+
+                <input type="text" class="prod-detail-input" value="1" min="1">
+                
+                <button type="button" class="btn btn-32 scale-on-touch prod-detail-plus" data-index="{{value.id}}">
+                    <i class="ri-add-fill font-lg text-primary"></i>
+                </button>
+            </div>
+
+            <button class="btn btn-40 w-50 px-2 btn-main gap-1 font-sm bolder" type="submit" id="btn-add-item">
+                Agregar
+                <i class="ri-shopping-cart-2-line fw-normal font-lg"></i>
+            </button>
+        </form>
+
+        <a href="#" id="btn-prod-wsp-link" class="btn btn-40 w-100 gap-1 mt-2 wsp-button font-md bolder" 
+            target="_blank" data-wsp="{{store.wsp_number}}" data-name="{{product.name}}" 
+            data-price="{{product.price}}">
+            <i class="ri-whatsapp-line font-xl fw-normal"></i> 
+            Enviar mensaje
+        </a>
+    </div>
+</div>
+
+<div class="d-flex-col border-hover border-primary bg-primary px-3 py-3 mt-5 mb-5 gap-1">
+
+    {% if product.description %}
+        <template id="product-description">
+            {{ product.description }}
+        </template>
+
+        <div class="product-description">
+            {# mediante js trasnfromamos el description de texto plano que llega #}
+        </div>
+    {% else %}
+        <p><strong>ESPECIFICACIONES TÉCNICAS</strong></p>
+        <p> ● Peso: 300 g</p>
+        <p> ● Dimensiones: 150 x 80 x 30 mm</p>
+        <p> • Material: Plástico ABS de alta resistencia</p>
+        <p> • Compatibilidad: Windows, macOS, Linux</p>
+        <p> • Conectividad: USB-C, Bluetooth 5.0</p>
+        <p> • Batería: Duración de hasta 20 horas</p>
+        <p> • Garantía: 2 años</p>
+    {% endif %}
+</div>
+
+
+{% endblock %}
+
+{# To place banners without the page limit #}
+{% block bot_banner_image %}
+    {# Contenedor para la imagen (nuevo contenedor agregado) #}
+    <div class="modal modal-product-detail">
+        <div class="cont-images-zoom">
+            <img id="zoomedImage" src="" alt="Zoomed" />
+        </div>
+    </div>
+
+    <div class="overlay prod-overlay-detail cont-100 relative" data-zoom-in="{% static 'img/zoom-in-line.svg' %}" 
+    data-zoom-out="{% static 'img/zoom-out-line.svg' %}">
+
+        {# Flecha izquierda #}
+        <button class="btn arrow-button left-overlay">
+            <i class="ri-arrow-drop-left-line font-xxxl"></i>
+        </button>
+
+        {# Flecha derecha #}
+        <button class="btn arrow-button right-overlay">
+            <i class="ri-arrow-drop-right-line font-xxxl"></i>
+        </button>
+
+        {# Button zoom optional #}
+        <button class="btn btn-36 text-white zoom-corner"> 
+            <i class="ri-zoom-in-line font-xl"></i>
+        </button>
+
+        {# Button modal -close #}
+        <button class="btn btn-close btn-36 text-white modal-close"> 
+            <i class="ri-close-large-fill font-lg"></i>
+        </button>
+    </div> 
+{% endblock bot_banner_image %}
+
+{# SCRIPTS #}
+{% block extra_scripts %}
+
+    {# este script es para hacer efecto de zoom and grab en las imagenes #}
+    <script src="https://unpkg.com/@panzoom/panzoom/dist/panzoom.min.js"></script>
+
+    {% compress js %}
+        <script src="{% static 'products/js/product_detail.js' %}"></script>
+    {% endcompress %}
+{% endblock %}

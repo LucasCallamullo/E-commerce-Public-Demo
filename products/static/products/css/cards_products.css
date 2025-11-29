@@ -1,0 +1,157 @@
+
+
+.product__card {
+    cursor: grab;
+    background: var(--bg-primary);
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+    box-shadow: rgb(3 3 3 / 8%) 0px 4px 12px;
+
+    /* user-select: none; */
+    /* -webkit-user-select: none; /* Safari */ 
+    /* -moz-user-select: none; /* Firefox */ 
+    /* -ms-user-select: none; /* Internet Explorer/Edge */ 
+    
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;  /* Evita que las diapositivas se reduzcan */
+    height: 100%;
+    max-height: 400px;
+    width: 48.5%;     /*  edit mobile */
+    /* Adjusting the gap between slides should be done this way
+    to avoid continuous overflow if done with a gap */
+    margin-right: 1.5% !important;    /*  edit mobile */
+}
+
+/* CARDS PRODUCTS CAROUSEL */
+.product-card__info {
+    grid-template-columns: 1fr;
+    grid-template-rows: 140px 64px min-content; /* edit mobile */
+    gap: 0;
+    row-gap: 0;
+}
+
+.product-card__grid-2 {
+    grid-template-columns: auto auto;
+    gap: 0;
+    padding: 0;
+    margin: 0;
+    row-gap: 8px;
+    grid-template-rows: min-content min-content;
+}
+
+.product-card__offer-tag {
+    background-color: var(--red-color);
+    width: min-content;
+    padding: 4px 6px;
+}
+
+/* Contenedor extensor para button */
+.product-card__extender-btn {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--bg-primary);
+    height: 50px;
+}
+
+/* Styles for tablets (mín. 481px to max. 768px) */
+@media (min-width: 480px) {
+    .product__card {
+        width: 32%;
+        margin-right: 1.5%;
+    }
+}
+
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 992px) {
+    .product__card {
+        width: 23.5%;    /* edit mobile */
+        margin-right: 1.5%;  /* edit mobile */
+        max-height: 380px;
+        transition: max-height 0.3s ease-in-out;
+    }
+
+    .product__card:hover {
+        max-height: 430px;
+    }
+
+    .product-card__info {
+        /* grid-template-rows: 160px 70px 24px min-content; /* edit mobile */
+        grid-template-rows: 150px 64px min-content; /* edit mobile */
+    }
+
+    .product-card__extender-btn {
+        align-items: flex-start;
+        transform: translateY(100%); /* Oculta inicialmente */
+        box-shadow: rgb(3 3 3 / 8%) 0px 4px 12px;    /* edit mobile */
+        transition: transform 0.3s ease;
+    }
+
+    .product__card:hover .product-card__extender-btn {
+        transform: translateY(0);
+    }
+
+    .product__card:hover .corner-box {
+        background-color: var(--bg-secondary-dark);
+    }
+}
+
+
+/* Estilos generales para el modal */
+.product-card__modal {
+    height: 85vh;
+    width: 80%;
+    padding: 16px 16px;
+}
+
+.offer-tag {
+    top: 0;
+    right: 0;
+    position: absolute;
+    background-color: var(--red-color);
+    width: min-content;
+    padding: 4px 6px;
+}
+
+.cont-prod-images {
+    width: 100%;
+    height: 400px;
+    background-color: var(--bg-primary);
+}
+
+.cont-prod__h-img {
+    height: 330px;
+}
+
+/* Botones de flechas */
+.arrow-button {
+    width: 40px;
+    height: 40px;
+    color: var(--text-primary);
+    border-radius: 50%;
+    border: 1px solid var(--text-secondary);
+}
+
+.cont-grid-344 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    height: 120px;
+    min-height: 120px;
+}
+
+.cont-lil-prod-img {
+    height: 120px;
+    max-height: 120px;
+    cursor: pointer;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+    border: 1px solid var(--text-secondary);
+}
+
+.active {
+    border: 2px solid var(--text-secondary);
+    border-color: var(--black-color);
+    transform: scale(1.02);
+}
