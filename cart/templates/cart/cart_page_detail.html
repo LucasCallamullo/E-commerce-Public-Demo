@@ -1,0 +1,87 @@
+{% extends "home/base.html" %}
+{% load static compress %}
+
+
+{% block extra_head %}
+    <title>Carrito | {{store.name}}</title>
+    {% compress css %}
+        <link href="{% static 'cart/css/cart_page_detail.css' %}" rel="stylesheet">
+    {% endcompress %}
+{% endblock extra_head %}
+    
+
+{% block main_content %}
+{# Primera fila #}
+<div class="d-flex mb-2 gap-1">
+    {# top buttons #}
+    <a class="btn btn-parallelogram px-2" href="{% url 'Home' %}">
+        <span class="font-md"> Home </span>
+    </a>
+
+    <button class="btn btn-parallelogram px-2">
+        <span class="font-md"> Mi Carrito </span>
+    </button>
+</div>
+
+<div class="d-grid cont-cart-detail gap-2" id="cont-main-cart-detail">
+    {# Primera Columna #}
+    <div class="d-grid cont-cart-detail gap-2">
+        
+        {# Container cart table #}
+        <div class="bg-primary border-hover d-flex-col p-2 grid-col-all" id="table-cart-detail">
+            
+        </div>
+        
+        {# Container cupon stuff #}
+        <form class="d-flex gap-2 bg-primary border-hover p-2" id="form-coupon">
+            <input type="text" class="btn-40 w-100" name="coupon" placeholder="Tienes un cupón?">
+            <button class="btn btn-main btn-40 px-2 w-min bolder" type="submit">
+                Aplicar
+            </button>
+        </form>
+
+        <form class="d-flex d-desktop-flex justify-center bg-primary border-hover p-2" id="form-update-cart">
+            <button type="submit" class="btn btn-alt btn-40 p-2 w-min text-truncate bolder">
+                Actualizar Carrito
+            </button>
+        </form>
+    </div>
+
+    {# Segunda Columna #}
+    <div class="bg-primary border-hover p-2 gap-2 h-min d-grid cont-grid-2 font-md bolder">
+        {# por ahora no hay logica de coupon por eso el subtotal es igual al total... #}
+        Sub-Total:
+        <span class="text-end total-cart-detail"> </span>
+
+        {# reservado para futura logica de descuento... #}
+        <span class="bold-main">Descuento:</span>
+        <span class="text-end bold-main"><i class="ri-subtract-fill"></i>$ 0</span>
+
+        <hr class="grid-col-all hr-primary">
+        
+        Total:
+        <span class="text-end total-cart-detail"> </span>
+        
+        <a class="mt-2 btn btn-main btn-40 w-100 grid-col-all" href="{% url 'resume-order' %}">
+            <span class="text-truncate">Finalizar Compra </span>
+        </a>
+    </div>
+</div>
+
+{% endblock main_content %}
+
+
+{% block extra_scripts %}
+    <script>
+        window.TEMPLATE_URLS = {
+            // favorites/urls.py
+            favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/')
+        };
+        window.PRODUCTS_FAVORITES = JSON.parse('{{ favorite_product_ids|default:"[]"|escapejs }}');
+    </script>
+    {% compress js %}
+        <script src="{% static 'favorites/js/add_favorites.js' %}"></script>
+        <script src="{% static 'cart/js/components/table_cart_detail.js' %}"></script>
+        <script src="{% static 'cart/js/cart_page_detail.js' %}"></script>
+    {% endcompress %}
+{% endblock extra_scripts %}

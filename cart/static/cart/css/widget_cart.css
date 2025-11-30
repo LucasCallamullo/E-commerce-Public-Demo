@@ -1,0 +1,120 @@
+
+
+.cart-badge {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    background-color: var(--main-light-color);
+    color: var(--color-white);
+    border-radius: 50%;
+    padding: 5px 10px;
+    font-size: var(--font-small-plus);
+    min-width: 20px;
+    text-align: center;
+}
+
+.cart-cont-overlay {
+    display: block;
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100vh; /* mobile */
+    width: 300px;     /* mobile */
+    max-width: 300px;     /* mobile */
+    
+    padding: 2px 6px 0px 6px;
+    border-left: 1px ridge var(--text-secondary);
+    background-color: var(--bg-primary);
+    
+    z-index: var(--z-index-cart);
+
+    transform: translateX(100%);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    
+    opacity: 1;
+    pointer-events: none;
+}
+
+.cart-cont-overlay[data-state="open"] {
+    display: block;
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: all;
+}
+
+.cart-cont-overlay[data-state="closed"] {
+    display: block;
+    transform: translateX(100%);
+    opacity: 1;
+    pointer-events: none;
+}
+
+.cart-overlay {
+    z-index: var(--z-index-overlay-cart);
+}
+
+.d-grid-widget-cart {
+    grid-template-columns: 1fr;
+    grid-template-rows: 0.07fr 0.8fr 0.12fr;
+    padding: 2px 6px 12px 6px;
+}
+
+.cont-cart__card {
+    height: 150px;
+    max-height: 150px;
+    grid-template-columns: 1.1fr 1.9fr 32px;
+    grid-template-rows: 70px 32px auto;
+    column-gap: 8px;
+    row-gap: 4px;
+    grid-template-areas: 
+        'image name delete'
+        'image quantity quantity'
+        'image counter counter';
+
+    border: 1px solid var(--text-secondary);
+}
+
+.cont-cart__card .cont-img-100-off { grid-area: image; }
+.cont-cart__card .main-ref { grid-area: name; }
+.cont-cart__card .btn-close { grid-area: delete; }
+.cont-cart__card .text-start { grid-area: quantity; }
+.cont-cart__card .cont-numeric-add-less { grid-area: counter; }
+
+/* Contenedor interno para los botones y el input */
+.cont-numeric-add-less {
+    border: 1px solid var(--text-primary);
+    width: 120px;
+    max-width: 120px;
+    height: 30px;    /* btn-28px */
+}
+
+/* Styles for desktops (mín. 769px to max. 992px+)) */
+@media (min-width: 768px) {
+    .cart-cont-overlay {
+        width: 340px;
+        max-width: 340px;     /* mobile */
+    }
+
+    .d-grid-widget-cart {
+        padding: 2px 6px 0px 6px;
+    }
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 992px) {
+    .cart-cont-overlay {
+        width: 380px;     /* mobile */
+        max-width: 380px;     /* mobile */
+    }
+
+    .d-grid-widget-cart {
+        padding: 2px 6px 8px 6px;
+    }
+
+    /* + --> solo afecta al hermano que está justo después. */
+    .cont-img-100-off:hover + .main-ref {
+        color: var(--main-color);
+    }
+}
+

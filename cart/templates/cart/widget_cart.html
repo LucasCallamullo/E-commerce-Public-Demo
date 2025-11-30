@@ -1,0 +1,32 @@
+
+
+<div class="cart-cont-overlay" data-state="null">
+    <div class="d-grid d-grid-widget-cart">
+        {# Encabezado del carrito #}
+        <div class="cont-space-between border-bot-prim bolder font-lg">
+            Mi Carrito
+            <button class="btn btn-close btn-32 close-widget-cart">
+                <i class="ri-close-fill font-xl"></i>
+            </button>
+        </div>
+
+        {# Contenido del carrito #}
+        <div class="cont-cart__widget scroll-y">  </div>
+
+        {# Pie del carrito #}
+        <div class="d-grid cont-grid-2 pt-1 bolder border-top-prim gap-1">
+            <b class="text-start font-lg">Total:</b>
+            <span class="text-end total__widget__cart font-lg"> </span>
+
+            <a class="btn btn-alt btn-32 w-100 bolder text-truncate" href="{% url 'cart_page_detail' %}">
+                Ver Carrito
+            </a>
+            <a class="btn btn-main btn-32 w-100 bolder" href="{% url 'resume-order' %}">
+                Finalizar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="overlay cart-overlay"></div>
+
