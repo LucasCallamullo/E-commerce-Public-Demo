@@ -1,0 +1,249 @@
+{% extends "home/base.html" %}
+{% load static compress custom_filters %}
+
+
+{% block extra_head %}
+	<title>Finalizar Pedido | {{store.name}}</title>
+	{% compress css %}
+		<link rel="stylesheet" href="{% static 'orders/css/resume_order.css' %}">
+	{% endcompress %}
+{% endblock %}
+
+
+{% block main_content %}
+{# Primera fila #}
+<div class="d-flex mb-2 gap-1">
+	<a class="btn btn-parallelogram px-2" href="{% url 'Home' %}">
+		<span class="font-md"> Home </span>
+	</a>
+	
+	<a class="btn btn-parallelogram d-desktop-flex px-2" href="{% url 'cart_page_detail' %}">
+		<span class="font-md"> Mi Carrito </span>
+	</a>
+
+	<button class="btn btn-parallelogram px-2">
+		<span class="font-md"> Resumen Pedido </span>
+	</button>
+</div>
+
+
+<div class="cont-order-page">
+
+	<form class="d-grid cont-grid-122 bg-primary border-hover h-min shadow-low gap-2 p-3" id="form-order">
+		
+		<h1 class="grid-col-all bold-main">Tus Datos</h1>
+
+		{# Nombre y Apellido #}
+		<label class="d-flex-col gap-1 bolder">
+			Nombre
+			<input type="text" name="first_name" value="{{ user.first_name|default:'' }}" required>
+		</label>
+
+		<label class="d-flex-col gap-1 bolder">
+			Apellido
+			<input type="text" name="last_name" value="{{ user.last_name|default:'' }}" required>
+		</label>
+
+		{# Teléfono y DNI #}
+		<label class="d-flex-col gap-1 bolder">
+			Celular
+			<input type="text" name="cellphone" value="{{ user.cellphone|default:'' }}" required>
+		</label>
+
+		<label class="d-flex-col gap-1 bolder">
+			DNI
+			<input type="text" name="dni" value="{{ user.dni|default:'' }}" required>
+		</label>
+
+		{# Email #}
+		<label class="d-flex-col gap-1 bolder">
+			Email
+			<input type="email" name="email" value="{{ user.email|default:'' }}" required>
+		</label>
+
+		{# Aclaración del pedido #}
+		<label class="grid-col-all d-flex-col gap-1 bolder">
+			Aclaración del pedido
+			<textarea name="detail_order"></textarea>
+		</label>
+
+		{# Extra form fore Retire #}
+		<section class="grid-col-all d-grid cont-grid-122 gap-2 mt-1" id="retire-form">
+			<h3 class="grid-col-all">Datos de Retiro</h3>
+
+			<label class="d-flex-col gap-1 bolder">
+				Nombre de quién retira
+				<input type="text" name="name_retire" class="input-required">
+			</label>
+
+			<label class="d-flex-col gap-1 bolder">
+				DNI de quién retira
+				<input type="text" name="dni_retire" class="input-required">
+			</label>
+		</section>
+
+		{# Extra form fore Shippin #}
+		<section class="grid-col-all d-grid cont-grid-122 gap-2 mt-1" id="shippin-form">
+			<h3 class="grid-col-all">Datos de Envío</h3>
+
+			<label class="d-flex-col gap-1 bolder">Provincia
+				<select name="province" id="id_province" class="input-required">
+					{% for key, value in provinces %}
+						<option value="{{key}}" {% if user.province == key %}selected{% endif %}>
+							{{ value }}
+						</option>
+					{% endfor %}
+				</select>
+			</label>
+
+			<label class="d-flex-col gap-1 bolder">
+				Ciudad
+				<input type="text" name="city" value="{{ user.city|default:'' }}" class="input-required">
+			</label>
+
+			<label class="d-flex-col gap-1 bolder">
+				Domicilio Completo
+				<input type="text" name="address" value="{{ user.address|default:'' }}" class="input-required">
+			</label>
+
+			<label class="d-flex-col gap-1 bolder">
+				Código Postal
+				<input type="text" name="postal_code" value="5010">
+			</label>
+
+			<label class="grid-col-all d-flex-col gap-1 bolder">
+				Detalles del Envío
+				<textarea name="detail"> </textarea>
+			</label>
+		</section>
+
+		<div class="d-flex grid-col-all justify-center align-center mt-1">
+			<button type="button" class="btn btn-main w-min p-1 px-2 font-md text-truncate bolder" 
+			id="btn-confirm-form"> 
+				Confirmar Pedido
+			</button>
+		</div>
+
+		<button type="submit" id="btn-order-submit" hidden></button>
+
+		<input type="hidden" name="payment_method_id" value="0">
+		<input type="hidden" name="shipping_method_id" value="0">
+	</form>
+
+	{#  SEGUNDA COLUMNA #}
+	<div class="d-grid gap-2 p-3 bg-primary border-hover font-sm bolder">
+
+		{# Open Modal #}
+		<button class="btn btn-main p-1 px-3 w-min justify-self-center bolder font-md text-truncate" 
+		id="btn-open-order">
+			Ver tu Pedido
+		</button>
+
+		<div class="cont-space-between gap-1 text-truncate">
+			Método Pago:
+			<span class="payment-method text-end">Ninguno</span>
+		</div>
+
+		<div class="cont-space-between gap-1 text-truncate">
+			Método de Envío:
+			<span class="shipment-method text-end">Ninguno</span>
+		</div>
+		
+		<div class="cont-img-100-off h-150 mt-2 mb-3">
+			<img alt="img mercado pago" class="img-scale-down"
+			src="https://epicbikes.com.ar/wp-content/uploads/2019/09/mercadopago-logo-fondo-transparente-300x142.png">
+		</div>
+		
+		<hr class="text-primary">
+
+		{# Comienza opciones  #}
+		<section id="payment-methods-section" class="d-flex-col gap-1 fw-normal">
+			<h4 class="font-lg mb-1">Métodos de Pago</h4>
+
+			{% for payment in payment_methods %}
+				<label class="bg-secondary p-2 border-hover relative label-option">
+					<input type="radio" name="payment" value="{{payment.name}}" 
+						data-index="{{payment.id}}" class="label-option__input"/>
+					<span class="label-option__checkmark"></span>
+
+					<b class="padding-left-40 font-md">{{ payment.name }}</b>
+					<p class="padding-left-40 mt-1 font-sm text-secondary">{{ payment.description }}</p>
+				</label>
+			{% endfor %}
+		</section>
+		
+		<hr class="text-primary">
+
+		<section id="shipping-methods-section" class="d-flex-col gap-1">
+			<h4 class="font-lg mb-1">Métodos de Envío</h4>
+
+			{% for shipment in shipment_methods %}
+				<label class="bg-secondary p-2 border-hover relative label-option">
+					<input type="radio" name="ship" value="{{shipment.name}}" 
+						data-index="{{shipment.id}}" data-price="{{ shipment.price_float|floatformat:'-2' }}"
+						class="label-option__input"/>
+
+					<span class="label-option__checkmark"></span>
+
+					<b class="padding-left-40 font-md">{{ shipment.name }}</b>
+					<p class="padding-left-40 mt-1 font-sm text-secondary">
+						{% if shipment.price_float == 0 %}Gratis{% else %}$ {{shipment.price_float|intdot}}{% endif %}
+					</p>
+				</label>
+			{% endfor %}
+		</section>
+	</div>
+</div>
+
+{# MODAL STUFF #}
+<div class="modal modal-order d-grid cont-grid-2">
+
+    <h2 class="bold-main d-flex"> Tu Pedido </h2>
+    <button class="btn btn-close btn-32 justify-self-end align-self-center">
+        <i class="ri-close-fill font-xl"></i>
+    </button>
+
+	{# contenedor modal con la table renderizada en components/modal_resume.js #}
+    <div class="bg-primary h-min border-primary d-flex-col scroll-y grid-col-all" id="modal-table-order"> </div>
+
+    <div class="d-space-between-flex bolder font-sm gap-2 grid-col-all-cond text-secondary">
+        Método de Pago: <span class="payment-method text-primary">Ninguno</span>
+    </div>
+
+    <div class="d-grid cont-grid-spans bolder font-sm gap-1 grid-col-all-cond justify-self-end 
+    text-truncate text-secondary">
+        Método de Envío: <span class="shipment-method justify-self-end text-primary"> Ninguno</span>
+        <i class="ri-subtract-fill font-lg d-desktop-flex text-primary"></i>
+        Precio de Envío: <span class="shipment-price justify-self-end text-primary"> Ninguno</span>
+    </div>
+    
+    <button class="btn btn-main w-min py-1 px-2 font-md text-truncate bolder" 
+        id="btn-confirm-order-modal"> 
+        Confirmar Pedido
+    </button>
+    <span class="d-flex gap-1 font-md justify-self-end bolder">
+        Total: <b class="font-md modal-table-total">$ {{total_price|intdot}}</b>
+    </span>
+</div>
+
+<div class="overlay" id="overlay-order"></div>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+    <script>
+        window.TEMPLATE_URLS = {
+            // payments/urls.py
+            paymentPage: "{% url 'payment-order-create' 0 %}".replace('0/', '{order_id}/'),
+
+			// orders/urls_api
+			validOrder: "{% url 'valid_order_form' %}"
+        };
+    </script>
+	
+	{% compress js %}
+		<script src="{% static 'orders/js/components/modal_resume.js' %}"> </script>
+		<script src="{% static 'orders/js/resume_order.js' %}"> </script>
+	{% endcompress %}
+{% endblock %}

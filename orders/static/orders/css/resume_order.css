@@ -1,0 +1,251 @@
+
+
+.justify-self-center {
+	justify-self: center;
+	align-self: center;
+}
+
+
+.shadow-low {
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cont-order-page {
+	display: grid;
+	grid-template-columns: 1fr;
+	row-gap: 24px;
+}
+
+form textarea {
+	resize: vertical;
+	min-height: 100px;
+}
+
+/*
+	SEGUNDA COLUMNA
+*/
+/* 
+	Widget de opciones generico para reutilizar mirar html	label-option
+*/
+.label-option__input {
+	position: absolute;
+	opacity: 0;
+	cursor: pointer;
+}
+  
+.label-option__checkmark {
+	position: absolute;
+	left: 12px;
+	top: 12px;
+	height: 22px;
+	width: 22px;
+	border: 2px solid var(--text-primary);
+	border-radius: 50%;
+	background-color: transparent;
+	transition: all 0.2s ease;
+	cursor: pointer;
+}
+  
+.label-option__input:checked ~ .label-option__checkmark {
+	background-color: var(--text-primary);
+}
+  
+.label-option__input:checked ~ .label-option__checkmark::after {
+	content: "";
+	position: absolute;
+	display: block;
+	top: 4px;
+	left: 4px;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--bg-primary);
+}
+
+.padding-left-40 {
+	padding-left: 36px;
+}
+
+#shippin-form, #retire-form {
+	display: none;
+}
+
+#shippin-form, #retire-form,
+#payment-methods-section, #shipping-methods-section {
+	scroll-margin-top: 100px; /* Ajusta este valor según necesites */
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 993px) {
+	.cont-order-page {
+		grid-template-columns: 0.65fr 0.35fr;
+		column-gap: 16px;
+	}
+}
+
+
+/* 
+	Estilos generales para el modal 
+*/
+.cart-row {
+    display: grid;
+    grid-template-columns: 0.75fr 0.95fr 0.5fr 0.3fr; 
+    grid-template-rows: 1.4fr 0.3fr 0.3fr 0.3; 
+    grid-template-areas:
+        "image name name name"
+        "image price quantity ."
+        "image subtotal subtotal ."
+        "image . . .";
+
+    padding: 0;
+    gap: 0;
+    row-gap: 0;
+    column-gap: 0;
+    height: 150px;
+    max-height: 150px;
+    border-bottom: 2px solid var(--text-primary);
+    border-left: 2px solid var(--text-primary);
+    border-right: 2px solid var(--text-primary);
+}
+
+.border-top-tablets {
+    border-top: 2px solid var(--text-primary);
+}
+
+/* Asignar áreas a los elementos */
+.cart-row .subtotal,
+.cart-row .quantity,
+.cart-row .price {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+    padding-top: 4px;
+}
+
+/* Imagen */
+.cart-row .image { 
+    grid-area: image; 
+}
+
+ /* Nombre */
+.cart-row .name { 
+    grid-area: name;
+    padding-top: 5px;
+    padding-left: 12px;
+    padding-right: 4px;
+}
+
+ /* Precio */
+.cart-row .price { 
+    grid-area: price;
+	padding-left: 12px;
+}
+
+/* Cantidad */
+.cart-row .quantity { 
+    grid-area: quantity;
+} 
+
+/* Subtotal */
+.cart-row .subtotal { 
+    grid-area: subtotal;
+	padding-left: 12px;
+} 
+
+
+.modal-order {
+    height: 90vh;
+    width: 90%;
+	max-width: 90%;
+	row-gap: 4px;
+	grid-template-rows: 40px auto 32px 64px 32px;
+}
+.modal-order[data-state="open"] { display: grid; }
+
+
+/* clase grid para diseño responsive en el modal-order */
+.d-space-between-flex {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+/* clase grid para diseño responsive en el modal-order */
+.cont-grid-spans {
+	grid-template-columns: 1fr 1fr;
+	align-items: center;
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 992px) {
+
+	.modal-order {
+		grid-template-rows: 40px auto 36px 36px;
+	}
+	/* clase grid para diseño responsive en el modal-order */
+	.cont-grid-spans {
+		grid-template-columns: repeat(5, min-content);
+		justify-content: flex-end;
+	}
+	/* clase grid para diseño responsive en el modal-order */
+	.d-space-between-flex {
+		justify-content: flex-start;
+	}
+
+    .cart-row {
+        grid-template-columns: 1fr 2fr 0.8fr 0.7fr 1.5fr;
+        grid-template-rows: none;
+        grid-template-areas: "image name price quantity subtotal";
+        height: 120px;
+        max-height: 120px;
+    }
+
+    .row-header {
+        height: 40px !important;
+        padding-bottom: 6px;
+        border-top: 2px solid var(--text-primary);
+    }
+
+    .cart-row .cont-img-100-off {
+        height: calc(100% + 2px);
+        max-height: calc(100% + 2px);
+        border-bottom: 2px solid var(--black-color); 
+        z-index: 1;
+    }
+
+	/* Asignar áreas a los elementos */
+	.cart-row .subtotal,
+	.cart-row .quantity,
+	.cart-row .price {
+		align-items: flex-start;
+		gap: 8px;
+		padding: 0px;
+		padding-top: 8px;
+	}
+
+	.cart-row .name { 
+        padding-top: 8px;
+        padding-left: 10px;
+        padding-right: 8px;
+	}
+
+    .cart-row .subtotal {
+        justify-content: flex-end;
+		padding-right: 16px;
+    }
+
+	.cart-row .price,
+	.cart-row .quantity {
+		justify-content: center;
+	}
+
+    .border-top-tablets {
+        border-top: none;
+    }
+}
+
+
+
+
+
+

@@ -1,0 +1,434 @@
+{% extends "home/base.html" %}
+{% load static custom_filters compress %}
+
+
+{% block extra_head %}
+    <title> Orden | {{ store.name }}</title>
+
+    {# Update multiple images #}
+    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
+
+    {# mercado pago stuff #}
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+
+    {% compress css %}
+        <link rel="stylesheet" href="{% static 'orders/css/order_detail.css' %}">
+    {% endcompress %}
+{% endblock %}
+
+
+{% block main_content %}
+    <div class="bg-primary border-hover d-grid cont-grid-123 gap-2 py-2 px-3">
+        <div class="grid-col-all d-flex justify-center align-center">
+            <i class="icon-status icon-title" data-index="{{ status.id }}"></i>
+        </div>
+
+        <div class="d-flex justify-center gap-3 border-secondary py-1 px-3">
+            <i class="ri-check-double-line font-xxl bold-green"></i>
+            <div class="d-flex-col gap-1 text-start">
+                <p class="font-md bolder">Fecha Creación</p>
+                <p class="font-sm text-secondary">{{ order.created_at }}.</p>
+            </div>
+        </div>
+
+        <div class="d-flex justify-center gap-3 border-secondary py-1 px-3">
+            <i class="font-xxxl icon-status" data-index="{{ status.id }}"></i>
+
+            <div class="d-flex-col gap-1 text-start">
+                <p class="font-md bolder">{{ status.name }}</p>
+                {% if status.id == 2 %}
+                    <p class="font-sm text-secondary">Hasta el {{ order.expire_at }}.</p>
+                {% elif status.id == 4 %}
+                    <p class="font-sm text-secondary">Acérquese al local para retirar su pedido.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="d-flex justify-center gap-3 border-secondary py-1 px-3">
+            {% if status.id == 7 %}    
+                <i class="ri-check-double-line font-xxl bold-green"></i>
+            {% else %}
+                <i class="ri-close-large-fill font-xxl bold-red"></i>
+            {% endif %}
+
+            <div class="d-flex-col gap-1 text-start">
+                <p class="font-md bolder">Pedido Entregado</p>
+                <p class="font-sm text-secondary">El pedido se completo y/o entrego al cliente.</p>
+            </div>
+        </div>
+    </div>
+        
+    <hr class="hr-custom">
+
+
+{% comment %}
+    {# status.id #}
+        # 1 - Efectivo    
+        # 2 - Transferencia directa    
+        # 3 - Pagar en cuotas con tarjeta MERCADO PAGO API
+        # 4 - Criptomoneda  
+{% endcomment %}
+
+{% if status.id == 2 %}
+    <div class="d-grid cont-grid-122 mt-1 mb-2 h-min gap-2">
+
+        <div class="d-flex-col gap-1 bg-primary border-hover p-2">
+            <h2 class="mb-2"> 
+                <i class="ri-shopping-bag-line font-xxxl"></i> 
+                ¡Tu pedido se registró con éxito! 
+            </h1>
+
+            {% if payment.id == 1 %}
+                {# info adicional para pago en efectivo #}
+                <p class="text-start font-md"> 
+                    <i class="ri-cash-line bold-green font-lg"></i>
+                    Si abonas por <b>EFECTIVO</b> 
+                </p>
+                <p class="text-start ms-2 mb-2">
+                    <i class="ri-corner-down-right-fill font-md"></i>
+                    debe realizar el pago en el local 
+                    y se completará su venta tiene <b> {{ payment.time }}hs para retirarlo.</b>
+                </p>
+                     
+                <p class="text-start font-md"> 
+                    <i class="ri-cash-line bold-green font-lg"></i>
+                    Podes realizar una <b>TRANSFERENCIA</b>
+                </p>
+                <p class="text-start ms-2 mb-2"> 
+                    <i class="ri-corner-down-right-fill font-md"></i>
+                    para reservar su producto hasta retirarlo. 
+                </p>
+
+                <div class="bg-secondary border-hover p-2 text-break">
+                    <p> Carga el comprobante de pago. <b>La verificación 
+                    del pago puede demorar hasta 24 horas hábiles </b>
+                    debido a procesos bancarios. </p>
+                </div>
+
+                {# DATA TIENDA #}
+                <div class="bg-secondary border-hover cont-grid-2 p-2 gap-1 font-md bolder">
+                    <span class="bold-main grid-col-all">Datos de la cuenta</span>
+                    <span class="grid-col-all">BANCO GALICIA</span>
+                    Alias:         <span class="font-lg">lucas.callamullo</span>
+                    CBU:           <span class="fw-normal">0070148420000008022035</span>
+                    Cuenta N°:     <span class="fw-normal">0008022-0 148-3</span>
+                    Cuit:          <span class="fw-normal">30-71750886-2</span>
+                    Razón Social:  <span class="fw-normal">CAT GAMES GAMES S.A.S.</span>
+                </div>
+                
+            {% elif payment.id == 2 %}
+                <div class="d-flex-col gap-1">
+                    <p class="text-start"> 
+                        Si abonas por <b>TRANSFERENCIA*</b> 
+                        carga el comprobante dentro de {{ payment.time }}hs de haber 
+                        realizado el pedido, caso contrario será cancelado, sin excepción.
+                    </p>
+
+                    <p class="text-start"> 
+                        *La verificación por <b>TRANSFERENCIA</b> pueden demorar 24hs por 
+                        demora bancaria y es ajeno a nosotros. Veras actualizado el estado 
+                        de tu pedido una vez confirmado el pago, <b> por favor sea paciente.</b>
+                    </p>
+                </div>
+            {% elif payment.id == 3 %}
+                <p class="text-start">
+                    Si abonas con <b>TARJETA</b> y retiras en local, <b>ÚNICAMENTE</b>  
+                    el titular con tarjeta utilizada en mano y <b>DNI</b> puede retirar, sin excepción.
+                </p>
+
+            {% elif payment.id == 4 %}
+                <p class="text-start"> 
+                    Si abonas con <b>CRIPTOMONEDA</b>: Pedí la wallet de pago de <b>"Binance Pay"</b> 
+                    a nuestro Whatsapp. 
+                    
+                    Si abonas por <b>CRIPTOMONEDA</b> 
+                    carga el comprobante dentro de {{ payment.time }}hs de haber 
+                    realizado el pedido, caso contrario será cancelado, sin excepción.
+                </p>
+            {% endif %}
+        </div>
+
+        {# Formulario para subir capturas de wsp #}
+        <form class="d-flex-col gap-2 bg-primary border-hover h-min p-2" id="update-images-wsp">
+            <h4 class="bold-main">
+                Suba los comprobantes y/o capturas de su transferencia.
+            </h4>
+
+            <div class="border-main d-grid cont-grid-123 gap-1 cont-img-100-off cont-img-previews"> 
+                <i class="ri-image-add-fill icon-title text-primary icon-img justify-self-center grid-col-all"></i>
+            </div>
+
+            <div class="d-flex-col">
+                <input type="file" class="image-input" name="images" multiple>
+            </div>
+
+            <button class="btn btn-main w-min py-1 px-2 align-self-center text-truncate font-sm bolder"
+            type="submit">
+                Enviar Comprobante
+            </button>
+        </form>
+    </div>
+
+    <hr class="hr-custom">
+{% endif %}
+
+
+<h2 class="mt-3 mb-2 bold-main"> Tu Pedido </h2>
+
+<div class="bg-primary border-primary d-flex-col">
+    <div class="d-desktop-grid cart-row row-header border-bot-prim">
+        <span class="images"></span>
+        <strong class="name">Producto</strong>
+        <strong class="price">Precio</strong>
+        <strong class="quantity">Cantidad</strong>
+        <strong class="subtotal">SubTotal</strong>
+    </div>
+
+    {% for item in items %}
+        <div class="cart-row {% if forloop.first %}border-top-tablets{% endif %}">
+            {# Imagen del producto #}
+            <div class="image cont-img-100-off">
+                <img class="img-scale-down" src="{{ item.product.main_image }}" alt="{{ item.product.name }}">
+            </div>
+
+            {# Nombre del producto #}
+            <span class="name text-start bolder font-sm">
+                {{ item.product.name }}
+            </span>
+
+            {# Precio #}
+            <div class="price font-md bolder">
+                {#   #}
+                {% if item.discount > 0 %}
+                    <p class="d-flex-col-row font-sm">    
+                        <span class="bold-green">- %{{ item.discount|intdot }}&nbsp;&nbsp;</span>
+                        <span class="text-line-through text-secondary">$ {{ item.original_price|intdot }}</span>
+                    </p>
+                {% endif %}
+                $ {{ item.final_price|intdot }}
+            </div>
+
+            {# Contador #}
+            <div class="quantity font-md bolder gap-1">
+                <i class="ri-close-line"></i>
+                {{ item.quantity }}
+                <i class="ri-equal-line"></i>
+            </div>
+
+            {# Subtotal #}
+            <b class="subtotal bold-green">$ {{ item.final_price|multiply:item.quantity }}</b>
+        </div>
+
+        {# Completamos datos para descuento y envío #}
+        {% if forloop.last %}
+            <div class="cart-row lil-40">
+                {# Imagen de envio #}
+                <i class="ri-truck-line font-xxl justify-self-center"></i>
+
+                {# Nombre del gasto extra: envio #}
+                <b class="name text-start">Envío</b>
+
+                {# Precio #}
+                <b class="price d-desktop-flex">
+                    {% if order.shipment_cost|intdot < 1 %}
+                        $ {{ order.shipment_cost|intdot }}
+                    {% else %}
+                        Gratis
+                    {% endif %}
+                </b>
+
+                {# Contador #}
+                <span class="quantity font-md bolder d-desktop-flex">
+                    <i class="ri-close-fill"></i>1<i class="ri-equal-fill"></i>
+                </span>
+
+                {# Subtotal #}
+                <b class="subtotal">
+                    {% if order.shipment_cost|intdot == 0 %}
+                        $ {{ order.shipment_cost|intdot }}
+                    {% else %}
+                        Gratis
+                    {% endif %}
+                </b>
+            </div>
+
+            {# en caso de descuento asignamos un div extra #}
+            {% if order.discount_coupon > 0 %}
+                <div class="cart-row lil-40">
+                    {# Imagen de envio #}
+                    <i class="ri-discount-percent-line font-xxl justify-self-center"></i>
+                    {# Nombre del producto #}
+                    <b class="name text-start">Descuento</b>
+                    {# Precio #}
+                    <b class="price d-desktop-flex">$ {{ order.discount_coupon|intdot }}</b>
+                    {# Contador #}
+                    <div class="quantity font-md bolder d-desktop-flex">
+                        <i class="ri-close-fill"></i>1<i class="ri-equal-fill"></i>
+                    </div>
+                    {# Subtotal #}
+                    <b class="subtotal bold-red">- $ {{ order.discount_coupon|intdot }}</b>
+                </div>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+
+    {# Completamos con otros datos #}
+    <div class="cont-space-between w-100 p-2 border-primary font-lg bolder">
+        Total <b>$ {{ order.total|intdot }}</b>
+    </div>
+</div>
+
+<hr class="hr-custom">
+
+{# Datos de la orden en general #}
+<div class="bg-primary border-hover p-2 d-grid gap-1 cont-data-order bolder">
+    <h2 class="mt-1 mb-3 bold-main w-100 grid-col-all">Datos de tu Orden:</h2>
+
+    Estado Orden:
+    <p class="bold-orange">{{ status.name }}</p>
+
+    Fecha Creación:
+    <p class="bold-green text-break">{{ order.created_at }}</p>
+
+    {# significa si la orden sigue en espera de ser pagada, sino estará cancelada o concretada #}
+    {% if status.id == 2 %}
+        <p class="text-break">Fecha Cancelación: <span class="bold-red">(*)</span></p>
+        <p class="bold-orange text-break">{{ order.expire_at }}</p>
+    {% endif %}
+
+    Método de pago:
+    <p class="bold-blue text-break">{{ payment.name }}</p>
+
+    <p class="text-break">Método de envío:</p>
+    <p class="bold-blue text-break">{{ shipment.method.name }}</p>
+
+    Dirección de retiro:
+    <p class="text-break bolder">
+        {# 1 = retiro en local. #}
+        {% if shipment.method.id == 1 %}
+            {{ store.address }}
+        {% else %}
+            {{ shipment.address }}
+        {% endif %}
+    </p>
+
+    Nombre:
+    <p class="text-break fw-normal">{{ order.name }}</p>
+
+    Email:
+    <p class="text-break fw-normal">{{ order.email }}</p>
+
+    {# significa si la orden sigue en espera de ser pagada, sino estará cancelada o concretada #}
+    {% if status.id == 2 %}
+        <p class="font-md mt-1 mb-2 w-100 text-start text-break grid-col-all fw-normal">
+            <span class="bold-red">(*)</span>
+            En caso de pagar mediante Transferencia deberás subir una/s captura/s
+            del pago realizado sino el pedido será automáticamente cancelado.
+        </p>
+    {% endif %}
+
+    <p class="mt-2 text-start text-break grid-col-all fw-normal"> 
+        Te saluda atentamente, el equipo de <span class="bold-main">{{ store.name }}</span>.
+    </p>
+</div>
+
+    {# brick de mercado pago #}
+    <div id="payment-info" hidden data-index="{{ payment.id }}"></div>
+    {% if payment.id == 3 %}
+        <div class="container-mp"> 
+            <div id="wallet_container"></div>
+        </div>
+    {% endif %}
+
+
+    {% comment %}
+        <!--     Revisar algun día bien
+        <select id="cuotas" onchange="generarBrick()">
+            <option value="1">1 cuota - $100</option>
+            <option value="3">3 cuotas - $150</option>
+            <option value="6">6 cuotas - $200</option>
+        </select>
+        
+        Contenedor donde se insertará dinámicamente el Brick 
+        <div id="brick_container"></div> -->
+    {% endcomment %}
+{% endblock %}
+
+
+{% block extra_scripts %}
+    <script>
+        let payment_id = document.getElementById('payment-info').getAttribute('data-index');
+
+        if (payment_id == '3') {
+            // Usa la public key que pasaste desde el backend
+            const mp = new MercadoPago('{{ public_key }}', { 
+                locale: 'es-AR'
+            });
+
+            mp.bricks().create("wallet", "wallet_container", {
+                initialization: {
+                    // Usa el preference_id que pasaste desde el backend
+                    preferenceId: "{{ preference_id }}",  
+                    redirectMode: "self",    // use 'blank' for open a new tab
+                },
+                customization: {
+                    texts: {
+                        valueProp: 'smart_option',
+                    },
+                },
+            });
+        }
+    </script>
+    
+    {# Scripts necesarios para subir imagenes #}
+    <script src="https://cdn.jsdelivr.net/npm/compressorjs@1.2.1/dist/compressor.min.js"></script> 
+    <script src="https://unpkg.com/filepond/dist/filepond.js"></script> 
+
+    {# Const URLs #}
+    <script>
+        window.TEMPLATE_URLS = {
+            genericUpdateImages: "{% url 'upload-images-api' %}"
+        };
+    </script>
+
+    {% compress js %}
+        {# endpoint generico de carga de imagenes retorna urls #}
+        <script src="{% static 'dashboard/js/endpoints/images.js' %}"> </script>
+        <script src="{% static 'orders/js/order_detail.js' %}"> </script>
+    {% endcompress %}
+    
+
+    {% comment %}
+        <!-- 		 
+        <script>
+            function generarBrick() {
+                let cuotas = document.getElementById("cuotas").value;
+                let brickContainer = document.getElementById("brick_container");
+            
+                // Vaciar el contenedor antes de crear un nuevo Brick
+                brickContainer.innerHTML = "";
+            
+                fetch(`/crear-preferencia?cuotas=${cuotas}`)
+                .then(response => response.json())
+                .then(data => {
+                    const mp = new MercadoPago("{ { public_key } }", { locale: 'es-AR' });
+            
+                    // Crear un div para insertar el Brick
+                    let walletDiv = document.createElement("div");
+                    walletDiv.id = "wallet_container";
+                    brickContainer.appendChild(walletDiv);
+            
+                    // Crear el Brick dentro del div dinámico
+                    mp.bricks().create("wallet", "wallet_container", {
+                        initialization: {
+                            preferenceId: data.preference_id,
+                            redirectMode: "self",
+                        }
+                    });
+                })
+                .catch(error => console.error("Error al generar el Brick:", error));
+            }
+        </script>
+        -->
+    {% endcomment %}
+{% endblock %}
