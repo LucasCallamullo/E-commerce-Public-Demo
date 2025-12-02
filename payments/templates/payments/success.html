@@ -1,0 +1,121 @@
+{% extends "home/base.html" %}
+
+{% load static %}
+{% load custom_filters %}
+
+
+{% block extra_head %}
+
+    <link href="{% static 'payments/css/sucess.css' %}" rel="stylesheet">
+
+{% endblock %}
+
+
+
+{% block main_content %}
+
+    <h1>¡Pago realizado con éxito!</h1>
+    <p>Gracias por tu compra. Tu pedido ha sido procesado.</p>
+
+    <p>MENSAJE : {{ message }} </p>
+
+    <p>MENSAJE_Error : {{ message_error }} </p>
+
+    <p>Detalles del pago:</p>
+
+
+    <div class="container my-5">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white text-center">
+                <h2>Detalle Pedidos </h2>
+            </div>
+            <div class="card-body">
+                <!-- Buyer Information -->
+                <h4 class="mb-3"> Información comprador </h4>
+                <p><strong>Name:</strong> {{ invoice.name }} </p>
+                <p><strong>Email:</strong> {{ invoice.email }}</p>
+                <p><strong>Phone:</strong> {{ invoice.cellphone }}</p>
+                <p><strong>DNI:</strong> {{ invoice.dni }}</p>
+                
+                <!-- Shipping Information -->
+                <h4 class="mb-3">Shipping Information</h4>
+                <p><strong>Shipping Method:</strong> {{ shipment_method.name }}</p>
+                {% if shipment_method.id == 1 %}
+                    <p><strong>buyer_name:</strong> {{ shipment.name_pickup }}</p>
+                    <p><strong>buyer_dni:</strong> {{ shipment.dni_pickup }}</p>
+                {% else %}
+                    <p><strong>Address:</strong> {{ shipment.address }}</p>
+                    <p><strong>City:</strong> {{ shipment.city }}</p>
+                    <p><strong>Province:</strong> {{ shipment.province }}</p>
+                    <p><strong>Postal Code:</strong> {{ shipment.postal_code }}</p>
+                    <p><strong>Details:</strong> {{ shipment.detail }}</p>
+                {% endif %}
+
+                <!-- Order Summary -->
+                <h4 class="mb-3">Pedido</h4>
+                <p><strong>Order ID:</strong> {{ order.id }}</p>
+                <p><strong>Methodo de Pago:</strong> {{ payment.name }}</p>
+                <p><strong>Status:</strong> {{ order.status.name }}</p>
+                <p><strong>Factura Numero:</strong> ${{ invoice.invoice_number }}</p>
+
+                <p><strong>Descuento:</strong> ${{ invoice.discount }}</p>
+                <p><strong>Costo de Envio:</strong> ${{ invoice.shipment_cost }}</p>
+                <p><strong>Costo Total:</strong> ${{ invoice.total }}</p>
+                <p><strong>Costo Total Recibido post MP:</strong> ${{ invoice.total_mp }}</p>
+
+                <!-- Order Items -->
+                <h4 class="mb-3">Pedido Items</h4>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>${{ item.price }}</td>
+                            <td>${{ item.subtotal }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{% url 'Home' %}" class="btn btn-secondary">Ir al Home</a>
+                <a href="#" class="btn btn-primary"> Boton </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="separador mt-3 mb-3"> </div>
+
+    <!-- podría incluir algún icono de éxito -->
+    <img src="https://www.mercadopago.com/org-img/MP3/home/logomp3.gif" alt="Pago exitoso">
+
+
+    <div class="separador mt-3 mb-3"> </div>
+    <div class="separador mt-3 mb-3"> </div>
+    <div class="separador mt-3 mb-3"> </div>
+
+    <h1>
+        PARA DEBUG
+    </h1>
+
+    <div class="separador mt-3 mb-3"> </div>
+
+    <div class="separador mt-3 mb-3"> </div>
+    <div class="mt-3 mb-3"> </div>
+    <p> PAYMENT: {{ payment_mp }} </p>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+<!-- Aquí podrías incluir scripts adicionales si los necesitas -->
+{% endblock %}

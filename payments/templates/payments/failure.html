@@ -1,0 +1,23 @@
+{% extends "home/base.html" %}
+
+{% block extra_head %}
+<!-- Aquí podrías incluir iconos de error o enlaces adicionales -->
+{% endblock %}
+
+{% block main_content %}
+    <h1>Lo sentimos, hubo un problema con tu pago.</h1>
+    <p>El pago no se pudo completar. Por favor, intenta de nuevo o usa otro método de pago.</p>
+
+    <p>Detalles del error:</p>
+    <ul>
+        <li>Mensaje de error: {{ error_message }}</li>
+        <li>Estado del pago: {{ payment_data.status }}</li>
+    </ul>
+
+    <!-- Aquí podrías agregar un icono de error o algo similar -->
+    <img src="https://example.com/error-icon.png" alt="Error en el pago">
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Scripts adicionales si es necesario -->
+{% endblock %}

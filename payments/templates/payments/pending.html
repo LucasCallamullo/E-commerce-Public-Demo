@@ -1,0 +1,23 @@
+{% extends "home/base.html" %}
+
+{% block extra_head %}
+<!-- Aquí podrías agregar iconos o enlaces adicionales -->
+{% endblock %}
+
+{% block main_content %}
+    <h1>Pago en proceso</h1>
+    <p>Tu pago está siendo procesado. Te notificaremos cuando se complete.</p>
+
+    <p>Detalles del pago:</p>
+    <ul>
+        <li>ID de pago: {{ payment_data.id }}</li>
+        <li>Estado del pago: {{ payment_data.status }}</li>
+    </ul>
+
+    <!-- Aquí podrías agregar un icono de espera o algo similar -->
+    <img src="https://example.com/processing-icon.png" alt="Procesando pago">
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Scripts adicionales si es necesario -->
+{% endblock %}
