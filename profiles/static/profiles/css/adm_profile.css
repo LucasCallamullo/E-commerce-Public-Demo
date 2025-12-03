@@ -1,0 +1,195 @@
+
+
+.img-circle {
+    border-radius: 50%; 
+    width: 150px;
+    height: 150px;
+    object-fit: cover; /* Ajusta la imagen para que llene el contenedor, recortando si es necesario */
+    object-position: center; /* Centra la imagen si se recorta */
+}
+
+.p-border-top { 
+    border-start-start-radius: 5px;
+    border-start-end-radius: 5px;
+}
+
+.p-border-bot {
+    border-end-start-radius: 5px;
+    border-end-end-radius: 5px;
+    border-top: none !important;
+}
+
+/*
+    Segunda columna dashboards y demas
+*/
+.banner-profile {
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+}
+
+.cont-tabs {
+    border-top: 1px solid var(--white-color);
+    border-bottom: 1px solid var(--white-color);
+    background-color: var(--text-secondary);
+    
+    grid-template-columns: 1fr;
+    padding: 0;
+    gap: 0;
+    height: 124px;
+    max-height: 124px;
+}
+
+.white-border-right-left {
+    border-top: 2px solid var(--white-color);
+    border-bottom: 2px solid var(--white-color);
+    height: 44px;
+}
+
+.btn-tabs.active {
+    background-color: #007bff;
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 992px) {
+    .white-border-right-left {
+        border: none;
+        height: 40px;
+        width: calc(100% + 4px);
+        border-left: 2px solid var(--white-color);
+        border-right: 2px solid var(--white-color);
+    }
+
+    .cont-tabs {
+        grid-template-columns: repeat(3, 1fr);
+        height: 42px;
+        max-height: 42px;
+    }
+}
+
+
+/*
+    ADMIN PROFILE STUFF
+*/
+.shipments-form,
+.payments-form {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr 0.25fr 0.25fr;
+    grid-template-rows: auto;
+    row-gap: 16px;
+    column-gap: 16px;
+
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--text-primary);
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 992px) {
+    .shipments-form,
+    .payments-form {
+        grid-template-columns: 0.8fr 0.25fr 0.2fr 1.15fr 0.25fr;
+        border: none;
+        padding-bottom: 0px;
+    }
+}
+
+#store-data-tab input[type="checkbox"] {
+    height: 24px;
+    width: 24px;
+    cursor: pointer;
+}
+
+
+/* 
+    users section 
+*/
+.cont-table-user {
+    display: grid;
+    grid-template-columns: 1.25fr 0.75fr 0.25fr;
+    height: 48px;
+    column-gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+.cont-table-user strong,
+.cont-table-user select {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+}
+
+/* Contenedor del buscador */
+.cont-user-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 250px; /* Ajusta según necesites */
+}
+
+/* Estilo del input */
+.cont-user-search input {
+    width: 100%;
+    padding: 8px 12px 8px 48px; /* Espaciado para evitar que el texto se sobreponga con el ícono */
+    border: 1px solid #ccc;
+    border-radius: 20px; /* Bordes redondeados */
+    font-size: 14px;
+    outline: none;
+    transition: 0.3s;
+}
+
+/* Efecto al enfocar el input */
+.cont-user-search input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Ícono dentro del input */
+.search-icon {
+    position: absolute;
+    left: 24px;
+    color: var(--text-secondary);
+}
+
+/* Efecto cuando se enfoca el input */
+.cont-user-search:focus-within .search-icon {
+    color: #007bff;
+}
+
+
+/* 
+    Orders section 
+*/
+.cont-table-orders {
+    /* id     status.name    price  */
+    padding: 0;
+    gap: 16px;
+    column-gap: 0;
+    grid-template-columns: 0.4fr 1.1fr 0.9fr;
+}
+
+.row-order {
+    height: 32px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid var(--text-primary);
+}
+
+.cont-table-orders .underline-anim span::after {
+    background-color: var(--main-light-color);
+}
+
+
+/* Styles for large desktops (mín. 992px to max. infinite) */
+@media (min-width: 992px) {
+    .cont-table-user {
+        grid-template-columns: 0.7fr 0.7fr 1.7fr 0.7fr 0.4fr;
+        height: 48px;
+        column-gap: 16px;
+    }
+
+    .cont-table-orders {
+        /* id     date    status.name    price    href */
+        grid-template-columns: 0.4fr 0.6fr 1.1fr 1.1fr 0.5fr;
+    }
+}

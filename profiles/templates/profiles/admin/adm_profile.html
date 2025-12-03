@@ -1,0 +1,153 @@
+{% extends "home/base.html" %}
+{% load static compress %}
+
+
+{# For More CSS Modules #}
+{% block extra_head %}
+
+    <title> Admin | {{ user.first_name }} {{ user.last_name }}</title>
+    {% compress css %}
+        <link href="{% static 'profiles/css/adm_profile.css' %}" rel="stylesheet">
+    {% endcompress %}
+{% endblock extra_head %}
+
+
+{# Contenido principal de la pagina #}
+{% block main_content %}
+
+<div class="d-grid cont-grid-11-13 gap-2">
+
+    {# tarjeta del usuario e INFO CONTACTO #}
+    <aside class="d-flex-col gap-2">
+
+        {# Columna perfil + botones edit y logout #}
+        <div class="border-hover bg-primary d-flex-col w-100 align-center gap-1 p-3">
+
+            <img src="https://i.pinimg.com/736x/80/8d/03/808d03843400c4392b7891c1a6428104.jpg" 
+            class="img-circle" alt="User Image Profile">
+            
+            <span class="mt-1 bolder">{{ user.first_name }} {{user.last_name}}</span>
+            <span class="text-truncate"> {{ user.email }} </span>
+            <span class="bold-green">Rol: <b class="bold-main text-capitalize">{{ user.role }} </b></span>
+        
+            <a href="{% url 'main_dashboard' %}" class="btn btn-40 w-100 gap-1 btn-main bolder">
+                <i class="ri-dashboard-horizontal-line fw-normal font-xl"></i>
+                Panel de control
+            </a>
+
+            {# BOTONES EDITAR Y LOGEARSE #}
+            <form class="d-flex-col mt-1 w-100 form-close-profile">
+                {% csrf_token %}
+                <button class="btn gap-1 btn-secondary border-secondary p-border-top btn-36 w-100
+                font-sm bolder" type="button">
+                    <i class="ri-settings-4-line fw-normal font-lg"></i>
+                    Editar Datos
+                </button>
+            
+                <button class="btn gap-1 btn-secondary border-secondary p-border-bot btn-36 w-100 font-sm bolder"
+                type="submit" data-action="Close" data-url="{% url 'close_session' %}">
+                    <i class="ri-door-open-fill fw-normal font-lg"></i>
+                    Cerrar Sesión
+                </button>
+            </form>
+        </div>
+        
+        {# Tarjeta Info Contacto #}
+        <div class="border-hover bg-primary d-flex-col w-100 align-start p-3 d-desktop-flex">
+            <h2 class="bold-main font-md mb-2">Datos Tienda</h2>
+            
+            <div class="d-flex gap-1 border-secondary p-border-top btn-36 w-100 not-border-bottom">
+                <i class="ri-mail-line font-lg ms-2"></i>
+                <span class="text-truncate me-1">{{ store.email|default:"No hay E-mail." }}</span>
+            </div>
+
+            <div class="d-flex gap-1 border-secondary btn-36 w-100">
+                <i class="ri-phone-line font-lg ms-2"></i>
+                {{ store.cellphone|default:"No hay número." }}
+            </div>
+
+            <div class="d-flex gap-1 border-secondary p-border-bot btn-36 w-100">
+                <i class="ri-home-4-line font-lg ms-2"></i>
+                {{ store.address|default:"No hay dirección." }}
+            </div>
+        </div>
+    </aside>
+
+    {# CONTENIDO del perfil #}
+    <div class="border-secondary">
+        {# BANNER #}
+        <img src="https://i.pinimg.com/736x/3b/da/58/3bda585ceabcae86a826c57305d1ff39.jpg" 
+            class="img-cover banner-profile" alt="BANNER PROFILE">
+        
+        {# ITEMS BANNER #}
+        <div class="d-grid w-100 cont-tabs">
+            <button class="active btn btn-alt gap-1 btn-40 w-100 btn-tabs font-md bolder" 
+            data-tab="orders-tab">
+                Pedidos
+                <i class="ri-time-line fw-normal font-lg"></i>
+            </button>
+
+            <button class="btn btn-alt gap-1 white-border-right-left btn-40 w-100 btn-tabs font-md bolder" 
+            data-tab="users-tab">
+                Roles Usuarios
+                <i class="ri-user-settings-fill fw-normal font-lg"></i>
+            </button>
+
+            <button class="btn btn-alt gap-1 btn-40 w-100 btn-tabs font-md bolder" 
+            data-tab="store-data-tab">
+                Datos Tienda  
+                <i class="ri-store-2-line fw-normal font-lg"></i> 
+            </button>
+        </div>
+
+        <div class="tab-content bg-primary p-2" id="orders-tab"></div>
+
+        <div class="tab-content bg-primary p-2" id="users-tab"></div>
+
+        <div class="tab-content bg-primary p-2" id="store-data-tab"></div>
+    </div>
+
+</div>
+
+{% endblock main_content %}
+
+    {% comment %}
+        {# // profiles/urls.py #}
+        profileTabs: "{% url 'profile_tabs' 0 %}".replace('0/', '{tab_name}/'),
+
+        {# // home/urls.py #}
+        storeUpdate: "{% url 'update_store' 0 %}".replace('0/', '{store_id}/'),
+
+        {# // orders/urls.py #}
+        orderDetail: "{% url 'order-detail' 0 %}".replace('0/', '{order_id}/'),
+
+        {# // products/urls.py #}
+        productList: "{% url 'product_list' %}",
+
+        {# // payments/urls.py #}
+        shipmentUpdate: "{% url 'update_shipment' 0 %}".replace('0/', '{shipment_id}/'),
+        paymentUpdate: "{% url 'update_payment' 0 %}".replace('0/', '{payment_id}/'),
+
+        {# // users/urls #}
+        userRoleUpdate: "{% url 'user_edit_role' 0 %}".replace('0/', '{user_id}/')
+    {% endcomment %}
+
+{% block extra_scripts %}
+    <script>
+        window.TEMPLATE_URLS = {
+            profileTabs: "{% url 'profile_tabs' 0 %}".replace('0/', '{tab_name}/'),
+            storeUpdate: "{% url 'update_store' 0 %}".replace('0/', '{store_id}/'),
+            orderDetail: "{% url 'order-detail' 0 %}".replace('0/', '{order_id}/'),
+            productList: "{% url 'product_list' %}",
+            shipmentUpdate: "{% url 'update_shipment' 0 %}".replace('0/', '{shipment_id}/'),
+            paymentUpdate: "{% url 'update_payment' 0 %}".replace('0/', '{payment_id}/'),
+            userRoleUpdate: "{% url 'user_edit_role' 0 %}".replace('0/', '{user_id}/')
+        };
+    </script>
+    {% compress js %}
+        <script src="{% static 'profiles/js/tabs/tab_orders.js' %}"></script>
+        <script src="{% static 'profiles/js/tabs/tab_store.js' %}"></script>
+        <script src="{% static 'profiles/js/tabs/tab_roles.js' %}"></script>
+        <script src="{% static 'profiles/js/adm_profile.js' %}"></script>
+    {% endcompress %}
+{% endblock extra_scripts %}

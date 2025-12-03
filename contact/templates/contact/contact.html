@@ -1,0 +1,112 @@
+{% extends "home/base.html" %}
+{% load compress static %}
+
+{% block extra_head %}
+    <title>Contacto | {{store.name}}</title>
+    {% compress css %}
+        <link rel="stylesheet" href="{% static 'contact/css/contact.css' %}">
+    {% endcompress %}
+{% endblock extra_head %}
+
+
+{% block main_content %}
+<div class="d-flex gap-2">
+    <a class="btn btn-parallelogram w-min px-2 font-md" href="{% url 'Home' %}"><span>Home</span></a>
+    <button class="btn btn-parallelogram w-min px-2 font-md"><span>Contacto</span></button>
+</div>
+
+
+<div class="mt-2 d-grid cont-grid-122 gap-2">
+
+    <h1 class="grid-col-all">Local de Computación - Córdoba, Capital.</h1>
+
+    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3404.902747683022!2d-64.18678398730748!3d-31.416805445630054!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94329902eb0b2faf%3A0x4382bb478dc6e982!2sPlaza%20San%20Mart%C3%ADn!5e0!3m2!1ses-419!2sar!4v1755128362578!5m2!1ses-419!2sar" 
+        class="w-100 grid-col-all mb-2" width="800" height="400" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+    </iframe>
+
+    {# Info basica de la tienda #}
+    <div class="d-flex-col gap-2 h-min bg-primary border-hover p-3">
+        <h2 class="bold-main">Contactanos</h2>
+
+        <h3>Sucursal:</h3>
+
+        <p class="d-flex text-start gap-1 pxl-2">
+            <i class="ri-map-pin-line font-xl"></i>
+            <span class="text-break">{{store.address}}, Córdoba, Argentina.</span>
+        </p>
+
+        <p class="d-flex gap-1 pxl-2">
+            <i class="ri-whatsapp-line font-xl"></i>
+            {{store.cellphone}}
+        </p>
+
+        <div class="d-flex gap-1 pxl-2">
+            <i class="ri-time-line font-xl"></i>
+            <p class="d-flex-col gap-1 text-justify">
+                <span>Lunes a Viernes de 10hs a 14hs y de 15hs a 18:50hs.</span>
+                Sábado hasta el mediodía.
+            </p>
+        </div>
+
+        <span class="d-flex gap-1 pxl-2">
+            <i class="ri-mail-line font-xl"></i>
+            {{store.email}}
+        </span>
+
+        <h3>Redes:</h3>
+
+        {# Icon Container  #} 
+        <div class="d-flex ms-1 gap-3 icons-footer pxl-2">
+            <a href="{{store.tt_url}}" class="hover-up" target="_blank">
+                <i class="ri-tiktok-fill font-xxl"></i>
+            </a>
+            <a href="{{store.fb_url}}" class="hover-up" target="_blank">
+                <i class="ri-facebook-box-fill font-xxl"></i>
+            </a>
+            <a href="{{store.ig_url}}" class="hover-up" target="_blank">
+                <i class="ri-instagram-line font-xxl"></i>
+            </a>
+            <a href="{{store.google_url}}" class="hover-up" target="_blank">
+                <i class="ri-google-fill font-xxl"></i>
+            </a>
+        </div>
+
+        <b>Presupuestos de PC y consultas particulares por Whatsapp</b>
+    </div>
+
+    <form class="d-grid cont-grid-2 align-start gap-2 bg-primary border-hover p-3">
+        <h2 class="bold-main grid-col-all">Escribinos</h2>
+        
+        <label class="d-flex-col gap-1 bolder grid-col-all">
+            Tu Nombre:
+            <input type="text" name="name">
+        </label>
+
+        <label class="d-flex-col gap-1 bolder">
+            Tu E-mail:
+            <input type="email" name="email">
+        </label>
+
+        <label class="d-flex-col gap-1 bolder">
+            Tu Celular:
+            <input type="text" name="cellphone">
+        </label>
+
+        <label class="d-flex-col gap-1 bolder grid-col-all">
+            Tu Consulta:
+            <textarea class="h-110 font-sm" name="consult" id=""></textarea>
+        </label>
+        
+        {# buttons a definir para mandar mensaje o email #}
+        <button type="submit" class="btn btn-main h-70-40 p-1 font-sm fw-normal-plus gap-1">
+            <i class="ri-mail-send-line fw-normal font-lg"></i>
+            Enviar Consulta
+        </button>
+        <button type="button" class="btn wsp-button h-70-40 p-1 font-sm fw-normal-plus gap-1">
+            <i class="ri-whatsapp-line fw-normal font-lg"></i>
+            Enviar Mensaje
+        </button>
+    </form>
+</div>
+
+{% endblock main_content %}

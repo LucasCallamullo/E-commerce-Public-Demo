@@ -1,0 +1,153 @@
+{% extends "home/base.html" %}
+{% load static compress %}
+
+{% block extra_head %}
+
+    <title> Perfil | {{ user.first_name }} {{ user.last_name }}</title>
+
+    {# }Swiper CSS #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+    
+    {% compress css %}
+        <link href="{% static 'products/css/products_carousel.css' %}" rel="stylesheet">
+        <link href="{% static 'products/css/cards_products.css' %}" rel="stylesheet">
+        <link href="{% static 'profiles/css/user_profile.css' %}" rel="stylesheet">
+    {% endcompress %}
+    
+
+{% endblock extra_head %}
+
+
+{% block main_content %}
+
+<div class="d-grid cont-grid-11-13 gap-2">
+
+    {# tarjeta del usuario e INFO CONTACTO #}
+    <aside class="d-flex-col gap-2">
+
+        {# Columna perfil + botones edit y logout #}
+        <div class="border-hover bg-primary d-flex-col w-100 align-center gap-1 p-3">
+
+            <img src="https://i.pinimg.com/736x/80/8d/03/808d03843400c4392b7891c1a6428104.jpg" 
+            class="img-circle" alt="User Image Profile">
+            
+            <span class="mt-1 bolder">{{ user.first_name }} {{user.last_name}}</span>
+            <span class="text-truncate"> {{ user.email }} </span>
+        
+            {# BOTONES EDITAR Y LOGEARSE #}
+            <form class="d-flex-col mt-1 w-100 form-close-profile">
+                {% csrf_token %}
+                <button class="btn gap-1 btn-secondary border-secondary p-border-top btn-36 w-100
+                font-sm bolder" type="button">
+                    <i class="ri-settings-4-line fw-normal font-lg"></i>
+                    Editar Datos
+                </button>
+            
+                <button class="btn gap-1 btn-secondary border-secondary p-border-bot btn-36 w-100 font-sm bolder"
+                type="submit" data-action="Close" data-url="{% url 'close_session' %}">
+                    <i class="ri-door-open-fill fw-normal font-lg"></i>
+                    Cerrar Sesión
+                </button>
+            </form>
+        </div>
+        
+        {# Tarjeta Info Contacto #}
+        <div class="border-hover bg-primary d-flex-col w-100 align-start p-3 d-desktop-flex">
+            <h2 class="bold-main font-md mb-2">Contacto</h2>
+            
+            <div class="d-flex gap-1 border-secondary p-border-top btn-36 w-100 not-border-bottom">
+                <i class="ri-mail-line font-lg ms-2"></i>
+                <span class="text-truncate me-1">{{ user.email|default:"No hay E-mail." }}</span>
+            </div>
+
+            <div class="d-flex gap-1 border-secondary btn-36 w-100">
+                <i class="ri-phone-line font-lg ms-2"></i>
+                {{ user.cellphone|default:"No hay número." }}
+            </div>
+
+            <div class="d-flex gap-1 border-secondary p-border-bot btn-36 w-100">
+                <i class="ri-home-4-line font-lg ms-2"></i>
+                {{ user.address|default:"No hay dirección." }}
+            </div>
+        </div>
+    </aside>
+
+    {# CONTENIDO del perfil #}
+    <div class="border-secondary">
+        {# BANNER #}
+        <img src="https://i.pinimg.com/736x/3b/da/58/3bda585ceabcae86a826c57305d1ff39.jpg" 
+            class=" img-cover cont-banner-profile" alt="BANNER PROFILE">
+        
+        {# ITEMS BANNER #}
+        <div class="d-grid w-100 cont-tabs">
+            <button class="active-tab btn-tabs btn btn-alt gap-1 btn-40 w-100 bolder font-md" data-tab="orders-tab">
+                <i class="ri-time-line font-lg fw-normal"></i>Pedidos Pendientes
+            </button>
+
+            <button class="btn-tabs btn btn-alt gap-1 white-border-right-left btn-40 w-100 bolder font-md" 
+            data-tab="favorites-tab">
+                <i class="ri-heart-line font-lg fw-normal"></i>Productos Favoritos 
+            </button>
+
+            <button class="btn-tabs btn btn-alt gap-1 btn-40 w-100 bolder font-md" data-tab="invoices-tab">
+                <i class="ri-store-2-line font-lg fw-normal"></i>Mis Compras
+            </button>
+        </div>
+
+        {# DASHBOARD PRODUCTOS #}
+        <div class="tab-content p-2" id="orders-tab"></div>
+        <div class="tab-content p-2" id="favorites-tab"></div>
+        <div class="tab-content p-2" id="invoices-tab"></div>
+    </div>
+</div>
+    {# componente reutilizable modal uno solo #}
+    {% include "products/components/card__modal.html" %}
+
+{% endblock main_content %}
+
+    {% comment %}
+        window.TEMPLATE_URLS = {
+            {# users/urls.py #}
+            profileTabs: "{% url 'profile_tabs' 0 %}".replace('0/', '{tab_name}/'),
+            {# favorites/urls.py #}
+            favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
+            {# orders/urls.py #}
+            orderDetail: "{% url 'order-detail' 0 %}".replace('0/', '{order_id}/'),
+            productList: "{% url 'product_list' %}",
+            {# products/urls.py #}
+            productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
+            category: "{% url 'pl_category' cat_slug='__CAT__' %}",
+            subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
+            brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}"
+        };
+    {% endcomment %}
+
+{% block extra_scripts %}
+    {# JavaScript for Product Page #}
+    <script>
+        window.TEMPLATE_URLS = {
+            profileTabs: "{% url 'profile_tabs' 0 %}".replace('0/', '{tab_name}/'),
+            orderDetail: "{% url 'order-detail' 0 %}".replace('0/', '{order_id}/'),
+            favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
+            productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
+            category: "{% url 'pl_category' cat_slug='__CAT__' %}",
+            subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
+            brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}",
+            productList: "{% url 'product-update-api' 0 %}".replace('/0/', '{product_id}'),
+            productImages: "{% url 'product-images-api' 0 %}".replace('/0/', '/{product_id}/')
+        };
+    </script>
+
+    {# Swiper JS sirve para el carousel #}
+    <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+
+    {% compress js %}
+        <script src="{% static 'favorites/js/add_favorites.js' %}"></script>
+        <script src="{% static 'products/js/logic/cards_products.js' %}"></script>
+        <script src="{% static 'products/js/components/cards_products.js' %}"></script>
+        <script src="{% static 'products/js/components/carousel_products.js' %}"></script>
+        <script src="{% static 'profiles/js/tabs/tab_orders.js' %}"></script>
+        <script src="{% static 'profiles/js/tabs/tab_favorites.js' %}"></script>
+        <script src="{% static 'profiles/js/user_profile.js' %}"></script>
+    {% endcompress %}
+{% endblock extra_scripts %}

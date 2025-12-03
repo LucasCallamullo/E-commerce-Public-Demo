@@ -1,0 +1,26 @@
+
+
+/* effect btn wsp */
+.wsp-button {
+    background-color: var(--green-wsp-color);
+    color: var(--white-color);
+}
+
+.wsp-button:hover,
+.wsp-button:active {
+    color: var(--green-wsp-color);
+    background-color: var(--white-color);
+    border: 2px solid var(--green-wsp-color);
+}
+
+.h-70-50 {
+    height: 70px;
+}
+
+/* Styles for large desktops (mín. 992px to max. infinite) */
+@media (min-width: 992px) {
+    .h-70-50 {
+        height: 40px;
+        max-height: 40px;
+    }
+}
