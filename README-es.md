@@ -3,21 +3,23 @@
 <h1 align="center">E-commerce Full Stack - Django + DRF</h1>
 
 <p>
-  <strong>A complete e-commerce platform built with Django and vanilla JavaScript.</strong> 
-  Features include: user authentication with role-based permissions, product catalog with favorites system, shopping cart, order management, payment processing (Mercado Pago), advanced admin dashboard, and fully responsive design.
+  <strong>Plataforma de e-commerce completa desarrollada con Django y JavaScript vanilla.</strong> 
+  Incluye: autenticación de usuarios con permisos por roles, catálogo de productos con favoritos, carrito de compras, gestión de pedidos, procesamiento de pagos (Mercado Pago), panel de administración avanzado y diseño responsive.
 </p>
 
 <br>
 
-<!-- Quick Navigation -->
+<!-- Navegación Rápida -->
 <p>
-  <strong> Quick Links in README: </strong>
-  <a href="#features">Features</a> • 
-  <a href="#tech-stack">Stack</a> • 
-  <a href="#demo">Demo Video</a> • 
-  <a href="#images">Images</a> • 
-  <a href="#contact">Contact</a>
+  <strong>Navegación rápida:</strong>
+   <a href="#features">Características</a> • 
+   <a href="#tech-stack">Tecnologías</a> • 
+   <a href="#demo">Demo Video</a> • 
+   <a href="#images">Imágenes</a> • 
+   <a href="#contact">Contacto</a>
 </p>
+
+
 
 <div>
   <!-- Primera fila de badges con estilo for-the-badge -->
@@ -37,7 +39,7 @@
 
 <br>
 
-<strong>Documentation:</strong>
+<strong>Documentación:</strong>
 
 <div>
   <a href="README.md">
@@ -51,42 +53,40 @@
 <hr>
 
 
-<h2 id="features">Features</h2>
+<h2 id="features">Funcionalidades Principales</h2>
 
-<h3>Core E-commerce</h3>
+<h3>Funcionalidades del E-commerce</h3>
 <ul>
-  <li><strong>Product Catalog</strong> with categories, subcategories, and brands</li>
-  <li><strong>Shopping Cart</strong> with session-based management</li>
-  <li><strong>Order Processing</strong> with state management</li>
-  <li><strong>User Authentication</strong> with role-based permissions</li>
-  <li><strong>Admin Dashboard</strong> for CRUD operations and analytics</li>
+  <li><strong>Catálogo de Productos</strong> organizado por categorías, subcategorías y marcas</li>
+  <li><strong>Carrito de Compras</strong> gestionado por sesiones de usuario</li>
+  <li><strong>Sistema de Pedidos</strong> con seguimiento de estados</li>
+  <li><strong>Autenticación</strong> con sistema de roles (admin/usuario)</li>
+  <li><strong>Panel de Administración</strong> completo con CRUD y métricas</li>
 </ul>
 
-<h3>Payment & Integration</h3>
+<h3>Sistema de Pagos</h3>
 <ul>
-  <li><strong>Mercado Pago API</strong> integration for secure payments</li>
-  <li><strong>Bulk Product Import</strong> using OpenPyXL for Excel data processing</li>
-  <li><strong>Image Management</strong> for product photos and site banners using external storage (ImgBB API)</li>
+  <li><strong>Integración con Mercado Pago</strong> para procesamiento seguro de pagos</li>
+  <li><strong>Importación Masiva</strong> desde archivos Excel usando OpenPyXL</li>
+  <li><strong>Gestión de Imágenes</strong> mediante API externa (ImgBB) para almacenamiento</li>
 </ul>
 
-<h3>Hybrid Architecture</h3>
+<h3>Arquitectura Hibrida</h3>
 <ul>
-  <li><strong>Server-Side Rendering (SSR)</strong> for SEO optimization and initial page loads</li>
-  <li><strong>AJAX-powered interactions (CSR)</strong> for dynamic filtering and cart updates</li>
+  <li><strong>Renderizado en Servidor (SSR)</strong> para mejor SEO y carga inicial rápida</li>
+  <li><strong>Actualizaciones en Tiempo Real del lado del cliente (CSR)</strong> mediante AJAX sin recargar la página</li>
+  <li><strong>Diseño Responsive</strong> que se adapta a todos los dispositivos</li>
 </ul>
 
-<h3>Performance Optimizations</h3>
+<h3>Optimizaciones Implementadas</h3>
 <ul>
-  <li><strong>Database query optimization</strong> with select_related and prefetch_related (Django ORM Joins)</li>
-  <li><strong>Caching strategy</strong> for frequently accessed data</li>
-  <li><strong>Lazy loading</strong> for images and resources</li>
+  <li><strong>Consultas Optimizadas</strong> a la base de datos con joins inteligentes, selected_related y prefetch_related (ORM Django para Joins)</li>
+  <li><strong>Sistema de Caché</strong> para mejorar tiempos de respuesta</li>
+  <li><strong>Carga Diferida (Lazy)</strong> de imágenes para mejor performance</li>
 </ul>
 
-
-
-
-
-<h2 id="tech-stack">Technology Stack</h2>
+<!-- Stack -->
+<h2 id="tech-stack">Stack Tecnológico</h2>
 
 
 ### Back-End
@@ -99,12 +99,12 @@
 |:-:|:-:|:-:|
 
 
-### Tools 
+### Herramientas 
 | [![Git Badge](https://img.shields.io/badge/git%20-%23F05033.svg?&style=for-the-badge&logo=git&logoColor=white)](#features) | [![GitHub Badge](https://img.shields.io/badge/github%20-%23121011.svg?&style=for-the-badge&logo=github&logoColor=white)](https://github.com/LucasCallamullo) |  [![Postman Badge](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=Postman&logoColor=white)](#features) |
 |:-:|:-:|:-:|
 
 
-### APIs & Integration
+### APIs e Integraciones
 | [![MercadoPago](https://img.shields.io/badge/MercadoPago-00B1EA?style=for-the-badge&logo=mercadopago&logoColor=white)](#features) | [![ImgBB](https://img.shields.io/badge/ImgBB-Image%20Storage-00A3E0?style=for-the-badge&logo=imgbb&logoColor=white)](#features) | [![OpenPyXL](https://img.shields.io/badge/OpenPyXL-Excel%20Import-217346?style=for-the-badge&logo=microsoftexcel&logoColor=white)](#features) | [![REST API](https://img.shields.io/badge/REST%20API-Design-FF6B35?style=for-the-badge&logo=rest&logoColor=white)](#features) |
 |:---:|:---:|:---:|:---:|
 
@@ -113,44 +113,48 @@
 | [![Railway](https://img.shields.io/badge/Railway-131415?style=for-the-badge&logo=railway&logoColor=white)](#deployment) | [![Gunicorn](https://img.shields.io/badge/gunicorn-%298729.svg?style=for-the-badge&logo=gunicorn&logoColor=white)](#deployment) | [![Environment Variables](https://img.shields.io/badge/Environment%20Variables-Config-4A90E2?style=for-the-badge&logo=dotenv&logoColor=white)](#deployment) |
 |:---:|:---:|:---:|
 
-<p align="center"><em>Deployed to <a href="#">Railway</a> with production-ready configuration, out of service for the moment</em></p>
+<p align="center"><em>Desplegado en <a href="#">Railway</a> con configuración lista para producción, actualmente fuera de servicio</em></p>
 
 
 <hr>
 <br>
 
 
-<h2 id="demo">E-commerce Public Project Demo</h2>
+<h2 id="demo">Demostración del Proyecto E-commerce</h2>
 
 <p>
-  <strong>Public demonstration version</strong> - A full-stack e-commerce platform built with Django and vanilla JavaScript.
+  <strong>Versión de demostración pública de la App</strong> - Plataforma de e-commerce full-stack desarrollada con Django y JavaScript vanilla.
 </p>
 
 <div align="center">
   <a href="https://www.youtube.com/watch?v=64w8uaBcdaU" target="_blank">
-    <img src="https://img.youtube.com/vi/64w8uaBcdaU/0.jpg" alt="E-commerce Demo Video" width="600" style="border-radius: 10px; border: 2px solid #333;">
+    <img src="https://img.youtube.com/vi/64w8uaBcdaU/0.jpg" alt="Video Demostración E-commerce" width="600" style="border-radius: 10px; border: 2px solid #333;">
   </a>
   <br><br>
   <a href="https://www.youtube.com/watch?v=64w8uaBcdaU" target="_blank">
-    <img src="https://img.shields.io/badge/Watch_on_YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch on YouTube">
+    <img src="https://img.shields.io/badge/Ver_en_YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Ver en YouTube">
   </a>
-  <p><em>Click the image or button to watch the full demo (includes admin panel walkthrough)</em></p>
+  <p><em>Haz clic en la imagen o botón para ver la demostración completa (incluye recorrido del panel de administración)</em></p>
 </div>
 
-
-<h3>Note</h3>
+<h3>Nota</h3>
 <p>
-  This repository contains the public-facing modules of a larger private e-commerce solution. Some enterprise features are maintained in the private codebase.
+  Este repositorio contiene los módulos públicos de una solución de e-commerce más amplia y privada. Algunas funcionalidades empresariales se mantienen en el código privado.
 </p>
 
 
 
-<h2 id="images">E-commerce Images</h2>
-
-
+<h2 id="imagenes">Imágenes del E-commerce</h2>
 <br>
 
-<h2 id="contact">💻 Contact Back-End Developer / Full-Stack Developer: </h2>
+
+
+
+
+
+<h2 id="contact">💻 Contacto Back-End Developer / Full-Stack Developer: </h2>
 
 | [![GitHub Badge](https://img.shields.io/badge/github-%23121011.svg?&style=for-the-badge&logo=github&logoColor=white)](https://github.com/LucasCallamullo) | [![LinkedIn Badge](https://img.shields.io/badge/linkedin-%230077B5.svg?&style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/lucas-callamullo/) | [![YouTube Badge](https://img.shields.io/badge/YouTube%20-%23FF0000.svg?&style=for-the-badge&logo=YouTube&logoColor=white)](https://www.youtube.com/@lucas_clases_python) | [![Gmail Badge](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:lucascallamullo98@gmail.com) | [![Wsp Badge](https://img.shields.io/badge/WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://wa.me/5493515437688) |
 |:---:|:---:|:---:|:---:|:---:|
+
+
