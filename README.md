@@ -127,11 +127,11 @@
 </p>
 
 <div align="center">
-  <a href="https://www.youtube.com/watch?v=64w8uaBcdaU" target="_blank">
-    <img src="https://img.youtube.com/vi/64w8uaBcdaU/0.jpg" alt="E-commerce Demo Video" width="600" style="border-radius: 10px; border: 2px solid #333;">
+  <a href="https://youtu.be/v9cFwaaIpew" target="_blank">
+    <img src="https://img.youtube.com/vi/v9cFwaaIpew/0.jpg" alt="E-commerce Demo Video" width="600" style="border-radius: 10px; border: 2px solid #333;">
   </a>
   <br><br>
-  <a href="https://www.youtube.com/watch?v=64w8uaBcdaU" target="_blank">
+  <a href="https://youtu.be/v9cFwaaIpew" target="_blank">
     <img src="https://img.shields.io/badge/Watch_on_YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch on YouTube">
   </a>
   <p><em>Click the image or button to watch the full demo (includes admin panel walkthrough)</em></p>
