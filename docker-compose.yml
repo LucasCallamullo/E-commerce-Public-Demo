@@ -1,0 +1,49 @@
+services: # Define los contenedores que van a funcionar juntos
+  db_cliente_1: # Nombre del servicio de base de datos
+    image: postgres:17-alpine # Usa la imagen oficial de Postgres 17 versión Alpine (ultra liviana)
+    container_name: db_cliente_1 # El nombre que verás al usar 'docker ps'
+    restart: always # Si la VPS se reinicia o el proceso falla, Docker levanta el contenedor solo
+    environment:
+      # Docker lee estos valores del archivo .env automáticamente
+      POSTGRES_DB: ${postgres_DATABASE}  # Nombre de la DB que se creará automáticamente
+      POSTGRES_USER: ${postgres_USER}    # El dueño de la base de datos
+      POSTGRES_PASSWORD: ${postgres_PASSWORD}  # Contraseña de acceso
+    volumes: # Persistencia de datos
+      # Conecta una carpeta real de la VPS con la carpeta donde Postgres guarda los datos.
+      # Sin esto, si borras el contenedor, borras toda la base de datos de tus clientes.
+      - postgres_data:/var/lib/postgresql/data
+    # ports: # Mapeo de puertos
+      # "Puerto_En_Tu_PC:Puerto_Dentro_Del_Contenedor"
+      # Lo exponemos al 5432 para que puedas entrar desde programas como DBeaver o TablePlus.
+      # - "5432:5432"
+
+  web_cliente_1: # Nombre del servicio de tu aplicación Django
+    build: . # Le dice a Docker que busque el 'Dockerfile' en la carpeta actual para armar la imagen
+    container_name: web_cliente_1
+    restart: always
+    # El comando que se ejecuta apenas arranca el contenedor:
+    # 1. Aplica migraciones (crea las tablas en la DB recién levantada)
+    # 2. Junta todos los archivos estáticos (CSS, JS, imágenes del admin) en una sola carpeta
+    # 3. Levanta el servidor Gunicorn (nivel producción) en lugar del runserver de desarrollo
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             python manage.py compress --force &&
+             gunicorn ecommerce.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - .:/app # Sincroniza tu código actual con el contenedor (útil para ver cambios en vivo)
+      - static_volume:/app/staticfiles # Lugar donde Gunicorn dejará los archivos CSS/JS
+      - media_volume:/app/media   # Lugar donde se guardarán las fotos de los productos
+    env_file:
+      - .env  # Esto le pasa las variables como variables de entorno a Django (Python)
+    depends_on:
+      - db_cliente_1 # Le dice a Docker: "No levantes 'web' hasta que 'db_cliente_1' esté funcionando"
+    ports:
+      - "8000:8000" # Exponemos el puerto 8000 para poder entrar por el navegador
+
+# Definición de los volúmenes (discos virtuales)
+# Esto le dice a Docker que guarde estos datos de forma permanente, fuera del ciclo de vida del contenedor.
+volumes:
+  postgres_data: # Espacio para la base de datos
+  static_volume: # Espacio para el CSS/JS
+  media_volume:   # Espacio para las fotos (imprescindible para tu ecommerce)

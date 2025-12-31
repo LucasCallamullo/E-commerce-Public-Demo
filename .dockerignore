@@ -1,0 +1,43 @@
+# Ignorar entornos virtuales
+venv/
+.venv/
+.vscode/
+
+# Ignorar archivos de Git
+.git/
+.gitignore
+
+# Ignorar base de datos local (muy importante para no sobreescribir la de la VPS)
+*.sqlite3
+db.sqlite3
+
+# Ignorar archivos de Python temporales
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorar carpetas de tests y logs
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Ignorar archivos de configuración local
+.env
+.vscode/
+.idea/
+
+
+# Ignorar mi carpeta de steps y proofs
+z_retirados/
+z-steps/
+z_steps/
+proofs/
+
+# Carpeta del collecstatic que se genera
+staticfiles
+
+# archivo de pruebas
+*.http
+requirements-dev.txt
