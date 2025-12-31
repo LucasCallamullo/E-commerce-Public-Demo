@@ -1,0 +1,15 @@
+{% extends "home/base.html" %}
+
+
+
+{% block main_content %}
+<div class="d-flex-col gap-2 mt-2">
+
+    <h1 class="bold-main">Demasiadas peticiones</h1>
+
+    <p>Has intentado realizar esta acción demasiadas veces en poco tiempo.</p>
+    <p>Por seguridad, tu acceso ha sido pausado temporalmente. Por favor, espera unos minutos e intenta de nuevo.</p>
+
+    <a href="/" class="btn btn-main w-min p-2 text-truncate bolder">Volver al inicio</a>
+</div>
+{% endblock main_content %}
