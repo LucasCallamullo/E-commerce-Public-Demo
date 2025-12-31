@@ -88,30 +88,61 @@
 
 <h2 id="tech-stack">Technology Stack</h2>
 
-
-### Back-End
-| [![Python Badge](https://img.shields.io/badge/python-%2314354C.svg?style=for-the-badge&logo=python&logoColor=white)](#features) | [![Django Badge](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=green)](#features) | [![DRF Badge](https://img.shields.io/badge/django%20rest-ff1709?style=for-the-badge&logo=django&logoColor=white)](#features) | [![PostgreSQL Badge](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](#features) |
-|:-:|:-:|:-:|:-:|
-
-
-###  Fornt-End
-| [![HTML Badge](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](#features) | [![JavaScript Badge](https://img.shields.io/badge/JavaScript-323330?style=for-the-badge&logo=javascript&logoColor=F7DF1E)](#features) | [![CSS Badge](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](#features) | 
-|:-:|:-:|:-:|
-
-
-### Tools 
-| [![Git Badge](https://img.shields.io/badge/git%20-%23F05033.svg?&style=for-the-badge&logo=git&logoColor=white)](#features) | [![GitHub Badge](https://img.shields.io/badge/github%20-%23121011.svg?&style=for-the-badge&logo=github&logoColor=white)](https://github.com/LucasCallamullo) |  [![Postman Badge](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=Postman&logoColor=white)](#features) |
-|:-:|:-:|:-:|
-
-
-### APIs & Integration
-| [![MercadoPago](https://img.shields.io/badge/MercadoPago-00B1EA?style=for-the-badge&logo=mercadopago&logoColor=white)](#features) | [![ImgBB](https://img.shields.io/badge/ImgBB-Image%20Storage-00A3E0?style=for-the-badge&logo=imgbb&logoColor=white)](#features) | [![OpenPyXL](https://img.shields.io/badge/OpenPyXL-Excel%20Import-217346?style=for-the-badge&logo=microsoftexcel&logoColor=white)](#features) | [![REST API](https://img.shields.io/badge/REST%20API-Design-FF6B35?style=for-the-badge&logo=rest&logoColor=white)](#features) |
+### Backend & Database
+| [![Python Badge](https://img.shields.io/badge/python-%2314354C.svg?style=for-the-badge&logo=python&logoColor=white)](#tech-stack) | [![Django Badge](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=green)](#tech-stack) | [![DRF Badge](https://img.shields.io/badge/django%20rest-ff1709?style=for-the-badge&logo=django&logoColor=white)](#tech-stack) | [![PostgreSQL Badge](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](#tech-stack) |
 |:---:|:---:|:---:|:---:|
 
 
-### Deploy
-| [![Railway](https://img.shields.io/badge/Railway-131415?style=for-the-badge&logo=railway&logoColor=white)](#deployment) | [![Gunicorn](https://img.shields.io/badge/gunicorn-%298729.svg?style=for-the-badge&logo=gunicorn&logoColor=white)](#deployment) | [![Environment Variables](https://img.shields.io/badge/Environment%20Variables-Config-4A90E2?style=for-the-badge&logo=dotenv&logoColor=white)](#deployment) |
+### Frontend & UI
+| [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](#tech-stack) | [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](#tech-stack) | [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=F7DF1E)](#tech-stack) | [![Django Templates](https://img.shields.io/badge/Django_Templates-SSR_Ready-092E20?style=for-the-badge&logo=django&logoColor=white)](#tech-stack) |
+|:---:|:---:|:---:|:---:|
+
+
+### APIs & External Services
+| [![MercadoPago](https://img.shields.io/badge/MercadoPago-00B1EA?style=for-the-badge&logo=mercadopago&logoColor=white)](#tech-stack) | [![ImgBB](https://img.shields.io/badge/ImgBB-Image%20Storage-00A3E0?style=for-the-badge&logo=imgbb&logoColor=white)](#tech-stack) | [![OpenPyXL](https://img.shields.io/badge/OpenPyXL-Excel_Processing-217346?style=for-the-badge&logo=microsoftexcel&logoColor=white)](#tech-stack) |
 |:---:|:---:|:---:|
+
+
+### Performance & Caching
+| [![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)](#tech-stack) |
+|:---:|
+
+
+<h2 id="devops">Development & DevOps</h2>
+
+
+### Version Control & CI/CD
+| [![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)](#devops) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/LucasCallamullo) | [![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI/CD-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)](#devops) |
+|:---:|:---:|:---:|
+
+
+### Containerization
+| [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](#devops) | [![Docker Compose](https://img.shields.io/badge/Docker%20Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](#devops) | [![Docker Image Size](https://img.shields.io/badge/Image%20Size-~350MB-blue?style=for-the-badge&logo=docker&logoColor=white)](#devops) | 
+|:---:|:---:|:---:|
+
+
+### Testing & API Tools
+| [![Pytest](https://img.shields.io/badge/Pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](#devops) | [![Tests Passing](https://img.shields.io/badge/Tests-Passing-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#devops) | [![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=Postman&logoColor=white)](#devops) |
+|:---:|:---:|:---:|
+
+
+
+### API Documentation
+| [![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](#devops) | 
+|:---:|
+
+
+<h2 id="deploy">Deployment & Production</h2>
+
+### Hosting Platform
+| [![Railway](https://img.shields.io/badge/Railway-App_Hosting-131415?style=for-the-badge&logo=railway&logoColor=white)](#deploy) | [![Docker Deploy](https://img.shields.io/badge/Docker_Deploy-Container_Registry-2496ED?style=for-the-badge&logo=docker&logoColor=white)](#deploy) |
+|:---:|:---:|
+
+
+### Production Server & Web Server
+| [![Gunicorn](https://img.shields.io/badge/Gunicorn-WSGI_Server-298729?style=for-the-badge&logo=gunicorn&logoColor=white)](#deploy) | [![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-009639?style=for-the-badge&logo=nginx&logoColor=white)](#deploy) | [![Whitenoise](https://img.shields.io/badge/Whitenoise-Static_Files-4A90E2?style=for-the-badge)](#deploy) |
+|:---:|:---:|:---:|
+
 
 <p align="center"><em>Deployed to <a href="#">Railway</a> with production-ready configuration, out of service for the moment</em></p>
 
