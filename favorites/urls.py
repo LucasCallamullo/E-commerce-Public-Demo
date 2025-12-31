@@ -1,7 +1,7 @@
 
 
 from django.urls import path
-from favorites.views import ToggleFavoriteProduct
+from favorites.views_api import ToggleFavoriteProduct
 
 
 urlpatterns = [
