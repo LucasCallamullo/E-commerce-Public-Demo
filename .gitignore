@@ -1,10 +1,16 @@
 # Ignorar el entorno virtual
 venv/
 .venv/
+.vscode/
 
 # Archivos de caché de Python
 __pycache__/
 *.pyc
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
 
 # Migraciones
 */migrations/
@@ -26,3 +32,7 @@ db.sqlite3
 
 # archivo de pruebas
 proof.http
+
+# carpetas creadas por comandos .sh linux
+media/
+backups/

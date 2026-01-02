@@ -62,7 +62,7 @@ from django.conf.urls.static import static
 # Esto solo funciona en desarrollo (DEBUG=True)
 # En producción (VPS), Nginx se encargará de esto de forma más eficiente
 if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     
     """    Es solo para desarrollo ver despues en local

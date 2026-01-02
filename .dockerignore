@@ -35,6 +35,10 @@ z-steps/
 z_steps/
 proofs/
 
+# carpetas creadas por comandos .sh linux
+media/
+backups/
+
 # Carpeta del collecstatic que se genera
 staticfiles
 

@@ -1,128 +1,156 @@
-
-
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # =====================================================================================
-#             EVERYTHING RELATED TO ENVIRONMENTAL VARIABLES n DB
+#                ENVIRONMENTAL VARIABLES & DATABASE CONFIGURATION
 # =====================================================================================
 import environ, os
-# Valor por defecto y casteo automático
+
+# Initialize environment variables and set default casting (e.g., DEBUG as boolean)
 env = environ.Env(DEBUG=(bool, False)) 
 
-# Intentar leer el archivo .env SOLO si existe (útil para desarrollo local sin Docker)
-# Si estás en Docker, el archivo no estará (por el .dockerignore), pero las variables sí.
+# Load .env file ONLY if it exists (useful for local development without Docker)
+# In Docker, variables are injected directly, so the .env file is not required.
 env_file = os.path.join(BASE_DIR, ".env")
 if os.path.exists(env_file):
     environ.Env.read_env(env_file)
     
-# ----- CONFIGURACIÓN -------
+# --- CORE SETTINGS ---
+# Security Key and Debug mode are pulled from the environment for security
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG')
 
-# Mercado Pago
+# --- THIRD-PARTY INTEGRATIONS ---
+
+# Mercado Pago Credentials (Payment Gateway)
 MERCADO_PAGO_PUBLIC_KEY = env('MERCADO_PAGO_PUBLIC_KEY')
 MERCADO_PAGO_ACCESS_TOKEN = env('MERCADO_PAGO_ACCESS_TOKEN')
 
-
-# API img BB Keys
+# Image hosting service (ImgBB) API Key
 IMGBB_KEY = env('IMG_BB_KEY') 
-# PYME_NAME = "Cat Cat Games"
 
-# O si preferís mantener tu formato manual que ya funciona:
+# --- DATABASE CONFIGURATION ---
+# PostgreSQL setup using environment variables for sensitive credentials.
+# In a Docker environment, 'HOST' should match the database service name (e.g., 'db_client_1').
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('postgres_DATABASE'),
-        'USER': env('postgres_USER'),
-        'PASSWORD': env('postgres_PASSWORD'),
-        'HOST': env('postgres_HOST'), # En Docker será 'db_cliente_1'
-        'PORT': env('postgres_PORT'),
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),     # En Docker será 'db_client_1'
+        'PORT': env('DB_PORT'),
     }
 }
 
 
-# configuiracion estandar email
+# ----------------------------------------------------------------------------------------- 
+# EMAIL CONFIGURATION
+# -----------------------------------------------------------------------------------------
+# Default backend for sending emails via SMTP (Production)
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+if DEBUG:
+    # In development, emails are printed to the console instead of being sent
+    # This prevents accidental spam and allows for easy testing
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# SMTP Server settings (Configured for Gmail)
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-# configuracion basica email variables de entorno
+EMAIL_USE_TLS = True  # Protocol for securing the connection
+
+# Email credentials loaded from environment variables for security
 EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+
+# Default email address for outgoing system notifications
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
-# AGREGADO PARA VISTAS DE PASSWORD RESET
-LOGIN_URL = '/auth/login/'  # o donde tengas el login
-PASSWORD_RESET_TIMEOUT = 86400  # 24 horas de validez
-    
-# =====================================================================================
+# ----------------------------------------------------------------------------------------- 
+# AUTHENTICATION & PASSWORD RECOVERY 
+# -----------------------------------------------------------------------------------------
+# The URL where users are redirected for login (used by @login_required decorator)
+LOGIN_URL = '/auth/login/'
+
+# Token validity duration for password reset links (86400 seconds = 24 hours)
+# This improves security by ensuring reset links expire after a day
+PASSWORD_RESET_TIMEOUT = 86400
+
+# Django 'sites' framework ID. 
+# Required by many third-party apps to generate absolute URLs in emails (like password reset links)
+SITE_ID = 1
+
+
+# -----------------------------------------------------------------------------------------
 #             Application definition
-# =====================================================================================
+# -----------------------------------------------------------------------------------------
 INSTALLED_APPS = [
+    # --- CORE DJANGO APPS ---
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    
-    'whitenoise.runserver_nostatic',    # recomendado antes de staticfiles
     'django.contrib.staticfiles',
     
-    # for deploy
+    # --- THIRD-PARTY LIBRARIES ---
     'rest_framework',
-    'django.contrib.sites',      # Necesario para password reset
+    'django.contrib.sites',  # Required for site-specific features (e.g., password reset via API)
+    'compressor',           # Assets minification (JS/CSS)
+    'drf_spectacular',      # OpenAPI 3.0 documentation (Swagger)
     
-    # My apps
-    'core',
-    'home',
-    'users',
+    # --- PROJECT BUSINESS LOGIC (Internal Apps) ---
+    'core',           # Shared utilities and base classes
+    'home',           # Marketing and landing pages
+    'users',          # User authentication and management
+    'profiles',       # User profiles and preferences
+    'products',       # Catalog and product management
+    'favorites',      # Wishlists and user bookmarks
     
-    'products',
-    'cart',
+    # --- E-COMMERCE ENGINE ---
+    'cart',           # Shopping cart logic
+    'orders',         # Order processing and management
+    'payments',       # Payment gateway integration (e.g., Mercado Pago)
     
-    'orders',
-    'payments',
+    # --- ANALYTICS AND BACKOFFICE ---
+    # 'dashboard',       # General administration dashboard
+    # 'dashboard_sales', # Specialized sales analytics
+    # 'audit',           # Logging and system activity tracking
     
-    'dashboard',
-    'dashboard_sales',
-    'profiles',
-    'favorites',
-    
-    'contact',
-    'compressor',    # to minify css and js
-    'audit',
-    
-    'drf_spectacular',  # <-- swagger para drf, al final de todo recomendado
+    'contact',         # Contact forms and support (email smtp)
 ]
 
-# Para el password reset, vistas personalizadas de drf
-SITE_ID = 1  
- 
+
+# ----------------------------------------------------------------------------------------- 
+# MIDDLEWARE CONFIGURATION
+# -----------------------------------------------------------------------------------------
+# Middleware classes process requests and responses globally
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', 
+    # 'whitenoise.middleware.WhiteNoiseMiddleware', # Disabled: Nginx handles static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     
-    # como depende de los user despues de authentication si o si
+    # Custom Middleware: Must be placed after AuthenticationMiddleware to access 'request.user'
     'cart.middleware.CartMiddleware',
+    
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware'
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'ecommerce.urls'
 
+# --- TEMPLATE ENGINE CONFIGURATION ---
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
+        'DIRS': [], # Folders for global templates (if any)
+        'APP_DIRS': True, # Look for 'templates/' folder inside each app
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -130,7 +158,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 
-                # This is my custom context_processors
+                # Custom Context Processors: Inject data globally into all templates
                 'products.context_processors.get_categories_n_subcats',
                 'home.context_processors.get_ecommerce_data',
                 'cart.context_processors.cart_context',
@@ -141,220 +169,274 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ecommerce.wsgi.application'
 
-# custom user stuff
-AUTH_USER_MODEL = 'users.CustomUser' 
+# --- USER AUTHENTICATION MODEL ---
+# Overriding the default User model with a custom implementation
+AUTH_USER_MODEL = 'users.CustomUser'
 
-# Password validation
+
+# --- PASSWORD VALIDATION ---
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+# Security rules for user passwords
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
         'OPTIONS': {
-            'min_length': 4,  # Longitud mínima de cuatro caracteres
+            'min_length': 4,  # Minimum length required for user passwords
         }
     },
 ]
 
-# Internationalization
+# --- INTERNATIONALIZATION & LOCALIZATION ---
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
-# LANGUAGE_CODE = 'en-us'
-# TIME_ZONE = 'UTC'
-LANGUAGE_CODE = 'es'
-TIME_ZONE = 'America/Argentina/Buenos_Aires'  # Cambiado a la zona horaria de Argentina
-USE_I18N = True
-USE_TZ = True
+LANGUAGE_CODE = 'es' # Default language set to Spanish (def django = 'en-us')
+TIME_ZONE = 'America/Argentina/Buenos_Aires' # Local time zone for Argentina (def django = 'UTC')
+USE_I18N = True # Enable translation system
+USE_TZ = True   # Enable time-zone aware datetimes
 
+
+# --- STATIC AND MEDIA FILES ---
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
 
-# Ruta para archivos estaticos globales
+# Directories where Django looks for additional static files
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
 
+# Destination for collectstatic (where Nginx will serve files in production)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# URL and root directory for user-uploaded files (Product images, etc.)
 MEDIA_URL = 'media/' 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Add for deploy to use "Whitenoise" and "Compress"
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Asegurate de que Whitenoise sepa dónde buscar
-WHITENOISE_MANIFEST_STRICT = False
-
-# Usar el almacenamiento simple de Whitenoise mientras debugueamos Docker
-# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-
-
-
-# "compress" stuff
-STATICFILES_FINDERS = [  
-    'django.contrib.staticfiles.finders.FileSystemFinder',  
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',  
-    'compressor.finders.CompressorFinder',  
-]   
-COMPRESS_CSS_FILTERS = ["compressor.filters.cssmin.CSSMinFilter"]    
-COMPRESS_JS_FILTERS = ["compressor.filters.jsmin.JSMinFilter"]
-
-COMPRESS_ENABLED = True
-COMPRESS_OFFLINE = True
-
-if DEBUG:
-    COMPRESS_ENABLED = False  # Desactiva la compresión pero mantiene el tag (default=True)
-    COMPRESS_OFFLINE = False    # en produccion a True    
-
-
-# Default primary key field type
+# --- MISCELLANEOUS ---
+# Set the default type for auto-generated primary keys
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# drf stuff config
+
+# ----------------------------------------------------------------------------------------- 
+# DJANGO COMPRESSOR CONFIGURATION 
+# -----------------------------------------------------------------------------------------
+# Defines how Django finds static files to be compressed
+STATICFILES_FINDERS = [  
+    'django.contrib.staticfiles.finders.FileSystemFinder',    # Look for files in global folders (STATICFILES_DIRS)
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder', # Look for files within each App's /static/ folder
+    'compressor.finders.CompressorFinder',    # Required: allows Compressor to find {% compress %} tags
+]   
+
+# Filters to minify files (removes whitespace and comments to reduce file size)
+COMPRESS_CSS_FILTERS = ["compressor.filters.cssmin.CSSMinFilter"]    # CSS minification filter
+COMPRESS_JS_FILTERS = ["compressor.filters.jsmin.JSMinFilter"]      # JavaScript minification filter
+
+# Defines where the final compressed files will be stored
+# Setting this to STATIC_ROOT allows Nginx to easily serve them from the shared volume
+COMPRESS_ROOT = STATIC_ROOT
+
+# Enables or disables the compression engine
+# Disabled during DEBUG (Development) to allow easier debugging of original source files
+COMPRESS_ENABLED = False if DEBUG else True
+
+# OFFLINE COMPRESSION (Crucial for Docker/Production environments)
+# False (Dev): Compiles files "on the fly" when a user visits the page
+# True (Prod): Django expects files to be pre-compiled (pre-rendered)
+# This is why we run 'python manage.py compress --force' in the Dockerfile/Compose command
+COMPRESS_OFFLINE = False if DEBUG else True
+
+
+# ---------------------------------------------------------------------------------- 
+# DJANGO REST FRAMEWORK CONFIGURATION 
+# ----------------------------------------------------------------------------------
 REST_FRAMEWORK = {
+    # Renderers define how the API output is displayed
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
-        
-        # This allows you to view the API in HTML format (browser interface)
+        # Enables the user-friendly interactive HTML interface in the browser
         'rest_framework.renderers.BrowsableAPIRenderer',  
     ),
+    
+    # Parsers define how the API handles incoming data (request body)
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
     ),
     
-    # configuracion nativa para rate limiting
+    # --- RATE LIMITING (THROTTLING) CONFIGURATION ---
+    # These classes determine who gets limited (Anonymous vs Authenticated users)
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
-        # ESTA LÍNEA ES LA QUE HACE MAGIA CON EL SCOPE:
+        # ScopedRateThrottle allows custom limits for specific sensitive views
         'rest_framework.throttling.ScopedRateThrottle'
     ],
+    
+    # Specific rate limits for different types of interactions
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '30/minute',
-        'user': '1000/day',
-        'auth_heavy': '5/minute', # Muy estricto para Login/Registro
-        'email_reset': '3/minute', # Muy estricto para recuperar contraseña
-        'orders': '3/minute',     # Muy estricto para crear nuevas ordenes
-        'search': '25/minute',     # Muy estricto para busquedas de productos
-        'favorites': '15/minute',    # estricto para que no jueguen con el endpoint de favs
+        'anon': '30/minute',       # General limit for unauthenticated users
+        'user': '1000/day',        # Daily quota for logged-in users
+        
+        # Scoped limits: Highly restrictive to prevent brute force or abuse
+        'auth_heavy': '5/minute',  # Strict limit for Login/Register endpoints
+        'email_reset': '3/minute', # Prevents spamming password recovery emails
+        'orders': '3/minute',      # Prevents duplicate or automated order creation
+        'search': '25/minute',     # Protects the database from heavy search queries
+        'favorites': '15/minute',  # Prevents bot manipulation of "favorite" stats
     },
     
-    # La nueva configuración para drf-spectacular    / swagger stuff:
+    # --- API DOCUMENTATION (SWAGGER/OPENAPI) ---
+    # Integration with drf-spectacular for automated OpenAPI 3.0 schema generation
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     
-    # personaliza errores de forma simplificada sobre todo los 400 y 404
+    # --- GLOBAL ERROR HANDLING ---
+    # Points to a custom function to standardize 400, 404, and other error responses
     "EXCEPTION_HANDLER": "core.exceptions.custom_exception_handler",
 }
 
 
-
-# Configuración opcional de drf-spectacular 
+# --- DRF SPECTACULAR (SWAGGER/OPENAPI) SETTINGS ---
+# These settings control the automated API documentation generation
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Cat Games API',
-    'DESCRIPTION': 'Documentación completa de la API de tu producto',
+    'DESCRIPTION': 'Complete API documentation for the E-commerce platform',
     'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,  # No incluir schema en la página
+    
+    # Do not include the raw schema file in the UI page for a cleaner look
+    'SERVE_INCLUDE_SCHEMA': False,  
+    
     'SWAGGER_UI_SETTINGS': {
-        'deepLinking': True,
-        'persistAuthorization': True,  # Mantiene token en sesión
-        'displayOperationId': True,
+        'deepLinking': True,        # Allows direct linking to specific API endpoints
+        'persistAuthorization': True, # Keeps the Auth Token active even after page refresh
+        'displayOperationId': True,  # Shows the internal function name for each endpoint
     },
-    # Para autenticación con tokens (si usas TokenAuth)
-    'COMPONENT_SPLIT_REQUEST': True,  # Mejor soporte para file upload
+    
+    # Split request and response components in the documentation
+    # This provides better support for complex tasks like File Uploads (Media)
+    'COMPONENT_SPLIT_REQUEST': True,  
 }
 
-# todas cosas que ver con logging en local
+# ----------------------------------------------------------------------------------
+# LOGGING CONFIGURATION 
+# ----------------------------------------------------------------------------------
+# Standardizes how the application outputs errors and information
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     
-    # Formateador simple: Fecha - Nivel - Mensaje
+    # Formatters define the visual structure of the log message
     "formatters": {
         "simple": {
+            # Format: Level - Timestamp - Module - Message
             "format": "{levelname} {asctime} {module} {message}",
             "style": "{",
         },
     },
 
     "handlers": {
+        # Console handler outputs logs to the terminal/standard output
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "simple", # Usamos el formateador simple
+            "formatter": "simple",
         },
     },
 
     "root": {
         "handlers": ["console"],
-        # NOTE Usamos el valor de DEBUG para decidir cuánto loguear
-        # Si DEBUG es True (local) vemos todo. Si es False (producción) solo avisos/errores.
+        # Logging Level:
+        # DEBUG: Shows everything (ideal for development)
+        # WARNING: Shows only alerts and errors (ideal for production to save disk space)
         "level": "DEBUG" if DEBUG else "WARNING",
     },
 }
+# Optional: Use colored logs in Development (DEBUG=True) if colorlog is installed
+"""  
+if DEBUG:
+    try:
+        import colorlog
+        LOGGING["formatters"]["colored"] = {
+            "()": "colorlog.ColoredFormatter",
+            "format": "%(log_color)s%(levelname)s [%(name)s] %(message)s",
+            "log_colors": {
+                "DEBUG": "cyan", "INFO": "green", "WARNING": "yellow", "ERROR": "red", "CRITICAL": "bold_red",
+            },
+        }
+        LOGGING["handlers"]["console"]["formatter"] = "colored"
+    except ImportError:
+        pass # If colorlog is not installed, it falls back to the simple formatter
+"""
 
-# cache por defecto de django solamente que ahora lo hago explicito mudar a redis en el futuro
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
+
+# ---------------------------------------------------------------------------------- 
+# REDIS CACHE CONFIGURATION 
+# ----------------------------------------------------------------------------------
+# In Development (DEBUG=True), we use local memory cache for simplicity.
+# In Production, we use Redis for high-performance distributed caching.
+if DEBUG:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-snowflake',
+        }
     }
-}
+else:
+    # Using Redis as the primary cache backend for high performance
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://redis_cliente_1:6379/1",    # Using database index 1 in Redis
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            }
+        }
+    }
+    
+    
+# --- SESSION MANAGEMENT ---
+# Storing sessions in Redis instead of the database (Database-less sessions)
+# This significantly improves performance and reduces DB load
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
 
-# ALLOWED_HOSTS: Solo dominios o IPs, SIN el puerto.
-# ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0']
+
+# --- NETWORK & SECURITY SETTINGS ---
+
+# ALLOWED_HOSTS: Domains or IPs that can serve this Django app.
+# Note: In production, '*' should be replaced with your specific domain.
 ALLOWED_HOSTS = ['*']
 
-# CSRF_TRUSTED_ORIGINS: AQUÍ SÍ va el protocolo (http) y el puerto.
+# CSRF_TRUSTED_ORIGINS: Required for secure requests (POST) from specific domains.
+# Must include the protocol (http/https) and the port.
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
-    'https://3a72490574f8.ngrok-free.app',
+    'https://3a72490574f8.ngrok-free.app', # Temporary ngrok tunnel for testing
 ]
 
-
-
-
-# --- AJUSTE FINAL DE SEGURIDAD Y LOGS ---
-if not DEBUG:
-    pass
-    # Configuraciones específicas de producción (Hetzner)
-    # ALLOWED_HOSTS = [env('DOMAIN_NAME', default='tudominio.com')]
-    # En producción, forzar HTTPS si tenés SSL
-    # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    # SECURE_SSL_REDIRECT = True
-
-else:
-    ALLOWED_HOSTS = ['*']
+if DEBUG:
+    # BASE_URL_PAGE: Used for generating absolute URLs (e.g., for Mercado Pago webhooks)
     BASE_URL_PAGE = "https://656321f2e712.ngrok-free.app"
     CSRF_TRUSTED_ORIGINS.append(BASE_URL_PAGE)
     
-    # para desarrollo asi evita enviar emails, los manda a consola
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    
-    """ 
-    # Eliminamos el bloque LOGGING de aquí para que no pida colorlog en Docker
-    LOGGING = {
-        "formatters": {
-            "colored": {
-                "()": "colorlog.ColoredFormatter",
-                "format": "%(log_color)s%(levelname)s [%(name)s] %(message)s",
-                "log_colors": {
-                    "DEBUG": "cyan",
-                    "INFO": "green",
-                    "WARNING": "yellow",
-                    "ERROR": "red",
-                    "CRITICAL": "bold_red",
-                },
-            },
-        },
-
-        "handlers": {
-            "console": {
-                "class": "logging.StreamHandler",
-                "formatter": "colored",
-            },
-        },
-    }
-    
-    # ELIMINAR ANTES DE SUBIR A PRODCIOON
+    # --- DEVELOPMENT TOOLS ---
+    # Optional: Enable Django Debug Toolbar for performance profiling
     # INSTALLED_APPS += ['debug_toolbar']
     # MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
-    # INTERNAL_IPS = ['127.0.0.1', '::1']  # Solo accesible localmente
-    """
+    # INTERNAL_IPS = ['127.0.0.1', '::1']
     
+# --- AJUSTE FINAL DE SEGURIDAD Y LOGS ---
+else:
+    # 1. ¿Quién puede entrar? (Evita ataques de Host Header)
+    # ALLOWED_HOSTS = [env('DOMAIN_NAME', default='tudominio.com'), 'www.tudominio.com']
+
+    # 2. Confianza en Nginx
+    # Nginx le dirá a Django "esta conexión es segura (HTTPS)"
+    # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    
+    # 3. Forzar HTTPS
+    # SECURE_SSL_REDIRECT = True # Redirige http:// a https://
+    # SESSION_COOKIE_SECURE = True # Solo envía cookies por HTTPS
+    # CSRF_COOKIE_SECURE = True # Protege contra ataques CSRF
+    
+    # 4. HSTS (Opcional pero recomendado)
+    # SECURE_HSTS_SECONDS = 31536000 # 1 año
+    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    # SECURE_HSTS_PRELOAD = True
+    pass
