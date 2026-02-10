@@ -5,39 +5,48 @@
 {# NAV DESKTOP PARTE TOP - LOGO - FORM SEARCH - ICONS #}
 <nav class="d-desktop-grid cont-page d-grid grid-navbar-top top-nav relative gap-2">
     
-    <a href="{% url 'Home' %}" class="w-100 h-100 logo-navbar-top">
-        <img src="{% static 'ico/logo.jpg' %}" class="img-cover" alt="Logo {{store.name}}"
-            loading="lazy" width="100" height="100">
+    {# {{ store_info.logo.redirect_url|default:'/' }} #}
+    <a href="/" class="w-100 h-100 logo-navbar-top" title="{{ store_info.store.name }}">
+        {% if store_info.logo.image_url %}
+            <img src="{{ store_info.logo.image_url }}" 
+                class="img-cover" alt="Logo DB {{ store_info.store.name }}"
+                loading="lazy" width="100" height="100">
+        {% else %}
+            <img src="{% static 'ico/logo.jpg' %}" 
+                class="img-cover" alt="Logo {{ store_info.store.name }}"
+                loading="lazy" width="100" height="100">
+        {% endif %}
     </a>
 
     <form class="top-bar-search bg-primary cont-space-between align-self-center" action="{% url 'product_top_search' %}">
         <input class="text-primary" type="text" placeholder="Buscar..." name="topQuery" 
-        autocomplete="off" required minlength="2">
+            autocomplete="off" required minlength="2">
         <button class="btn text-primary scale-on-touch" type="submit">
             <i class="ri-search-line font-lg"></i>
         </button>
     </form>
     
-    <div class="d-flex justify-end gap-3">
-        <a href="{{ store.google_url }}" target="_blank" class="text-white hover-up">
+    <div class="d-flex justify-end gap-2">
+        {# wsp href por defecto, después logica con js para cambiar el href #}
+        <a href="https://wa.me/{{store_info.store.wsp_number}}" target="_blank" title="Whatsapp"
+            class="text-white hover-up btn-wsp" 
+            data-type="navbar">
             <i class="ri-whatsapp-line font-xxl"></i>
         </a>
-        <a href="{{ store.ig_url }}" target="_blank" class="text-white hover-up">
-            <i class="ri-instagram-line font-xxl"></i>
-        </a>
-        <a href="{{ store.tt_url }}" target="_blank" class="text-white hover-up">
-            <i class="ri-tiktok-fill font-xxl"></i>
-        </a>
-        <a href="{{ store.fb_url }}" target="_blank" class="text-white hover-up">
-            <i class="ri-facebook-box-fill font-xxl"></i>
-        </a>
+
+        {# creamos dinamicamente los iconos asociados #}
+        {% for social in store_info.social_networks.main %}
+            <a href="{{social.url}}" class="text-white hover-up" target="_blank" title="{{social.name}}">
+                {# Usamos la icon_class y name que generamos dinámicamente en el Service #}
+                <i class="{{social.icon_class}} font-xxl"></i>
+            </a>
+        {% endfor %}
     </div>
 
     {% comment %}
         Si bien el boton esta mas abajo se pone aca para evitar el cambio de
         static a fixed y que se mueva este widget en la pantalla
     {% endcomment %}
-    
 </nav>
 
 
@@ -52,8 +61,15 @@
         <div class="d-grid grid-navbar-main gap-2" id="main-nav-list">
 
             {# to pass image url to the script #}
-            <a href="{% url 'Home'%}" class="cont-logo-fixed cont-100" data-state="closed">
-                <img src="{% static 'ico/logo.jpg' %}" class="img-cover" alt="LOGO">
+            <a href="/" class="cont-logo-fixed cont-100" 
+                data-state="closed" title="{{ store_info.store.name }}">
+                {% if store_info.logo.image_url %}
+                    <img src="{{ store_info.logo.image_url }}" loading="lazy"
+                        class="img-cover" alt="Logo {{ store_info.store.name }}">
+                {% else %}
+                    <img src="{% static 'ico/logo.jpg' %}" loading="lazy"
+                        class="img-cover" alt="Logo {{ store_info.store.name }}">
+                {% endif %}
             </a>
 
             {# drop down menu - hoods #}
@@ -66,19 +82,20 @@
             {# list useful links #}
             <ul class="d-flex h-100 gap-1">
                 <li class="cont-nav__link">
-                    <a href="{% url 'Home' %}" class="underline-anim h-100 w-100 d-flex py-1 px-2">
+                    <a href="{% url 'Home' %}" class="underline-anim h-100 w-100 d-flex py-1 px-2" 
+                    title="{{ store_info.store.name }}">
                         <span class="text-white bolder font-sm">Home</span>
                     </a>
                 </li>
 
                 <li class="cont-nav__link">
-                    <a href="{% url 'contact' %}" class="underline-anim h-100 w-100 d-flex py-1 px-2">
+                    <a href="{% url 'contact' %}" class="underline-anim h-100 w-100 d-flex py-1 px-2" title="Contacto">
                         <span class="text-white bolder font-sm">Contacto</span>
                     </a>
                 </li>
         
                 <li class="cont-nav__link">
-                    <a href="{% url 'help_mp' %}" class="underline-anim h-100 w-100 d-flex py-1 px-2">
+                    <a href="{% url 'help_mp' %}" class="underline-anim h-100 w-100 d-flex py-1 px-2" title="¿Quienes Somos?">
                         <span class="text-white bolder font-sm">¿Quienes Somos?</span>
                     </a>
                 </li>

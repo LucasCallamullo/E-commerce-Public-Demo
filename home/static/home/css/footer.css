@@ -1,7 +1,69 @@
+.cont-grid-footer .description { grid-area: description; }
+.cont-grid-footer .information { grid-area: information; }
+.cont-grid-footer .categories { grid-area: categories; }
+.cont-grid-footer .networks { 
+    grid-area: networks; 
+    align-items: center; 
+    justify-content: center;
+}
 
+.cont-grid-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 16px;
+    row-gap: 32px;
+    grid-template-areas: 
+        "description    description"
+        "information    categories"     
+        "networks     networks";
+}
+
+.icons-footer {
+    display: grid;
+    column-gap: 16px;
+    row-gap: 16px;
+    padding: 0px 40px;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+
+/* Styles for tablets (mín. 480px to max. 768px) */
+@media (min-width: 480px) {
+    /* Styles for tablets */
+}
+
+/* Styles for desktops (mín. 768px to max. 992px+)) */
+@media (min-width: 768px) {
+    /* Styles for desktops */
+}
+
+/* Styles for large desktops (mín. 992px to max. infinite) */
+@media (min-width: 992px) {
+    .cont-grid-footer .underline-anim { color: var(--text-primary) !important; }
+    .cont-grid-footer .underline-anim span::after{ background-color: var(--text-primary) !important; }
+
+    .cont-grid-footer {
+        grid-template-columns: 30fr 24fr 24fr 22fr;
+        column-gap: 24px;
+        grid-template-areas: 
+            "description     information    categories     networks";
+    }
+
+    .cont-grid-footer .networks { 
+        align-items: flex-start; 
+        justify-content: flex-start;
+    }
+
+    .icons-footer {
+        padding: 0px 0px;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
+}
 
 /* Footer */
-.icons-footer .ri-tiktok-fill {
+.icons-footer .ri-tiktok-fill, 
+.icons-footer .ri-twitter-line, 
+.icons-footer .ri-pin-distance-line, 
+.icons-footer .ri-twitter-x-line {
     color: var(--text-primary);
 }
 
@@ -15,4 +77,12 @@
 
 .icons-footer .ri-google-fill {
     color: #DB4437;
+}
+
+.icons-footer .ri-youtube-fill {
+    color: #DB4437;
+}
+
+.icons-footer .ri-whatsapp-line {
+    color: var(--green-wsp-color);
 }

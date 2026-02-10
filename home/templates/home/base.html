@@ -1,14 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es" dir="ltr">
 <head>
+    {# lang = en #}
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, 
-    maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    {#  <meta name="viewport" content="width=device-width, initial-scale=1.0">  #}
     {# interactive-widget=resizes-content #}
-
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    {# EVITA QUE MÓVILES CONVIERTAN NÚMEROS EN LINKS #}
+    <meta name="format-detection" content="telephone=no">
+    {# DERECHOS DE AUTOR - Generalmente el nombre de la empresa #}
+    <meta name="copyright" content="{{ store_info.store.name }}">
+    {# NOMBRE DE LA APLICACIÓN (para PWA/Web Apps) #}
+    <meta name="application-name" content="{{ store_info.store.name }}">
+    {# ID DE APP DE FACEBOOK (para analytics/insights de Facebook) #}
+    {# <meta property="fb:app_id" content="1637497556291559"> #}
+    {# TIPO DE CONTENIDO PARA OPEN GRAPH --- article #}
+    <meta property="og:type" content="product">
+    {# NOMBRE DEL SITIO PARA OPEN GRAPH #}
+    <meta property="og:site_name" content="{{ store_info.store.name }}">
+    {# IDIOMA Y REGIÓN PARA OPEN GRAPH #}
+    <meta property="og:locale" content="es_ES">
+    {# Aparece en snippets de Google #}
+    {% block meta_description %}
+        <meta name="description" content="{{ store_info.store.description }}">
+    {% endblock %}
 
     {# Fuerza el light mode mas alla del SO #}
     <meta name="color-scheme" content="light">
@@ -51,11 +70,8 @@
         <link href="{% static 'cart/css/widget_cart.css' %}" rel="stylesheet"> 
     {% endcompress %}
 
-    {# Aparece en snippets de Google #}
-    <meta name="description" content="Descripción clara (150-160 chars)"> 
-
+    {# For More CSS Modules - Load page-specific CSS or meta tags here #}
     {% block extra_head %}
-        {# For More CSS Modules - Load page-specific CSS or meta tags here #}
         <title> Some title to change </title>
     {% endblock %}
 </head>
@@ -97,7 +113,6 @@
         
     {% endblock bot_banner_image %}
 
-
     <hr class="hr-primary">
     <footer class="cont-page" id="footer-base">
         {% include 'home/footer.html' %}
@@ -130,15 +145,29 @@
         <div class="d-flex-col gap-2 cont-wsp-menu__white text-start font-sm text-secondary">
             Nuestro equipo responde en pocos minutos.
 
-            <a href="#" target="_blank" class="d-flex gap-2 wsp-menu__btn" id="wsp-link" data-wsp="{{store.wsp_number}}">
-                <img src="https://img.freepik.com/vector-gratis/plantilla-diseno-logotipo-gato_23-2150414628.jpg" alt="">
+            {# id="wsp-link" data-wsp="{{ store_info.store.wsp_number }}" #}
+            {# wsp href por defecto, después logica con js para cambiar el href #}
+            <a href="https://wa.me/{{store_info.store.wsp_number}}" target="_blank" title="Whatsapp"
+                class="d-flex gap-2 wsp-menu__btn btn-wsp" 
+                data-type="menu">
+
+                {# usamos logo de la tienda si tuviera #}
+                {% if store_info.logo_wsp.image_url %}
+                    <img src="{{ store_info.logo.image_url }}" 
+                        class="img-cover" alt="Logo Wsp {{ store_info.store.name }}"
+                        loading="lazy" width="100" height="100">
+                {% else %}
+                    <img src="{% static 'ico/logo_wsp.jpg' %}" 
+                        class="img-cover" alt="Logo Wsp {{ store_info.store.name }}"
+                        loading="lazy" width="100" height="100">
+                {% endif %}
 
                 <div class="d-flex-col gap-1 text-start font-sm">
-                    <b class="font-md text-primary">{{store.name}}</b>
+                    <b class="font-md text-primary">{{ store_info.store.name }}</b>
 
                     <span class="d-flex gap-1 text-secondary">
                         <i class="ri-whatsapp-line font-xxl"></i>
-                        {{store.cellphone}}
+                        {{ store_info.store.cellphone }}
                     </span>
 
                     <b class="font-sm bold-orange">10hs a 18:30hs.</b>
@@ -146,24 +175,32 @@
             </a>
         </div>
     </div>
+
     
+    
+    
+    {# INFO CONFIGURADA EN APP_CONFIG DE UTILIDAD PARA JS #}
+
+    {# Necesario para renderizar como js el cart-data de cada usuario #}
+    {{ cart_data|json_script:"cart-data" }}
+
+    {# Store data para autocompletar navbars, footers, etc #}
+    {{ store_info.store|json_script:"store-data" }}
+
+    {{ user.is_authenticated|json_script:"auth-status" }}
+    {{ user.role|json_script:"user-role" }}
+
+    {# info extra utilidad en otros scripts #}
+
+ 
     {% comment %}
-        {# cart/urls_api #}
-        cartActions: "{% url 'cart-api' 0 %}".replace('/0/', '/{product_id}/'),
-
-        {# order/urls #}
-        resumeOrder: "{% url 'resume-order' %}",
-
-        {# cart/urls #}
-        cartPageDetail: "{% url 'cart_page_detail' %}",
-
-        {# users/urls #}
-        profileUser: "{% url 'profile_user' %}"
-
-        {# products/urls #}
-        productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
-        productList: "{% url 'product_list' %}",
+        // Recuperamos los datos desde el script generado por json_script
+        const AUTH_STATUS = JSON.parse(document.getElementById('auth-status').textContent);
+        const USER_ROLE = JSON.parse(document.getElementById('user-role').textContent);
+        {{ user.is_authenticated|json_script:"auth-status" }}
+        {{ user.role|json_script:"user-role" }}
     {% endcomment %}
+
     <script>
         window.BASE_URLS = {
             cartActions: "{% url 'cart-api' 0 %}".replace('/0/', '/{product_id}/'),
@@ -171,11 +208,11 @@
             resumeOrder: "{% url 'resume-order' %}",
             productList: "{% url 'product_list' %}",
             cartPageDetail: "{% url 'cart_page_detail' %}",
-            profileUser: "{% url 'profile_user' %}"
+            profileUser: "{% url 'profile_user' %}",
+            login: "{% url 'login' %}",
+            logout: "{% url 'logout' %}",
+            password_reset: "{% url 'api_password_reset' %}"
         };
-
-        window.CART_DATA = JSON.parse('{{ cart_data|escapejs }}');
-
         const AUTH_STATUS = '{{ user.is_authenticated|yesno:"true,false" }}' === 'true';
         const USER_ROLE = "{{ user.role }}";
     </script>
@@ -183,29 +220,30 @@
 
     {% compress js %}
         <script src="{% static 'js/base.js' %}"></script>
+        <script src="{% static 'js/app_config.js' %}"></script>
         <script src="{% static 'js/alerts.js' %}"></script>
+        <script src="{% static 'js/errors.js' %}"></script>
+        <script src="{% static 'js/forms_utils.js' %}"></script>
         <script src="{% static 'js/forms.js' %}"></script>
-        <script src="{% static 'js/overlay-modal.js' %}"></script>
-        <script src="{% static 'js/outside-click.js' %}"></script>
+        <script src="{% static 'js/overlay_modal.js' %}"></script>
+        <script src="{% static 'js/outside_click.js' %}"></script>
         <script src="{% static 'js/utils.js' %}"></script>
         <script src="{% static 'js/backToTopBtn.js' %}"></script>
         <script src="{% static 'js/wspBtn.js' %}"></script>
 
         <script src="{% static 'home/js/navbar.js' %}"></script>
 
+        <script src="{% static 'cart/js/logic/cart_store.js' %}"></script>
         <script src="{% static 'cart/js/components/widget_cart.js' %}"></script>
         <script src="{% static 'cart/js/widget_cart.js' %}"></script>
         
         <script src="{% static 'users/js/widget_login.js' %}"></script>
     {% endcompress %}
     
+    {# You load your own .js files for each template/view, this is useful since they are loaded later #}
+    {# of the base scripts leaving their functions as global #}
     {% block extra_scripts %}
-        {# You load your own .js files for each template/view, this is useful since they are 
-        loaded later of the base scripts leaving their functions as global #}
+        
     {% endblock extra_scripts %}
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => { analizarHTML(); });
-    </script>
 </body>
 </html>

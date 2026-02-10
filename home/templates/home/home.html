@@ -1,12 +1,16 @@
-
-
 {% extends "home/base.html" %}
 {% load static compress %}
 {% load custom_filters %}
 
 
+{# esto es por SEO adaptar segun el caso en cada vista #}
+{% block meta_description %}
+    <meta name="description" content="{{ store_info.store.description }}">
+{% endblock %}
+
+
 {% block extra_head %}
-    <title> Home | {{ store.name }} </title>
+    <title> Home | {{ store_info.store.name }} </title>
 
     {# Swiper CSS #}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
@@ -21,21 +25,30 @@
 
 {# To place banners without the page limit #}
 {% block top_banner_image %}
+    <h1 class="seo-only" hidden>Ofertas y Promociones Destacadas - {{ store_info.store.name }}</h1>
+
     {# Carousel Headers #}
-    <div class="swiper-container home-header-container">
+    <div class="cont-headers" role="region" aria-label="Carrusel de ofertas">
         <div class="swiper-wrapper w-100 h-100">
-            {% for image in headers_active %}
+            {% for img in headers %}
                 <div class="swiper-slide">
-                    <img class="header-img" src="{{ image.image_url }}" alt="header {{ store.name }}"
-                    loading="lazy" width="100" height="100">
+                    {# solo agregamos la etiqueta de redirección si tuviese #}
+                    {% if img.redirect_url %}
+                        <a href="{{ img.redirect_url }}"  target="_blank" rel="noopener">
+                    {% endif %}
+                        <img class="header-img" src="{{img.image_url}}" loading="lazy"
+                        width="100" height="100" alt="Header {{img.ig}} - {{store.name}}">
+                    {% if img.redirect_url %}
+                        </a>
+                    {% endif %}
                 </div>
             {% endfor %}
         </div>
         
         {% comment %}
-            {# mostrar los botones de navegación #}
+            {# mostrar los botones de navegación # }
             <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div> 
+            <div class="swiper-button-prev"></div> #}
         {% endcomment %}
         
         {# mostrar la paginación #}
@@ -46,39 +59,167 @@
 
 
 {% block main_content %}
-    <div class="w-100 mt-3" id="cont-swipers-home"> </div>
+
+
+{# TITULO OFERTAS #}
+<div class="cont-space-between mt-2 mb-1 swiper_offers__title">
+    <div class="separator gap-1">
+        <h2 class="text-main" id="offers-title'">¡Ofertas!</h2>
+        <div class="separator-line"></div>
+    </div>
+
+    <div class="d-flex gap-1"> 
+        {# Buttons will be handled with Swiper #}
+        <div class="swiper-button-prev-product" id="btn-prev-offers">
+            <i class="ri-arrow-left-s-line font-lg"></i>
+        </div>
+        <div class="swiper-button-next-product" id="btn-next-offers">
+            <i class="ri-arrow-right-s-line font-lg"></i>
+        </div>
+    </div>
+</div>
+
+{# TARJETAS DE OFERTAS #}
+<section class="swiper-offers" aria-labelledby="offers-title">
+    <div class="swiper-wrapper">
+        {% for prod in products_offer %}
+            {# Agregamos itemscope para SEO de Google Shopping #}
+            <article class="swiper-slide border-hover bg-primary" itemscope itemtype="https://schema.org/Product">
+                {# Botón de Quick View #}
+                <button class="btn corner-box" data-id="{{prod.id}}" aria-label="Vista rápida de {{prod.name}}">
+                    <i class="ri-focus-mode font-xl"></i>
+                </button>
+                {# IMAGEN #}
+                <a href="{% url 'product_detail' prod.id prod.slug %}" class="cont-img-100-off image">
+                    <img class="img-scale-down" src="{{prod.main_image}}"
+                        alt="Oferta: {{prod.name}}"
+                        loading="lazy" 
+                        width="100" height="100"
+                        itemprop="image">
+                </a>
+                {# NOMBRE como H3 (IMPORTANTE PARA SEO) #}
+                <h3 class="px-2 py-1 text-start text-truncate-multiline font-md bolder name" itemprop="name">
+                    <a href="{% url 'product_detail' prod.id prod.slug %}" class="text-inherit main-ref">
+                        {{prod.name}}
+                    </a>
+                </h3>
+                {# PRECIO (Envuelto en Offer para SEO) #}
+                <div class="px-2 price d-grid cont-grid-2" itemprop="offers" 
+                    itemscope itemtype="https://schema.org/Offer">
+                    {% if prod.discount_ars == 0 %}
+                        <p class="px-2 text-start bolder font-lg price"> $ {{ prod.price_ars|intdot }} </p>
+                    {% else %}
+                            <del class="justify-self-start text-line-through text-secondary font-md">
+                                $ {{ prod.price_ars|intdot }}
+                            </del>
+                            <span class="justify-self-start text-white h-min product-card__offer-tag text-truncate font-xs">
+                                {{ prod.discount_ars }}% OFF
+                            </span>
+                            <strong class="justify-self-start bolder font-lg grid-col-all">
+                                $ <span itemprop="price">{{ prod.price_discount|intdot }}</span>
+                            </strong>
+                    {% endif %}
+                    <meta itemprop="priceCurrency" content="ARS"> {# Cambia por tu moneda #}
+                </div>
+                {# button to add product #}
+                <button class="btn btn-main py-1 px-2 grid-col-all justify-self-center mb-1 w-min bolder btn-add"
+                    aria-label="Agregar {{prod.name}} al carrito" data-id="{{prod.id}}">
+                    Agregar
+                </button>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+
+
+
+
+
+<div class="w-100 mt-3" id="cont-swipers-home"> 
+    {# despliega productos por category cada swiper #}
+    {# data en este caso hace referencia a una lista de productos y datos de la categoria #}
+    {% for key, data in products_by_category.items %}    
+        <div class="carousel-category">
+            <div class="cont-space-between cont_carousel__title">
+                <div class="d-flex justify-start px-2 h-100 carousel__title">
+                    <h2 class="font-md text-white bolder">
+                        <a href="{% url 'pl_category' cat_slug=data.slug %}" class="text-white underline-anim">
+                            <span>{{ data.name }}</span>
+                        </a>
+                    </h2>
+                </div>
+        
+                <div class="d-flex gap-1"> 
+                    <button class="swiper-button-prev-product" id="prev-{{forloop.counter0}}">
+                        <i class="ri-arrow-left-s-line font-lg"></i>
+                    </button>
+                    <button class="swiper-button-next-product" id="next-{{forloop.counter0}}">
+                        <i class="ri-arrow-right-s-line font-lg"></i>
+                    </button>
+                </div>
+            </div>
+        
+            {# aca realmente empieza la parte de products #}
+            <div class="swiper-products" id="swiper-{{forloop.counter0}}">
+                <div class="swiper-wrapper">  
+                    {% include 'products/components/card__product.html' with products=data.products category=data.name %}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
 
     {# componente reutilizable modal uno solo #}
     {% include "products/components/card__modal.html" %}
-    
+
+    {% comment %}
+        {# 
+        Estos bloques crean algo como esto con datos desde el SSR lo que sirve despues para capturar el contenido con 
+        el id del bloque script y obtener su textContent, para parsear y recuperar la lista, es la forma mas segura
+        de hacer este proceso.
+        <script id="products-data" type="application/json">
+            [{"id":1,"name":"Mouse"...}]
+        </script>
+        #}
+    {% endcomment %}
+    {{ products|json_script:"products-data" }}
+    {{ categories|json_script:"categories-data" }}
+    {{ brands|json_script:"brands-data" }}
 {% endblock main_content %}
 
+
+{% block bot_banner_image %}
+    {# Carousel Banners #}
+    <div class="cont-banners" role="region" aria-label="Carrusel de ofertas">
+        <div class="swiper-wrapper w-100 h-100">
+            {% for img in banners %}
+                <div class="swiper-slide">
+                    {# solo agregamos la etiqueta de redirección si tuviese #}
+                    {% if img.redirect_url %}
+                        <a href="{{ img.redirect_url }}"  target="_blank" rel="noopener">
+                    {% endif %}
+                        <img class="header-img" alt="Header {{img.ig}} - {{store.name}}"
+                            src="{{img.image_url}}" 
+                            loading="lazy"
+                            width="100" height="100">
+                    {% if img.redirect_url %}
+                        </a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        
+        {# mostrar la paginación #}
+        <div class="swiper-pagination"></div>
+    </div>
+{% endblock bot_banner_image %}
 
 
 {% block extra_scripts %}
     {# Swiper JS sirve para el carousel #}
     <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
-
-    {% comment %}
-        {# favorites/urls #}
-        favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
-
-        {# cart/urls_api #}
-        cartActions: "{% url 'cart-api' 0 %}".replace('/0/', '/{product_id}/'),
-
-        {# products/urls #}
-        productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
-        category: "{% url 'pl_category' cat_slug='__CAT__' %}",
-        subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
-        brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}",
-
-        {# products/urls_api #}
-        productList: "{% url 'product-update-api' 0 %}".replace('/0/', '{product_id}'),
-        productImages: "{% url 'product-images-api' 0 %}".replace('/0/', '/{product_id}/')
-
-        {# Parses the JSON string `productos_json` injected by Django's server-side rendering (SSR). #}
-        window.productList = JSON.parse('{{ products_json|escapejs }}');
-    {% endcomment %}
 
     <script>
         window.TEMPLATE_URLS = {
@@ -88,19 +229,16 @@
             category: "{% url 'pl_category' cat_slug='__CAT__' %}",
             subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
             brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}",
-            productList: "{% url 'product-update-api' 0 %}".replace('/0/', '{product_id}'),
-            productImages: "{% url 'product-images-api' 0 %}".replace('/0/', '/{product_id}/')
+            productList: "{% url 'api_products' %}",
+            productImages: "{% url 'api_product_images' 0 %}".replace('/0/', '/{product_id}/')
         };
-
-        window.productList = JSON.parse('{{ products_json|escapejs }}');
-        window.BRAND_LIST = JSON.parse('{{ brands_json|escapejs }}');
-        window.CATEGORIES_LIST = JSON.parse('{{ categories|escapejs }}');
     </script>
 
     {% compress js %}
         <script src="{% static 'favorites/js/add_favorites.js' %}"></script>
+        {# necesarios para logica inicial de carousel SSR #}
+        <script src="{% static 'products/js/logic/product_store.js' %}"></script>
         <script src="{% static 'products/js/logic/cards_products.js' %}"></script>
-        <script src="{% static 'products/js/components/cards_products.js' %}"></script>
         <script src="{% static 'products/js/components/carousel_products.js' %}"></script>
         <script src="{% static 'home/js/home.js' %}"></script>
     {% endcompress %}

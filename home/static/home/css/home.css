@@ -3,7 +3,7 @@
 main { padding-top: 0;    /* mobile changes */ }
 
 /* Styles for small mobile phones (hasta 480px) */
-.home-header-container {
+.cont-headers {
     display: flex;
     width: 100%;
     height: calc(100vh - var(--height-header)); /* edit mobile      */
@@ -11,9 +11,16 @@ main { padding-top: 0;    /* mobile changes */ }
     position: relative;
 }
 
+.cont-banners {
+    display: flex;
+    width: 100%;
+    height: 400px;
+    position: relative;
+} 
+
 /* Styles for tablets (mín. 481px to max. 768px) */
 @media (min-width: 480px) {
-    .home-header-container {
+    .cont-headers {
         max-height: 310px;
     }
 }
@@ -21,31 +28,34 @@ main { padding-top: 0;    /* mobile changes */ }
 /* Styles for desktops (mín. 769px to max. 992px+)) */
 @media (min-width: 768px) {
     /* Styles for desktops */
-    .home-header-container {
+    .cont-headers {
         max-height: 330px;
     }
 }
 
 /* Styles for large desktops (mín. 993px to max. infinite) */
 @media (min-width: 992px) {
-    .home-header-container {
+    .cont-headers {
         max-height: calc(100vh - var(--height-header));
     }
 }
 
-.home-header-container .swiper-button-next,
-.home-header-container .swiper-button-prev {
+/* estos son por botones extras que actualmente no se usan
+.cont-headers .swiper-button-next,
+.cont-headers .swiper-button-prev {
     color: var(--main-color);
-}
+} */
 
 /* this styles is for banner on header */
-.swiper-slide {
+.cont-headers .swiper-slide,
+.cont-banners .swiper-slide {
     width: 100%;
     height: 100%;
     position: relative;
 }
 
-.swiper-slide .header-img {
+.cont-headers .swiper-slide .header-img,
+.cont-banners .swiper-slide .header-img {
     position: absolute;
     top: 0;
     left: 0;
@@ -55,7 +65,8 @@ main { padding-top: 0;    /* mobile changes */ }
     object-position: center;
 }
 
-.swiper-pagination {
+.cont-headers .swiper-pagination,
+.cont-banners .swiper-pagination {
     position: absolute;
     background-color: #ffffff85;
     margin-left: 50%;
@@ -70,7 +81,8 @@ main { padding-top: 0;    /* mobile changes */ }
     border-radius: 5px;
 }
 
-.swiper-pagination-bullet {
+.cont-headers .swiper-pagination-bullet,
+.cont-banners .swiper-pagination-bullet {
     width: 13px;
     height: 13px;
     background-color: #ffffff;
@@ -78,7 +90,72 @@ main { padding-top: 0;    /* mobile changes */ }
     margin: 0 6px;
 }
 
-.swiper-pagination-bullet-active {
+.cont-headers .swiper-pagination-bullet-active,
+.cont-banners .swiper-pagination-bullet-active {
     background-color: var(--main-light-color); 
     opacity: 1; 
 }
+
+
+
+
+
+/* 2. Ajuste obligatorio para Swiper Grid */
+.swiper-offers .swiper-grid-column > .swiper-wrapper {
+    flex-direction: row !important; /* Forza la dirección correcta */
+}
+
+/* El contenedor del swiper debe tener una altura fija o mínima */
+.swiper-offers {
+    height: 380px; /* Ajusta según el alto de tus cartas */
+    margin: 20px 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.swiper-offers .image   { grid-area: image; }
+.swiper-offers .name    { grid-area: name; }
+.swiper-offers .price   { grid-area: price; }
+.swiper-offers .btn-add { grid-area: button; }
+.swiper-offers .corner-box { grid-area: corner; }
+
+/* Ajuste necesario para que las filas no se encimen */
+.swiper-offers .swiper-slide {
+    height: calc((100% - 20px) / 2) !important; /* (100% - spaceBetween) / rows */
+    display: grid;
+
+    position: relative;
+
+    row-gap: 8px;
+    column-gap: 8px;
+    
+    grid-template-columns: 120px 1.5fr 30px;
+    grid-template-rows: min-content auto min-content ;
+
+    grid-template-areas: 
+        "image    name     corner"
+        "image    price    price"
+        "image    button    button ";
+}
+
+
+
+
+.swiper_offers__title {
+    height: 50px;
+    margin-bottom: 5px;
+}
+
+.separator {
+    display: flex;
+    align-items: center;
+    width: calc(100% - 80px);
+}
+
+.separator::after {
+    content: "";
+    flex: 1;
+    border-bottom: 3px solid var(--main-color);
+}
+    

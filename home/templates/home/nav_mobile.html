@@ -30,9 +30,17 @@
             </form>
         </div>
 
-        <a href="{% url 'Home' %}" class="cont-100">
-            <img src="{% static 'ico/logo.jpg' %}" class="img-cover" alt="Logo {{store.name}}"
-                loading="lazy" width="100" height="100">
+        {# logo dinamico #}
+        <a href="/" class="cont-100" title="{{ store_info.store.name }}">
+            {% if store_info.logo.image_url %}
+                <img src="{{ store_info.logo.image_url }}" 
+                    class="img-cover" alt="Logo {{ store_info.store.name }}"
+                    loading="lazy" width="100" height="100">
+            {% else %}
+                <img src="{% static 'ico/logo.jpg' %}" 
+                    class="img-cover" alt="Logo {{ store_info.store.name }}"
+                    loading="lazy" width="100" height="100">
+            {% endif %}
         </a>
 
         {# Icon widget cart, el widget esta en base.html en el header #}
@@ -118,35 +126,34 @@
                 </li>
 
                 <li class="item__menu-mobile">
-                    <a class="bolder" href="{% url 'Home' %}">Home</a>
+                    <a class="bolder" href="{% url 'Home' %}" title="{{ store_info.store.name }}">Home</a>
                 </li>
 
                 <li class="item__menu-mobile">
-                    <a class="bolder" href="#">¿Quienes Somos?</a>
+                    <a class="bolder" href="#" title="¿Quienes Somos?">¿Quienes Somos?</a>
                 </li>
         
                 <li class="item__menu-mobile">
-                    <a class="bolder" href="{% url 'contact' %}">Contacto</a>
+                    <a class="bolder" href="{% url 'contact' %}" title="Contacto">Contacto</a>
                 </li>
             </ul>
         
             {# Iconos para redireccion a redes #}
             <div class="d-flex ms-2 gap-4">
-                <a href="{{ store.google_url }}" target="_blank" class="btn text-primary">
-                    <i class="ri-whatsapp-line font-lg"></i>
+                {# wsp href por defecto, después logica con js para cambiar el href #}
+                <a href="https://wa.me/{{store_info.store.wsp_number}}" target="_blank" title="Whatsapp"
+                    class="text-white hover-up btn-wsp" 
+                    data-type="navbar">
+                    <i class="ri-whatsapp-line font-xxl"></i>
                 </a>
 
-                <a href="{{ store.ig_url }}" target="_blank" class="btn text-primary">
-                    <i class="ri-instagram-line font-lg"></i>
-                </a>
-
-                <a href="{{ store.tt_url }}" target="_blank" class="btn text-primary">
-                    <i class="ri-tiktok-fill font-lg"></i>
-                </a>
-
-                <a href="{{ store.fb_url }}" target="_blank" class="btn text-primary">
-                    <i class="ri-facebook-box-fill font-lg"></i>
-                </a>
+                {# creamos dinamicamente los iconos asociados #}
+                {% for social in store_info.social_networks.main %}
+                    <a href="{{social.url}}" class="text-white hover-up" target="_blank" title="{{social.name}}">
+                        {# Usamos la icon_class y name que generamos dinámicamente en el Service #}
+                        <i class="{{social.icon_class}} font-xxl"></i>
+                    </a>
+                {% endfor %}
 
                 <button class="theme-toggle btn text-primary">
                     <i class="theme-icon ri-moon-line font-lg"></i>
