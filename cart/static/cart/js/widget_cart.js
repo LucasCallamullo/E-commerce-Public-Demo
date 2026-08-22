@@ -1,33 +1,52 @@
 /// <reference path="../../../../static/js/base.js" />
 /// <reference path="../../../../static/js/forms.js" />
 /// <reference path="../../../../static/js/utils.js" />
-/// <reference path="../../../../static/js/overlay-modal.js" />
+/// <reference path="../../../../static/js/overlay_modal.js" />
 /// <reference path="../../../../cart/static/cart/js/components/widget_cart.js" />
+/// <reference path="../../../../cart/static/cart/js/logic/cart_store.js" />
 
 
-async function endpointsCartActions({ productId, action = 'add', quantity = 1, stock = 0 }) {
-    
-    // Stupids Check
+/**
+ * Handle cart actions: add, subtract, or delete a product from the cart.
+ *
+ * @param {Object} params
+ * @param {number|string} params.productId  - Product ID to operate on
+ * @param {"add"|"subtract"|"delete"} params.action - Cart action (default: "add")
+ * @param {number} params.quantity - Quantity to add/subtract (default: 1)
+ * @param {number} params.stock - Available stock (used to avoid exceeding stock)
+ */
+async function endpointsCartActions({ 
+    productId, 
+    action = 'add', 
+    quantity = 1, 
+    stock = 0,
+    showDetail = true
+}) {
+    // Basic validation — avoid bad or missing product IDs
     const prodId = parseInt(productId);
     if (!productId || Number.isNaN(prodId)) return;
-    if (!['add', 'substract', 'delete'].includes(action)) return;
 
-    // CART_DATA es variable global, cantidad actual en carrito (from base.html)
-    const cartQty = parseInt(window.CART_BY_ID[prodId]) || 0;
+    // Validate allowed actions
+    if (!['add', 'subtract', 'delete'].includes(action)) return;
 
-    if (action == 'add') {
-        // Verificar stock en frontend (opcional)
-        if ((cartQty + quantity) > stock) {
+    // Get the current quantity of this product already in the cart
+    const cartQuantity = window.CART_STORE.getQuantityById(prodId);
+
+    // When adding items, ensure we don’t exceed available stock
+    if (action === 'add') {
+        if ((cartQuantity + quantity) > stock) {
             openAlert("No hay suficiente stock", "red", 2000);
             return;
         }
     }
 
-    const url = window.BASE_URLS.cartActions.replace('{product_id}', prodId);
-    // default 'POST' for action: add & substract
+    // Build endpoint URL dynamically
+    const url = window.BASE_URLS.cartActions.replace('product_id', prodId);
+
+    // Choose HTTP method depending on the action
     const httpMethod = (action === 'delete') ? 'DELETE' : 'POST';
 
-    // Se realiza el fetch según el endpoint de la acción
+    // Perform request to backend
     const response = await fetch(url, {
         method: httpMethod,
         headers: {
@@ -37,34 +56,42 @@ async function endpointsCartActions({ productId, action = 'add', quantity = 1, s
         body: JSON.stringify({
             action: action,
             quantity: quantity,
-            cart_quantity: cartQty
+            cart_quantity: cartQuantity
         }),
-        // credentials: 'include'  // Descomenta si necesitas enviar cookies/CORS
+        // credentials: 'include' // Uncomment if cross-site cookies are needed
     });
 
-    // recibimos json de respuesta
+    // Parse JSON response from server
     const data = await response.json();
+
+    // Handle server-side errors
     if (!response.ok) {
         openAlert(data.detail, 'red', 1500);
+        setTimeout(() => {
+            window.location.href = '/'
+        }, 1500)
         return;
     }
-    window.CART_DATA = data.cart;
 
-    // Handle interactive alert // remember, all responses have this data
-    colors = {
-        'add': 'green',
-        'substract': 'red',
-        'delete': 'red'
+    // Update local cart store with backend response
+    window.CART_STORE.updateCartData(data.cart);
+
+    // Display contextual notification depending on action
+
+    if (showDetail) {
+        const colors = {
+            add: 'green',
+            subtract: 'red',
+            delete: 'red'
+        };
+        openAlert(data.detail, colors[action], 1200);
     }
-    openAlert(data.detail, colors[action], 1200);
-
-    // renderizar el widget principal en cada vista
+     
+    // Re-render header/cart widget
     renderWidgetCart();
 
-    // if you are in the cart-view-page update the view
-    // typeof == only use the function if is define in my current context
+    // If we're on the cart detail page, refresh that view as well
     if (typeof renderTableCartDetail === 'function') {
-        // para renderizar la tabla en la page detail
         renderTableCartDetail();
     }
 }
@@ -84,7 +111,52 @@ async function endpointsCartActions({ productId, action = 'add', quantity = 1, s
  */
 function widgetCartButtons() {
     const contWidgetCart = document.querySelector('.cont-cart__widget ');
-    contWidgetCart.addEventListener('submit', async (e) => {
+
+    let pendingChanges = {}
+
+    // Esta función solo se ejecutará cuando el usuario deje de clickear por 500ms
+    const debouncedSubmit = debounce(async (form, productId, stock, action, qtyInit) => {
+        
+        // Dentro del debouncedSubmit:
+        const diff = pendingChanges[productId] - qtyInit; 
+
+        let finalAction;
+        if (action != 'delete') {
+            finalAction = (diff > 0) ? 'add' : 'subtract';
+
+            if (diff === 0) return; // No hubo cambios reales
+        } else {
+            finalAction = 'delete';
+        }
+        
+        /* for debug
+        console.log({
+            productId: productId,
+            action: finalAction, 
+            diff: Math.abs(diff), 
+            finalQty: pendingChanges[productId],
+            stock: stock
+        }); */
+        
+        await handleGenericFormBase({
+            form: form,
+            submitCallback: async () => {
+                // Enviamos una UNICA petición al servidor con el total acumulado
+                await endpointsCartActions({
+                    productId: productId,
+                    action: finalAction, 
+                    quantity:  Math.abs(diff), // Usamos valor absoluto para evitar negativos
+                    stock: stock,
+                    showDetail: false
+                });
+                // Una vez enviado con éxito, limpiamos el acumulador para ese producto
+                delete pendingChanges[productId];
+            }
+        });
+    }, 500);
+
+
+    contWidgetCart.addEventListener('submit', (e) => {
         // Only handle form submissions
         if (!e.target.matches('form')) return;
         e.preventDefault();
@@ -92,23 +164,49 @@ function widgetCartButtons() {
         // recover values from form
         const form = e.target;
         const productId = form.dataset.index;
+        const qtyInit = parseInt(form.dataset.quantity);
+
         const stock = parseInt(form.dataset.stock);
+        const action = e.submitter.dataset.action;
 
-        // recover values from btn
-        const btn = e.submitter;
-        const action = btn.dataset.action;
+        // --- Lógica de Acumulación ---
+        // ?? en lugar de tomar valores falsy, toma valores null o undefined
+        let currentQty = pendingChanges[productId] ?? qtyInit;
+        // console.log('Current quantity:', currentQty)
 
-        await handleGenericFormBase({
-            form: form,
-            submitCallback: async () => {
-                await endpointsCartActions({
-                    productId: productId,
-                    action: action,
-                    quantity: 1,
-                    stock: stock
-                });
+        const spans = form.querySelectorAll('.cart-span-items');
+
+        if (currentQty != 0) {
+            if (action === 'add') {
+                // Regla de Stock: No permitir subir más allá del stock disponible
+                if (currentQty < stock) {
+                    openAlert("Producto agregado.", "green", 1000);
+                    pendingChanges[productId] = currentQty + 1;
+                } else {
+                    openAlert("Límite de stock alcanzado.", "orange", 1200);
+                    return; // Salimos para no disparar el debounce innecesariamente
+                }
+            } else if (action === 'subtract') {
+                // Regla de Mínimo: Si llega a 0, la acción real es eliminar
+                if (currentQty > 1) {
+                    openAlert("Producto actualizado en el carrito.", "orange", 1000);
+                    pendingChanges[productId] = currentQty - 1;
+                } else {
+                    openAlert("Producto eliminado del carrito.", 'red', 1200);
+                    pendingChanges[productId] = 0;
+                }
             }
-        });
+
+            spans.forEach(s => s.textContent = pendingChanges[productId]);
+        }
+
+        if (pendingChanges[productId] === 0 || action === 'delete') {
+            openAlert("Producto eliminado del carrito.", 'red', 1200);
+            form.classList.add('d-none');
+        }
+
+        // Llamamos al debounce pasando el valor final acumulado y la acción final
+        debouncedSubmit(form, productId, stock, action, qtyInit);
     });
 }
 
@@ -173,6 +271,17 @@ function widgetCartOpenEvent() {
 
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    // primera vez con ssr seteamos datos iniciales para lugar hacer rendering
+    try {
+        window.CART_STORE = new CartStore(
+            JSON.parse(document.getElementById('cart-data').textContent)
+        );
+    } catch (error) {
+        console.error('Error parsing cart data:', error);
+        window.CART_STORE = new CartStore({});
+    }
+
     // Render the cart widget on the page once the DOM is fully loaded
     renderWidgetCart();
 

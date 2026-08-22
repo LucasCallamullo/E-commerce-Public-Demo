@@ -21,6 +21,40 @@
  */
 function eventsTableCartDetail(containerMain) {
 
+    let pendingChanges = {}
+
+    // Esta función solo se ejecutará cuando el usuario deje de clickear por 500ms
+    const debouncedSubmit = debounce(async (form, productId, stock, action, qtyInit) => {
+        // Dentro del debouncedSubmit:
+        const diff = pendingChanges[productId] - qtyInit; 
+
+        let finalAction;
+        if (action != 'delete') {
+            finalAction = (diff > 0) ? 'add' : 'subtract';
+
+            if (diff === 0) return; // No hubo cambios reales
+        } else {
+            finalAction = 'delete';
+        }
+
+        await handleGenericFormBase({
+            form: form,
+            submitCallback: async () => {
+                // Enviamos una UNICA petición al servidor con el total acumulado
+                await endpointsCartActions({
+                    productId: productId,
+                    action: finalAction, 
+                    quantity:  Math.abs(diff), // Usamos valor absoluto para evitar negativos
+                    stock: stock,
+                    showDetail: false
+                });
+                // Una vez enviado con éxito, limpiamos el acumulador para ese producto
+                delete pendingChanges[productId];
+            }
+        });
+    }, 500);
+
+
     const tableCartDetail = containerMain.querySelector('#table-cart-detail');
     tableCartDetail.addEventListener('submit', async (e) => {
 
@@ -44,10 +78,50 @@ function eventsTableCartDetail(containerMain) {
             return;
         }
 
-        // stupid check
-        if (!['add', 'substract', 'delete'].includes(action)) return;
-
         /* ---- Handle cart actions (add, subtract, delete) ---- */
+        // --- Lógica de Acumulación ---
+
+        // ?? en lugar de tomar valores falsy, toma valores null o undefined
+        const qtyInit = parseInt(form.dataset.quantity);
+        const stock = parseInt(form.dataset.stock);
+        let currentQty = pendingChanges[productId] ?? qtyInit;
+        // console.log('Current quantity:', currentQty)
+
+        const spans = form.querySelectorAll('.cart-span-items');
+
+        if (currentQty != 0) {
+            if (action === 'add') {
+                // Regla de Stock: No permitir subir más allá del stock disponible
+                if (currentQty < stock) {
+                    openAlert("Producto agregado.", "green", 1000);
+                    pendingChanges[productId] = currentQty + 1;
+                } else {
+                    openAlert("Límite de stock alcanzado.", "orange", 1200);
+                    return; // Salimos para no disparar el debounce innecesariamente
+                }
+            } else if (action === 'subtract') {
+                // Regla de Mínimo: Si llega a 0, la acción real es eliminar
+                if (currentQty > 1) {
+                    openAlert("Producto actualizado en el carrito.", "orange", 1000);
+                    pendingChanges[productId] = currentQty - 1;
+                } else {
+                    openAlert("Producto eliminado del carrito.", 'red', 1200);
+                    pendingChanges[productId] = 0;
+                }
+            }
+
+            spans.forEach(s => s.textContent = pendingChanges[productId]);
+        }
+
+        if (pendingChanges[productId] === 0 || action === 'delete') {
+            openAlert("Producto eliminado del carrito.", 'red', 1200);
+            form.classList.add('d-none');
+        }
+
+        // Llamamos al debounce pasando el valor final acumulado y la acción final
+        debouncedSubmit(form, productId, stock, action, qtyInit);
+
+        /* ---- Handle cart actions (add, subtract, delete) ---- 
         const stock = parseInt(form.dataset.stock) || 0;
         await handleGenericFormBase({
             form: form,
@@ -59,7 +133,7 @@ function eventsTableCartDetail(containerMain) {
                     stock: stock
                 });
             }
-        });
+        }); */
     });
 }
 

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -5,8 +7,9 @@ from rest_framework.permissions import AllowAny
 
 from cart.carrito import Carrito
 from products.models.product import Product
+from products.services.product import ProductService
 
-from core.utils.utils_basic import valid_id_or_None    
+from core.utils.utils_parsers import valid_id_or_None    
 
 from rest_framework.exceptions import NotFound, ValidationError
 
@@ -23,7 +26,7 @@ class CartAPIView(APIView):
     """
     permission_classes = [AllowAny]  # Allow any user to access this view
     
-    def post(self, request, product_id):
+    def post(self, request, product_id) -> Response:
         """
         Handles POST requests to modify the cart.
 
@@ -55,7 +58,7 @@ class CartAPIView(APIView):
             )
 
         # 2. Retrieve the product instance or raise an error
-        product = self._get_product(product_id)
+        product: Product = self._get_product(product_id)
 
         # 3. Initialize the session cart object to synchronize with DB
         cart_session = Carrito(request)
@@ -101,7 +104,7 @@ class CartAPIView(APIView):
         )
         
     
-    def delete(self, request, product_id):
+    def delete(self, request, product_id) -> Response:
         """
         Handles DELETE requests to remove a product from the cart.
 
@@ -124,14 +127,14 @@ class CartAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # 2. Retrieve product instance
-        product = self._get_product(product_id)  
+        # 2. Retrieve product instance or raises errors
+        self._get_product(product_id=product_id)  
         
         # 3. Initialize session cart
         cart_session = Carrito(request)
         
         # 4. Remove product from cart
-        flag = cart_session.delete_product(product=product)
+        flag = cart_session.delete_product(product_id=product_id)
         if flag != 'delete':
             return Response(
                 {'detail': "Product not found in cart.", 'success': False}, 
@@ -178,19 +181,12 @@ class CartAPIView(APIView):
             ValidationError(HTTP 400): If the provided product ID is invalid.
             NotFound(HTTP 404): If the product does not exist in the database.
         """
-        product_id = valid_id_or_None(product_id)
+        product_id: Optional[int] = valid_id_or_None(product_id)
         if not product_id:
             raise ValidationError("ID de producto inválido")
 
-        try:
-            return (
-                Product.objects
-                .only(
-                    'id', 'slug', 'name', 'price',
-                    'main_image', 'stock', 'available'
-                )
-                .get(id=product_id)
-            )
-        except Product.DoesNotExist:
+        p: Optional[Product] = ProductService.get_product_for_cart(product_id=product_id)
+        if p is None:
             raise NotFound("El producto solicitado no existe")
-
+        
+        return p

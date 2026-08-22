@@ -7,5 +7,5 @@ urlpatterns = [
     path('api/cart/', CartAPIView.as_view(), name='cart-api-detail'),  # GET carrito completo
     
     # POST/DELETE producto
-    path('api/cart/<int:product_id>/', CartAPIView.as_view(), name='cart-api'),  
+    path('api/cart/<int:product_id>/', CartAPIView.as_view(), name='api_cart'),  
 ]

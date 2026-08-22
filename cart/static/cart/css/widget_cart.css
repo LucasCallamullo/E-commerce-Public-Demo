@@ -89,6 +89,34 @@
     height: 30px;    /* btn-28px */
 }
 
+/* muestra una etiqueta de descuento sobre la imagen de producto que tiene descuento 
+.badge-discount {
+    top: 0;
+    right: 0;
+    background-color: var(--main-light-color);
+    position: absolute;
+    color: var(--white-color) !important;
+} */
+
+.badge-discount {
+    position: absolute;
+    top: 0;
+
+    right: -4px;
+    padding: 4px 10px; 
+    transform: rotate(25deg);
+    
+    /* 
+    right: -24px;
+    padding: 4px 24px; 
+    transform: rotate(45deg);
+    */
+
+    background: var(--main-light-color);
+    color: white;
+    pointer-events: none;
+}
+
 /* Styles for desktops (mín. 769px to max. 992px+)) */
 @media (min-width: 768px) {
     .cart-cont-overlay {

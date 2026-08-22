@@ -5,7 +5,7 @@ function renderTableCartDetail(containerMain = null) {
     /**
      * Render a single cart row for the cart table.
      * 
-     * @param {Object} product - Product data object from CART_DATA.
+     * @param {Object} product - Product data object from CART_STORE.
      * @param {number} index - Position of the product in the list (0-based).
      * @param {Set<number>} favoriteProducts - Set of product IDs marked as favorites.
      * @returns {HTMLElement} - A DOM element representing the product row.
@@ -16,7 +16,9 @@ function renderTableCartDetail(containerMain = null) {
         // Use a fallback image if missing or relative
         const imgSrc = prod.image.startsWith('http') ? prod.image : 'default-image.jpg';
         const price = formatNumberWithPoints(prod.price);
-        const subTotal = formatNumberWithPoints((prod.price * prod.quantity));
+        const price_discount = formatNumberWithPoints(prod.price_discount);
+        
+        const subTotal = formatNumberWithPoints((prod.price_discount * prod.quantity));
 
         // Build product detail URL
         const url = window.BASE_URLS.productDetail
@@ -32,6 +34,11 @@ function renderTableCartDetail(containerMain = null) {
                 <div class="image cont-img-100-off">
                     <img class="img-scale-down" src="${imgSrc}" alt="${prod.name}" 
                         loading="lazy" width="100" height="100">
+                    <!-- badge de descuento sobre la imagne -->
+                    ${prod.discount > 0 ? /*html*/`
+                    <span class="badge-discount bolder font-sm">
+                        -${prod.discount}%
+                    </span>` : ''}
                 </div>
 
                 <a class="name justify-start text-start bolder font-sm main-ref" href="${url}">
@@ -39,15 +46,24 @@ function renderTableCartDetail(containerMain = null) {
                 </a>
 
                 <div class="price font-md bolder">
-                    $ ${price}<i class="ri-close-line"></i>
-                    ${prod.quantity}<i class="ri-equal-line"></i>
+                    <!-- según el tipo de descuento damos feedback visual -->
+                    ${prod.discount > 0 ? /*html*/`
+                        <div class="d-flex-col">
+                            $ ${price_discount}
+                            <span class="text-line-through text-secondary font-sm">
+                                $ ${price}
+                            </span>
+                        </div>
+                    ` : /*html*/`$ ${price}`}
+                    <i class="ri-close-line font-sm"></i>
+                    ${prod.quantity}<i class="ri-equal-line font-sm"></i>
                 </div>
 
                 <div class="quantity">
                     <form class="cont-numeric-cart-detail cont-space-between justify-self-end" 
-                    data-index="${prod.id}" data-stock="${prod.stock}">
+                    data-index="${prod.id}" data-stock="${prod.stock}" data-quantity="${prod.quantity}">
                         <button class="btn btn-28 scale-on-touch cart-view-minus" type="submit" 
-                        data-action="substract">
+                        data-action="subtract">
                             <i class="ri-subtract-fill font-lg text-primary"></i>
                         </button>
 
@@ -75,7 +91,7 @@ function renderTableCartDetail(containerMain = null) {
                     </button>
                 </form>
             </div>
-        `.trim();
+        `.trim().replace(/<!--[\s\S]*?-->/g, '');
 
         const wrapper = document.createElement('div');
         wrapper.innerHTML = cardWidget;
@@ -105,14 +121,14 @@ function renderTableCartDetail(containerMain = null) {
     }
 
     // Create a set with the user's favorite product IDs
-    const favoriteProducts = new Set(window.PRODUCTS_FAVORITES);
+    const favoriteProducts = new Set(window.FAVORITES_LIST);
 
-    // CART_DATA contains the current cart state, populated by SSR or via AJAX.
+    // CART_STORE contains the current cart state, populated by SSR or via AJAX.
     const fragment = document.createDocumentFragment();
 
-    if (window.CART_DATA.cart.length > 0) {
+    if (window.CART_STORE.items.length > 0) {
         // Render each cart product. Add header row before the first product.
-        window.CART_DATA.cart.forEach((product, index) => {
+        window.CART_STORE.items.forEach((product, index) => {
             if (index == 0) fragment.appendChild(renderHeaderTable());
             fragment.appendChild(renderTableCart(product, index, favoriteProducts));
         });
@@ -133,7 +149,16 @@ function renderTableCartDetail(containerMain = null) {
     tableCart.appendChild(fragment);
 
     // Update all total price displays in the container
-    const contTotals = contMain.querySelectorAll('.total-cart-detail');
-    const totalPrice = formatNumberWithPoints(window.CART_DATA.cart_price, true);
-    contTotals.forEach(t => { t.textContent = `$ ${totalPrice}` });
+    const a = contMain.querySelector('.total-cart-price');
+    a.textContent = `$ ${formatNumberWithPoints(window.CART_STORE.totalPrice, true)}`
+
+    const b = contMain.querySelector('.total-cart-price-discount');
+    b.textContent = `$ ${formatNumberWithPoints(window.CART_STORE.totalPriceDiscount, true)}`
+
+    const c = contMain.querySelector('.total-cart-discount'); 
+    c.textContent = `$ ${formatNumberWithPoints(window.CART_STORE.getTotalDiscount(), true)}`
+
+    const d = contMain.querySelector('.total-cart-items'); 
+    d.textContent = `${window.CART_STORE.totalQuantity}`
 }
+

@@ -1,255 +1,329 @@
+import logging
+logger = logging.getLogger(__name__)
 
-
-from cart.models import Cart
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+from datetime import datetime
+
+# services
+from cart.services.cart_service import CartService
+from cart.services.cart_item_service import CartItemService
+
+# others apps
+# from products.models.product import Product
 
 
 class Carrito:
     def __init__(self, request):
+        # Request-level shortcuts for easier access
         self.user = request.user
         self.session = request.session
         
-        # Esto viene del middleware, puede ser None si no está autenticado
+        # Resolved by CartMiddleware.
+        # - Authenticated user  -> Cart instance
+        # - Anonymous user      -> None
         self.cart = request.cart
         
+        # Cart ID stored in session (if any).
+        # Used to correlate the session snapshot with the database cart.
+        self.cart_id = self.session.get("cart_id", None)
+        
+        # Lightweight cart representation stored in session.
+        # This acts as a snapshot/cache to avoid hitting the database
+        # on every request or template render.
         self.carrito = self.session.get("carrito", {})
         
-        self.cart_id = self.session.get("cart_id", None)
-        self.last_modified = self.session.get('last_modified', None)
+        # Timestamp of the last cart snapshot stored in session.
+        # Used to detect whether the database cart has changed
+        # since the last synchronization.
+        self.last_modified = self.session.get("last_modified", None)
         
-        # Logica para manejar sincronizacion entre carritos de disintas pestañas, sesiones
-        if self.user.is_authenticated:
-            
-            # Esto se dara post logeo realmente, porque recien ahi tendra un cart_id
-            if self.cart_id and self.last_modified:
-                
-                # recuperramos Cart con el realted_name
-                # cart = self.user.carrito
-                cart = request.cart  
-                
-                # Compara la fecha de la última modificación
-                last_modified = parse_datetime(self.last_modified)
-                if cart.last_modified > last_modified:
-                    self.migrate_carrito_to_cart_db(cart=cart)
-
-            # Cuando el cart_id is None, solo ocurre una vez antes de logearse
-            else: 
-                # recupera los datos desde la base de datos
-                self.migrate_carrito_to_cart_db()
-
-        # Si no esta autenticado el usuario no manejamos la base de datos
-        else:
-            # Si se deslogea no accede al Cart que estaba asociado antes
-            # pero se queda con el carrito con los items en la session por si quisiera seguir comprando o algo 
+        # Initialize and synchronize cart state.
+        # This method decides whether to:
+        # - Use the session snapshot
+        # - Rebuild from the database
+        # - Migrate data between session and DB
+        self._config_init()
+        
+        
+    def _config_init(self):
+        # ============================================================
+        # Anonymous users: session-only cart (no database interaction)
+        # ============================================================
+        if not self.user.is_authenticated:
+            # If the user logged out, the previously associated DB cart
+            # is no longer accessible, but we keep the session cart
+            # so the user can continue browsing or shopping.
             if self.cart_id is not None:
-                self.save_session()
-                
-                
-    # ======================================================================
-    #                   Methods n properties
-    # ======================================================================
-    def migrate_carrito_to_cart_db(self, cart=None):
-        """ Migra el carrito de la sesión al carrito de base de datos cuando el usuario se registra. """
-        if cart is None:
-            cart, _ = Cart.objects.get_or_create(user=self.user)
+                self._save_session()
+                return
             
-        # obtenemos un diccionario para combinar con el self.carrito de la sesion si existiera
-        self.carrito = cart.get_items_and_combine_carts(self.carrito)
-        self.save_session(cart_id=cart.id)
+        # =====================================================================
+        # Cart synchronization logic (multiple tabs, sessions, or stale data)
+        # =====================================================================
         
+        # If there is no cart_id or no timestamp snapshot,
+        # we cannot trust the session state.
+        # This usually happens:
+        # - On first login
+        # - On first cart access after authentication
+        # In this case, rebuild the session cart from the database.
+        if not self.cart_id or not self.last_modified:
+            logger.debug(
+                "[ANONYMUS USER] estamos en first login CART: %s", self.cart
+            )
+            self.migrate_carrito_to_cart_db()
+            return
         
-    def get_cart_serializer(self) -> dict:
+        # At this point:
+        # - The user is authenticated
+        # - A cart exists in the database (resolved by the middleware)
+        # - A session snapshot exists
+        #
+        # Compare timestamps to detect external changes
+        # (e.g. another tab or concurrent session).
+        if not self.cart:
+            return
+        
+        if self.cart.last_modified > parse_datetime(self.last_modified):
+            logger.debug(
+                "[CART SYNC] SE HIZO SYNCRHO CON DB ENTRE TABS -> db=%s session=%s",
+                self.cart.last_modified,
+                self.last_modified,
+            )
+            # The database cart is newer than the session snapshot.
+            # Rebuild the session cart to stay consistent.
+            self.migrate_carrito_to_cart_db(first_login=False)
+            
+        elif self.cart.last_modified < parse_datetime(self.last_modified):
+            logger.debug(
+                "[CART SYNC] FIRST LOG IN, AFTER OBJECTS ON CART SO WE HAVE LAST_MODIFIED -> db=%s session=%s",
+                self.cart.last_modified,
+                self.last_modified,
+            )
+            # The database cart is newer than the session snapshot.
+            # Rebuild the session cart to stay consistent.
+            self.migrate_carrito_to_cart_db(first_login=True)
+            
+        else:
+            logger.debug(
+                "[CART SYNC] SON IGUALES NO TOCA DB -> db=%s session=%s",
+                self.cart.last_modified,
+                self.last_modified,
+            )
+
+    # ------------------ Methods n properties ---------------------------
+
+    def migrate_carrito_to_cart_db(self, first_login: bool = False):
         """
-        Return a dict with:
-            - 'cart': list of cart items (each is a dict)
-            - 'cart_price': total price (float)
-            - 'cart_quantity': total items (int)
+        Synchronizes the session cart snapshot with the database cart.
+
+        This method assumes:
+        - The user is authenticated
+        - `self.cart` has been resolved by CartMiddleware
         """
-        cart_items = []
-        total_price = 0
-        total_items = 0
+        if not self.cart:
+            # Defensive guard (should not normally happen)
+            return
+        
+        # Merge session snapshot with database cart
+        self.carrito = CartService.get_items_and_combine_carts(
+            cart=self.cart, 
+            shop_cart=self.carrito if first_login else None
+        )
+        
+        last_modified_at = CartService.touch(cart=self.cart)
 
-        if self.carrito:
-            for values in self.carrito.values():
-                item = {
-                    'id': int(values['id']),
-                    'name': values['name'],
-                    'slug': values['slug'],
-                    'price': float(values['price']),
-                    'image': values['image'],
-                    'quantity': int(values['quantity']),
-                    'stock': int(values['stock']),
-                }
-                cart_items.append(item)
-                total_price += item['price'] * item['quantity']
-                total_items += item['quantity']
-
-        dict_context = {
-            'cart': cart_items,
-            'cart_price': float(total_price),
-            'cart_quantity': int(total_items),
-        }
-        return dict_context
-
-    @property
-    def total_price(self) -> float:
+        # Persist updated snapshot back into session
+        self._save_session(last_modified=last_modified_at)
+        
+    # -----------------------       private methods      --------------
+        
+    def _save_session(self, last_modified: datetime = None):
         """
-        Returns the total sum of all item prices in the cart.
+        Saves the cart snapshot to the session.
 
-        Notes:
-            - The 'self.total' attribute is used to calculate this value only once 
-            via the context processor, and then it is passed to templates as context.
-        """
-        t = sum(item['price'] * item['quantity'] for item in self.carrito.values()) if self.carrito else 0
-        return float(t)
-
-
-    @property
-    def total_items(self) -> int:
-        """
-        Returns the total quantity of all products in the cart.
-        """
-        t = sum(item['quantity'] for item in self.carrito.values()) if self.carrito else 0
-        return t
-
-
-    @property
-    def items(self):
-        """
-        Returns the cart items as a (key, value) dictionary pair 
-        so it can be easily used in Django views and templates.
-        """
-        return self.carrito.items()
-
-
-    # ======================================================================
-    #                   CRUD ACTIONS Cart
-    # ======================================================================
-    def save_session(self, cart_id=None):
-        """
-        Saves the cart to the session and stores additional data 
-        to support synchronization across multiple browser tabs.
-
+        The session timestamp is aligned with the database cart timestamp
+        when available, ensuring reliable multi-tab synchronization.
+        
         Args:
-            cart_id (optional): An optional cart ID to store in the session.
+            last_modified (optional): An optional timestap type datetime
+            to set from db like source of truth.
         """
         # save the updated cart on the session
         self.session["carrito"] = self.carrito
 
         # Store the last modification time for cross-tab synchronization
-        self.session['last_modified'] = timezone.now().isoformat()
+        if last_modified:
+            # DB is source of truth
+            self.session["last_modified"] = last_modified.isoformat()
+        else:
+            # Anonymous user or no DB change
+            self.session["last_modified"] = timezone.now().isoformat()
 
         # Store the updated cart ID in the session
-        self.cart_id = cart_id
         self.session["cart_id"] = self.cart_id
         
         # save changes on session
         self.session.modified = True
         
         
-    def save_item(self, product=None):
+    def _save_item(self, item_data: dict, action: str) -> None | datetime:
         """ sincroniza con la base de datos si es necesario. """
         
-        # Update the cart in the database if the user is authenticated
-        if not self.user.is_authenticated and not self.cart_id and not self.cart:
-            return
+        # Update the cart in the database if the user is authenticated, has cart by the
+        # middleware and previouis cart_id, in general he has all() if is authenticated
+        if not self.user.is_authenticated or not self.cart_id or not self.cart:
+            return None
         
-        cart = self.cart
+        # Delegamos toda la lógica al modelo CartItemService y el mismo nos devuelve un timestap
+        # utilizar en _save_session()
+        if action == 'create':
+            return CartItemService.add_item_cart(
+                cart = self.cart,
+                item_data = item_data
+            )
+            
+        elif action == 'patch':
+            return CartItemService.update_item_cart(
+                cart = self.cart,
+                item_data = item_data
+            )
+            
+        elif action == 'delete':
+            return CartItemService.delete_item_cart(
+                cart = self.cart,
+                item_data = item_data
+            )
+            
+        # no debería pasar pero bueno hacemos explicito el return
+        return None
         
-        # cart = Cart.objects.get(id=self.cart_id)
-        product_id = str(product.id)
-        item_data = self.carrito.get(product_id)    # product_data or None
+    # -----------------------   crud session      --------------    
         
-        # Delegamos toda la lógica al modelo Cart
-        cart.sync_item_from_session(
-            product=product,
-            item_data=item_data
-        )
-        
-    def add_product(self, product, quantity=1) -> bool:
+    def add_product(self, product, quantity: int = 1) -> str:
         """
-        Adds a product to the cart (both session and database).
+        Add a product to the cart, updating both the session and database.
+
+        If the product is already in the cart, its quantity is incremented.
+        Otherwise, a new entry is created.
 
         Args:
-            product: The product instance to add.
+            product (Product): The product instance to add.
             quantity (int, optional): Number of units to add. Defaults to 1.
 
         Returns:
-            bool: Returns True if the product was successfully added.
+            str: Action performed, either 'create' (new item) or 'patch' (quantity updated).
         """
         product_id = str(product.id)
         
-        # Update the cart in the session
+        # 1. Update the cart snapshot in the session
         if product_id not in self.carrito:
             self.carrito[product_id] = {
                 "id": product.id,
                 "name": product.name,
                 "slug": product.slug,
-                "price": float(product.price),
+                "price": float(product.price_ars),
                 "image": product.main_image,
                 "quantity": quantity,
                 "stock": product.stock,
+                "discount": product.discount_ars,
             }
+            action = 'create'
         else:
             self.carrito[product_id]["quantity"] += quantity
+            action = 'patch'
         
-        # save data in session
-        self.save_session(cart_id=self.cart_id)
+        # 2. Persist changes to the database and get the real last_modified timestamp
+        last_modified = self._save_item(
+            item_data=self.carrito.get(product_id),
+            action=action
+        )
+
+        # 3. Save updated cart snapshot in the session using DB timestamp
+        self._save_session(last_modified)
         
-        # save item in CartItem db
-        self.save_item(product=product)
+        return action
 
-
-    def subtract_product(self, product, quantity=1) -> bool:
+    def subtract_product(self, product, quantity: int = 1) -> str:
         """
-        Reduce la cantidad de un producto del carrito.
-        Al final retornara un bool que nos servira para indicar distintos tipo de mensajes
-        segun la peticion ajax realizadas en views.py
-        """
-        product_id = str(product.id)
-        
-        if self.carrito[product_id]["quantity"] > 1:
-            self.carrito[product_id]["quantity"] -= quantity
-            delete_item = False
-        else:
-            # eliminar el producto si la cantidad llega a 0
-            del self.carrito[product_id]
-            delete_item = True
-            
-        # guardamos los cambios en el carrito de la session
-        self.save_session(cart_id=self.cart_id)
-        
-        # save item in CartItem db
-        self.save_item(product=product)
-        
-        # este retorno nos sirve para los mensajes de las alertas
-        return delete_item
+        Reduce the quantity of a product in the cart. 
 
+        If the resulting quantity is greater than zero, the cart item is updated.
+        If the quantity drops to zero or below, the item is removed from the cart.
 
-    def delete_product(self, product) -> bool:
-        """
-            Elimina un producto del carrito.
-            No se realizan verificaciones de las key debido a que la logica no permitiría 
-            que sucedieran
+        Args:
+            product (Product): The product instance to subtract.
+            quantity (int, optional): Number of units to subtract. Defaults to 1.
+
+        Returns:
+            str: Action performed:
+                - 'patch': quantity updated
+                - 'delete': item removed
+                - 'not_found': product not present in the cart
         """
         product_id = str(product.id)
         
-        # Consultamos si por algun motivo no existiera el product-id en el carrito
+        # Product not in cart (edge case handling)
         if product_id not in self.carrito:
-            return False
+            return 'not_found'
         
-        del self.carrito[product_id]
+        # 1. Calculate new quantity for robustness
+        new_quantity = self.carrito[product_id]["quantity"] - quantity
+        if new_quantity > 0:
+            self.carrito[product_id]["quantity"] = new_quantity
+            snapshot = self.carrito[product_id]
+            action = 'patch'
+        else:
+            # 1.a Remove the product if quantity reaches 0
+            snapshot = self.carrito.pop(product_id)
+            action = 'delete'
         
-        # guardamos los cambios en el carrito de la session
-        self.save_session(cart_id=self.cart_id)
-        
-        # save item in CartItem db
-        self.save_item(product=product)
+        # 2. Persist changes to the database and get actual timestamp
+        last_modified = self._save_item(
+            item_data=snapshot, 
+            action=action
+        )
 
-        return True
+        # 3. Update session snapshot using DB timestamp
+        self._save_session(last_modified)
+        
+        return action
 
-    
+    def delete_product(self, product_id: int) -> str:
+        """
+        Remove a product from the cart.
+
+        This method will remove the product entirely from the session cart
+        and the database.
+
+        Args:
+            product (Product): The product instance to remove.
+
+        Returns:
+            str: Action performed:
+                - 'delete': product successfully removed
+                - 'not_found': product was not present in the cart (should never happen)
+        """
+        product_id = str(product_id)
+        
+        # Edge case: product not found in cart (should not occur)
+        if product_id not in self.carrito:
+            return 'not_found'
+        
+        snapshot = self.carrito.pop(product_id)
+
+        # 1. Persist changes to DB and get the actual timestamp
+        last_modified = self._save_item(
+            item_data=snapshot, 
+            action='delete'
+        )
+        
+        # 2. Update session snapshot using DB timestamp
+        self._save_session(last_modified)
+        
+        return 'delete'
+
     def clear(self):
         """
             Limpia el carrito.
@@ -258,14 +332,83 @@ class Carrito:
         self.session["carrito"] = {}
 
         # Store the last modification time for cross-tab synchronization
-        self.session['last_modified'] = timezone.now().isoformat()
+        if self.cart:
+            last_modified_at = CartService.touch(cart=self.cart)
+            self.session['last_modified'] = last_modified_at.isoformat()
+        else:
+            self.session['last_modified'] = timezone.now().isoformat()
 
         # Store the updated cart ID in the session
-        self.session["cart_id"] = None
+        self.session["cart_id"] = self.cart_id
         
         # save changes on session
         self.session.modified = True
-        # self.carrito = {}
-        # self.save(action='clear')
         
+    # ------------------------- helpers carrito -------------------------
 
+    def get_cart_serializer(self) -> dict:
+        """
+        Return a dict with:
+            - 'items': list of cart items
+            - 'total_price': total price without discounts
+            - 'total_price_discount': total price with discounts applied
+            - 'total_quantity': total items
+        """
+        cart_items = []
+        total_price = 0
+        total_price_discount = 0
+        total_items = 0
+
+        for values in self.carrito.values():
+            # necesario parsea Decimal a Float porque sino no lo acepta Json
+            price = float(values['price'])
+            quantity = int(values['quantity'])
+            discount = int(values.get('discount', 0))
+
+            item_total = price * quantity
+            item_total_discount = item_total * (1 - discount / 100)
+
+            cart_items.append({
+                'id': values['id'],
+                'name': values['name'],
+                'slug': values['slug'],
+                'price': price,
+                'image': values['image'],
+                'quantity': quantity,
+                'stock': values['stock'],
+                'discount': discount,  # porcentual
+            })
+
+            total_price += item_total
+            total_price_discount += item_total_discount
+            total_items += quantity
+
+        return {
+            'items': cart_items,
+            'total_price': round(total_price, 2),
+            'total_price_discount': round(total_price_discount, 2),
+            'total_quantity': total_items,
+        }
+        
+        
+    def sync_cart_on_logout(self, cart: dict):
+        """
+        Handles synchronization when a user logs out, transferring the
+        cart items from the previous (authenticated) session to the new
+        anonymous session.
+
+        Notes:
+            - This function is directly coupled to the API View located at
+            users/views/api/session.py
+        """
+        # Restore cart into the new anonymous session
+        self.session["carrito"] = cart
+
+        # Anonymous user — update last modification timestamp
+        self.session["last_modified"] = None
+
+        # No DB cart associated anymore
+        self.session["cart_id"] = None
+
+        # Persist session changes
+        self.session.modified = True
