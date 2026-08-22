@@ -1,11 +1,8 @@
 
 
-.bolder {
-    font-weight: bolder;
-}
+.bolder { font-weight: bolder; }
 
 .bold-red {
-    /* color: #ff0808 !important; */
     color: var(--red-color) !important;
     font-weight: bolder;
 }
@@ -21,6 +18,11 @@
 }
 
 .bold-main {
+    color: var(--main-color);
+    font-weight: bolder;
+}
+
+.bold-main-light {
     color: var(--main-light-color);
     font-weight: bolder;
 }
@@ -39,6 +41,7 @@
 /* Colors */
 .text-white { color: var(--white-color) !important; }
 .text-black { color: var(--black-color) !important; }
+.text-main { color: var(--main-color) !important; }
 .text-primary { color: var(--text-primary) !important; }
 .text-secondary { color: var(--text-secondary) !important; }
 
@@ -66,13 +69,23 @@
 .text-underline { text-decoration: underline !important; }
 .text-line-through { text-decoration: line-through !important; }
 .text-no-decoration { text-decoration: none !important; }
+.text-italic { font-style: italic; }
 
-/* Overflow */
-.text-truncate {
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-}
+
+/* 1.6 es un interlineado cómodo que separa las líneas sin que parezcan desconectadas */
+.text-line-sm { line-height: 1.3; }
+.text-line-md { line-height: 1.6; }
+
+/* Clase base maybe agregar en futuro si la necesito
+.text-clamp {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+} */
+
+/* Clases de utilidad para cantidad de líneas 
+.line-2 { -webkit-line-clamp: 2; max-height: calc(1.5em * 2); }
+.line-3 { -webkit-line-clamp: 3; max-height: calc(1.5em * 3); } */
 
 .text-truncate-multiline {
     display: -webkit-box;             /* Define flexbox de tipo caja */
@@ -86,11 +99,48 @@
     text-overflow: ellipsis;
 }
 
-.text-break {
-	word-break: break-word;
-	overflow-wrap: break-word;
-	white-space: normal;
+/**
+ * TEXT-TRUNCATE
+ * Corta el texto en una sola línea y añade puntos suspensivos (...) al final.
+ */
+.text-truncate {
+    /* Impide que el texto salte a la siguiente línea (lo mantiene en una sola) */
+    white-space: nowrap !important;
+    
+    /* Esconde todo el contenido que se salga del ancho del contenedor */
+    overflow: hidden !important;
+    
+    /* Añade visualmente los "..." cuando hay desbordamiento (overflow) */
+    text-overflow: ellipsis !important;
 }
+
+/**
+ * TEXT-BREAK
+ * Fuerza el salto de línea en palabras extremadamente largas (como URLs o IDs).
+ */
+.text-break {
+    /* Estándar moderno: rompe la palabra solo si no hay otro lugar para saltar */
+    overflow-wrap: break-word;
+    
+    /* Compatibilidad: fuerza el salto de línea ignorando las reglas de guiones */
+    word-break: break-word;
+    
+    /* Resetea cualquier 'nowrap' previo para permitir que el texto fluya hacia abajo */
+    white-space: normal;
+}
+
+/**
+ * TEXT-PRE-WRAP
+ * Muestra el texto respetando los saltos de línea (\n) y espacios del código.
+ */
+.text-pre-wrap {
+    /* 'pre':  Mantiene espacios y saltos de línea (\n) como el tag <pre>.
+       'wrap': Pero si el texto llega al borde, salta de línea automáticamente 
+               en lugar de salirse del contenedor.
+    */
+    white-space: pre-wrap;
+}
+
 
 /*
 .text-truncate-fade {
@@ -111,3 +161,15 @@
 } 
 */
 
+/* Esto sirve para ocultar texto pero sin usar hidden o display none, util para h1 en pagina */
+.seo-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

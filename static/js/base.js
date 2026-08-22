@@ -1,7 +1,14 @@
+/// <reference path="../js/alerts.js" />
+/// <reference path="../js/app_config.js" />
+/// <reference path="../js/backToTopBtn.js" />
+/// <reference path="../js/errors.js" />
+/// <reference path="../js/forms_utils.js" />
+/// <reference path="../js/forms.js" />
+/// <reference path="../js/outside_click.js" />
+/// <reference path="../js/overlay_modal.js" />
+/// <reference path="../js/utils.js" />
+/// <reference path="../js/wspBtn.js" />
 
-
-// Stores event handlers for proper cleanup
-const eventHandlersMap = new Map();
 
 const ICONS = {
     // from alerts
@@ -13,6 +20,159 @@ const ICONS = {
     heart: 'ri-heart-fill',
     heartEmpty: 'ri-heart-line'
 };
+
+
+/**
+ * Main Event Orchestrator.
+ * * This listener acts as the entry point for the frontend application. 
+ * It ensures that all specialized modules and event listeners are 
+ * initialized only after the DOM is fully loaded and parsed.
+ * * Execution order:
+ * 1. WhatsApp Button Logic
+ * 2. Navigation Utilities (Back to Top)
+ * 3. Diagnostic Tools (DOM Analysis)
+ * 4. User Interface State (Theme Manager)
+ */
+document.addEventListener('DOMContentLoaded', function() {
+
+    // Initializes WhatsApp floating menu and contextual message buttons
+    wspBtnEvents();
+
+    // Initializes the 'Back to Top' scroll spy and progress indicator
+    eventBackToTopBtn();
+
+    // Executes DOM performance analysis (Runs for a limited set of iterations)
+    // Diagnostic tools - Only runs if debug is explicitly enabled
+    if (APP_CONFIG.debug) {
+        console.warn("[System]: Debug mode is ON. Running DOM analysis...");
+        analyzeHTML(1);
+    }
+    
+    // Initializes Light/Dark mode based on local storage or system preferences
+    initThemeManager();
+    initFooterDescriptions();    // store-description
+});
+
+
+/**
+ * Smoothly scrolls the page to the given section element and applies a temporary highlight effect.
+ *
+ * @param {HTMLElement} section - The DOM element to scroll into view.
+ * @param {string} [colorClass='highlight-red'] - The CSS class to apply for the highlight effect.
+ */
+function scrollToSection(section, colorClass = 'highlight-red') {
+    if (!section) return;
+
+    section.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+    });
+
+    // Add highlight class and remove it after 2 seconds
+    section.classList.add(colorClass);
+    setTimeout(() => section.classList.remove(colorClass), 2000);
+}
+
+
+/**
+ * Debounce utility to limit the rate at which a function can fire.
+ * Useful for performance-heavy tasks like window resizing or scrolling.
+ * * @param {Function} func - The function to be executed.
+ * @param {number} wait - Delay in milliseconds.
+ * @returns {Function} - A debounced version of the original function.
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
+
+/**
+ * Formats a number by adding dots as thousand separators.
+ * 
+ * @param {number|string} number - The number to be formatted (can be an integer, float, or string).
+ * @param {bool} allowZero - This flag allow returns Zero for some case.
+ * @returns {string} The formatted number as a string with dots as thousand separators.
+ */
+function formatNumberWithPoints(number, allowZero = false) {
+    // If the value is null, undefined, or an empty string, return a blank space
+    if (number === null || number === undefined || number === "") return " ";
+
+    // Convert the string value to a number
+    const price = parseFloat(number);
+    
+    // Check if the price is 0
+    if (price === 0) 
+        if (!allowZero) return 'Gratis';
+        else return price;
+
+    // If the number is an integer, format it with thousand separators using dots
+    if (Number.isInteger(price)) return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+    // If the number has decimals, format it by separating thousands with dots and decimals with a comma
+    let [integerPart, decimalPart] = price.toString().split(".");
+    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    
+    return decimalPart ? `${integerPart},${decimalPart}` : integerPart;
+}
+
+
+/**
+ * Recursively escapes all string values within a given object or array.
+ * This function traverses deep nested structures (objects and arrays) 
+ * and applies HTML escaping to every string found.
+ * * @param {any} obj - The object, array, or string to be deeply sanitized.
+ * @returns {any} A new structure with all string values escaped.
+ */
+function deepEscape(obj) {
+    // Case 1: Base case - it's a string
+    if (typeof obj === 'string') return escapeHTML(obj);
+    
+    // Case 2: Iterative case - it's an array
+    if (Array.isArray(obj)) return obj.map(deepEscape);
+    
+    // Case 3: Recursive case - it's an object
+    if (typeof obj === 'object' && obj !== null) {
+
+        // Si es una instancia de Date, la devolvemos tal cual
+        if (obj instanceof Date) return obj;
+
+        const escaped = {};
+        for (const key in obj) {
+            // Usamos hasOwnProperty para no escapar propiedades del prototipo
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                escaped[key] = deepEscape(obj[key]);
+            }
+            // Apply deepEscape to each property
+            // escaped[key] = deepEscape(obj[key]);
+        }
+        return escaped;
+    }
+    
+    // Case 4: Primitive values (numbers, booleans, null) are returned as is
+    return obj;
+}
+
+
+/**
+ * Sanitizes a string by escaping special HTML characters.
+ * Converts characters like <, >, &, ", and ' into their respective 
+ * HTML entities to prevent XSS (Cross-Site Scripting) attacks.
+ * * @param {string} str - The raw string to be escaped.
+ * @returns {string} The sanitized string with HTML entities.
+ */
+function escapeHTML(str) {
+    if (typeof str !== 'string') return str;
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
 
 /**
@@ -45,66 +205,3 @@ function toggleState(element, force) {
     
     return newState;
 }
-
-
-/**
- * Smoothly scrolls the page to the given section element and applies a temporary highlight effect.
- *
- * @param {HTMLElement} section - The DOM element to scroll into view.
- * @param {string} [colorClass='highlight-red'] - The CSS class to apply for the highlight effect.
- */
-function scrollToSection(section, colorClass = 'highlight-red') {
-    if (!section) return;
-
-    section.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-    });
-
-    // Add highlight class and remove it after 2 seconds
-    section.classList.add(colorClass);
-    setTimeout(() => section.classList.remove(colorClass), 2000);
-}
-
-
-
-/**
- * Forces a full page reload by appending or updating a unique query parameter to the current URL.
- *
- * This technique helps to bypass browser cache by ensuring the URL is unique on each reload.
- *
- * Usage:
- * You can place this function at the end of your JS file or inside a <script> tag
- * after the page has loaded.
- */
-function forceReload() {
-    const url = new URL(window.location.href);
-    url.searchParams.set('v', Date.now()); // Add unique parameter to bust cache
-    window.location.href = url.toString();
-};
-
-
-
-/*
-// Get the device state from the meta tag
-put this <meta id="device-meta" data-state="desktop"> in html in a "head"
-
-const deviceMeta = document.getElementById("device-meta");
-const updateDeviceState = () => {
-    const isMobile = window.innerWidth <= 768;
-    deviceMeta.setAttribute("data-state", isMobile ? "mobile" : "desktop");
-};
-
-updateDeviceState(); // Set initial state
-
-window.addEventListener("resize", updateDeviceState);
-
-and included this verification in the functions in the future
-document.addEventListener("DOMContentLoaded", function () {
-    // Prevent unnecessary content loading on mobile, as this listener is only needed for desktop
-    const deviceState = deviceMeta.getAttribute("data-state");
-    if (deviceState === "mobile") return;
-
-    // resto del codigo
-}
-*/

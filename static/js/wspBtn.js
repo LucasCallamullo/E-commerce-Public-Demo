@@ -1,27 +1,17 @@
-
-
+/// <reference path="../js/app_config.js" />
 /// <reference path="../js/base.js" />
-/// <reference path="../js/outside-click.js" />
+/// <reference path="../js/utils.js" />
+/// <reference path="../js/outside_click.js" />
 
 
-// Function to clean up the phone number and return the WhatsApp URL
-function formatPhoneNumber(cellphone) {
-    // Elimina todos los caracteres no numéricos (como espacios, paréntesis, guiones)
-    const formattedNumber = cellphone.replace(/[^\d]/g, '');
-
-    // Si el número está bien formateado (empezando con un 9, después 11 dígitos)
-    if (formattedNumber.length < 6) {
-        console.error("Número de teléfono no válido");
-        return null;
-    }
-
-    // Return the base WhatsApp URL with the cleaned number
-    return `https://wa.me/${formattedNumber}`;
-}
-
-
-function wspBtnEvents() {
-    // Get references to the DOM elements
+/**
+ * Initializes the floating WhatsApp button and its expandable menu.
+ * Handles the state transitions, icon swapping with a timed delay to match 
+ * CSS animations, and integrates with the click-outside-to-close utility.
+ * * @function wspBtnFloatingMenuEvent
+ * @returns {void}
+ */
+function wspBtnFloatingMenuEvent() {
     const floatingButton = document.getElementById('floating-wsp-btn');
     const floatingMenu = document.getElementById('floating-wsp-menu');
     const icon = floatingButton.querySelector('i');
@@ -30,25 +20,22 @@ function wspBtnEvents() {
     floatingButton.dataset.state = 'closed';
 
     /**
-     * Handles the toggle behavior for the floating button.
-     * Changes its state, swaps the icon after a delay,
-     * and shows or hides the floating menu.
+     * Toggles the UI state of the floating button and menu.
+     * Swaps icons between 'wsp' and 'cross' based on current state.
+     * @returns {boolean} The new state (true for open, false for closed).
      */
     function toggleButtonState() {
         const isActive = floatingButton.dataset.state === 'open';
         
-        // First, toggle the state
         toggleState(floatingButton);
         
-        // Wait for half the rotation animation before changing the icon
+        // Synchronization: wait for half of the rotation (500ms total) to swap the icon
         setTimeout(() => {
-            icon.className = isActive ? ICONS.wsp : ICONS.cross;
+            icon.className = isActive ? APP_CONFIG.getIcon('wsp') : APP_CONFIG.getIcon('cross');
             icon.classList.add('font-xxl');
-        }, 250); // Changed to 250ms (half of 500ms)
+        }, 250); 
         
-        // Show or hide the menu based on the new state
         floatingMenu.classList.toggle('show', !isActive);
-        
         return !isActive;
     }
 
@@ -62,31 +49,62 @@ function wspBtnEvents() {
         targetElement: floatingMenu,
         customToggleFn: toggleButtonState
     });
-
-    // Get the WhatsApp link element
-    const productLink = document.getElementById('wsp-link');
-
-    // Extract the phone number from the data attribute
-    const cellphone = productLink.getAttribute('data-wsp');
-
-    // Format the phone number into a WhatsApp URL
-    const whatsappUrl = formatPhoneNumber(cellphone);
-
-    // Create the message dynamically with product information
-    const message = `Buenos días, Quería consultar sobre formas de pago con tarjeta en el local?`;
-
-    // If the number is valid, combine the base URL with the encoded message
-    if (whatsappUrl) {
-        // const finalWhatsappUrl = `https://api.whatsapp.com/send?phone=${cellphone}&text=${encodeURIComponent(message)}`;
-        const finalWhatsappUrl = `${whatsappUrl}?text=${encodeURIComponent(message)}`;
-        // console.log(`${finalWhatsappUrl}`)
-        productLink.setAttribute('href', finalWhatsappUrl);
-    }
 }
 
 
+/**
+ * Sanitizes the store's cellphone number and generates the base WhatsApp URL.
+ * Removes non-numeric characters and performs validation for administrative users.
+ * * @function getWspUrl
+ * @returns {string|null} The formatted WhatsApp URL (wa.me) or null if invalid.
+ */
+function getWspUrl() {
+    const number = APP_CONFIG.getStoreCellphone();
+
+    // Remove all non-numeric characters (spaces, parentheses, hyphens)
+    const formatted = number.replace(/[^\d]/g, '');
+
+    // Validation logic for Admins
+    if (formatted.length < 7 && APP_CONFIG.isAdmin) {
+        openAlert("Número de WhatsApp No Válido por favor configure alguno.", 'red', 2000);
+        console.error("Número de teléfono no válido");
+        return null;
+    }
+    // esta url me deja ver desde desktop, falta probar en mobile
+    return `https://api.whatsapp.com/send?phone=${formatted}`;
+    // return `https://wa.me/${formatted}`;
+}
+
+
+/**
+ * Main entry point for WhatsApp-related event listeners.
+ * Configures the floating menu and populates all buttons with class '.btn-wsp'
+ * with context-specific pre-filled messages.
+ * * @function wspBtnEvents
+ * @returns {void}
+ */
+function wspBtnEvents() {
+    // Initialize the floating menu UI
+    wspBtnFloatingMenuEvent();
     
-// Wait until the DOM is fully loaded before executing the script
-document.addEventListener('DOMContentLoaded', function() {
-    wspBtnEvents();
-});
+    const baseUrl = getWspUrl();
+    if (!baseUrl) return;
+
+    // Contextual messages based on the 'data-type' attribute
+    const messages = {
+        navbar: 'Consulta desde el sitio web',
+        menu: 'Buenos días, Quería consultar sobre formas de pago con tarjeta en el local?',
+        footer: 'Consulta desde el sitio web'
+    };
+
+    const refs = document.querySelectorAll('.btn-wsp');
+    refs.forEach(btn => {
+        const type = btn.dataset.type;
+        const msg = messages[type] || 'Consulta desde el sitio web';
+
+        // Construct final URL with URL-encoded parameters
+        // const finalUrl = `${baseUrl}?text=${encodeURIComponent(msg)}`;
+        const finalUrl = `${baseUrl}&text=${encodeURIComponent(msg)}`;
+        btn.setAttribute('href', finalUrl);
+    });
+}

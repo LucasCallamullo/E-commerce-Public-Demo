@@ -1,8 +1,12 @@
+/// <reference path="../js/app_config.js" />
 /// <reference path="../js/base.js" />
+/// <reference path="../js/utils.js" />
+/// <reference path="../js/overlay_modal.js" />
 
 
 /**
- * Smoothly scrolls the page back to the top.
+ * Smoothly scrolls the window to the top of the page.
+ * @function backToTheTop
  */
 function backToTheTop() {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -17,36 +21,45 @@ function backToTheTop() {
  * the button is hidden, preventing duplicate handlers or memory leaks.
  *
  * @param {boolean} show - Whether to display the button.
- * @param {HTMLElement} backToTopBtn - The Back to Top button element.
+ * @param {HTMLElement} btn/backToTopBtn - The Back to Top button element.
  *
  * Example usage:
  *   toggleBackToTopButton(true, document.getElementById('backToTopBtn'));
  */
-function toggleBackToTopButton(show, backToTopBtn) {
+function toggleBackToTopButton(show, btn) {
     if (show) {
-        backToTopBtn.classList.add("show");
+        btn.classList.add("show");
 
-        if (!backToTopBtn.hasAttribute('data-event-added')) {
-            backToTopBtn.addEventListener("click", backToTheTop);
-            backToTopBtn.setAttribute('data-event-added', 'true');
+        if (!btn.hasAttribute('data-event-added')) {
+            btn.addEventListener("click", backToTheTop);
+            btn.setAttribute('data-event-added', 'true');
         }
     } else {
-        backToTopBtn.classList.remove("show");
+        btn.classList.remove("show");
 
-        if (backToTopBtn.hasAttribute('data-event-added')) {
-            backToTopBtn.removeEventListener("click", backToTheTop);
-            backToTopBtn.removeAttribute('data-event-added');
+        if (btn.hasAttribute('data-event-added')) {
+            btn.removeEventListener("click", backToTheTop);
+            btn.removeAttribute('data-event-added');
         }
     }
 
     // Enable or disable pointer events based on visibility
-    backToTopBtn.style.pointerEvents = show ? "all" : "none";
+    btn.style.pointerEvents = show ? "all" : "none";
 }
 
 
-document.addEventListener('DOMContentLoaded', () => {
+/**
+ * Initializes the scroll spy for the Back to Top component.
+ * Tracks scroll progress to update the SVG stroke-dashoffset and 
+ * manages visibility based on page position and overlay state.
+ * @function eventBackToTopBtn
+ */
+function eventBackToTopBtn() {
     const backToTopBtn = document.getElementById("backToTop");
+    if (!backToTopBtn) return; // stupid check
+
     const progressCircle = backToTopBtn.querySelector(".progress circle");
+    const circumference = 126; // Circumference of the SVG circle
 
     /**
      * Handles the scroll event to show or hide the button
@@ -54,22 +67,26 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     window.addEventListener("scroll", function () {
 
-        // Oculta el botón si el overlay está abierto
-        if (overlayClickListener) {
+        // Hide button if an overlay/modal is active
+        if (typeof overlayClickListener !== 'undefined' && overlayClickListener) {
             toggleBackToTopButton(false, backToTopBtn); 
             return;
         }
         
         let scrollTop = window.scrollY || document.documentElement.scrollTop; // Current scroll position
         let scrollHeight = document.documentElement.scrollHeight - window.innerHeight; // Total scrollable height
-        let progress = (scrollTop / scrollHeight) * 100; // Calculates the scroll percentage
+
+        // Avoid division by zero on very short pages
+        // Calculates the scroll percentage
+        const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
 
         // Show or hide the button based on scroll position
         toggleBackToTopButton(scrollTop > 100, backToTopBtn);
         
         // Adjust the progress circle stroke based on the scroll percentage
         // you must change values in base.html too for apply changes
-        let dashOffset = 126 - (progress / 100) * 126; // 126 is the full circumference of the circle
+        // 126 is the full circumference of the circle
+        let dashOffset = circumference - (progress / 100) * circumference; 
         progressCircle.style.strokeDashoffset = dashOffset;
     }, { passive: true });
-});
+}

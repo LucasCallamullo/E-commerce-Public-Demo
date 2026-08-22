@@ -1,76 +1,6 @@
+/// <reference path="../js/app_config.js" />
 /// <reference path="../js/base.js" />
 /// <reference path="../js/alerts.js" />
-
-
-function analizarHTML() {
-    console.time("⏱️ Tiempo de análisis");
-
-    // Contar nodos del DOM
-    let totalNodos = 0;
-    (function contar(node) {
-        totalNodos++;
-        node = node.firstChild;
-        while (node) {
-            contar(node);
-            node = node.nextSibling;
-        }
-    })(document.documentElement);
-
-    console.log(`🧱 Total de nodos en el DOM: ${totalNodos}`);
-
-    // Tamaño aproximado del HTML
-    const html = document.documentElement.innerHTML;
-    const bytes = new Blob([html]).size;
-    const kb = (bytes / 1024).toFixed(2);
-    const mb = (bytes / (1024 * 1024)).toFixed(2);
-
-    console.log(`📄 Tamaño del HTML:`);
-    console.log(`→ Bytes: ${bytes}`);
-    console.log(`→ KB: ${kb}`);
-    console.log(`→ MB: ${mb}`);
-}
-// Elementos con muchos hijos
-/*
-    const elementosConMuchosHijos = [...document.querySelectorAll("*")]
-        .map(el => ({ tag: el.tagName, count: el.children.length, el }))
-        .filter(item => item.count > 50)
-        .sort((a, b) => b.count - a.count);
-
-    if (elementosConMuchosHijos.length > 0) {
-        console.log(`🔎 Elementos con muchos hijos (más de 50):`);
-        elementosConMuchosHijos.forEach(({ tag, count, el }) => {
-            console.log(`→ <${tag}> con ${count} hijos`, el);
-        });
-    } else {
-        console.log("✅ No se encontraron elementos con más de 50 hijos.");
-    }
-
-    console.timeEnd("⏱️ Tiempo de análisis");
-*/
-
-
-function escapeHTML(str) {
-    if (typeof str !== 'string') return str;
-    return str
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-function deepEscape(obj) {
-    if (typeof obj === 'string') return escapeHTML(obj);
-    if (Array.isArray(obj)) return obj.map(deepEscape);
-    if (typeof obj === 'object' && obj !== null) {
-        const escaped = {};
-        for (const key in obj) {
-            escaped[key] = deepEscape(obj[key]);
-        }
-        return escaped;
-    }
-    return obj;
-}
 
 
 /**
@@ -113,123 +43,121 @@ function shortDate(dateStr) {
 }
 
 
-
 /**
- * Debounce utility
- * 
- * Retrasa la ejecución de una función hasta que haya pasado un tiempo determinado 
- * desde la última vez que se invocó.
- * 
- * @param {Function} func - Función a ejecutar después del retraso.
- * @param {number} wait - Tiempo en milisegundos a esperar.
- * @returns {Function} - Nueva función con comportamiento de debounce.
+ * Initializes and renders store-related information in the footer.
+ * * This function fetches raw Markdown data for descriptions and schedules 
+ * from the centralized configuration, translates them into HTML, and 
+ * updates all corresponding DOM elements found on the page.
+ * * @function initFooterDescriptions
  */
-function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-        clearTimeout(timeout); // Resetea el temporizador si la función es llamada de nuevo
-        timeout = setTimeout(() => func.apply(this, args), wait);
-    };
+function initFooterDescriptions() {
+
+    // 1. Process Store Descriptions
+    // Selects all elements intended to display the store's "about" or description text.
+    const spans = document.querySelectorAll('.store-description');
+    const md_desc = APP_CONFIG.getStoreDescription();
+    const description = translateCustomMarkdown(md_desc);
+    
+    // Batch update all description containers
+    spans.forEach(p => p.innerHTML = description );
+    
+    // 2. Process Store Schedules
+    // Selects all elements intended to display operating hours.
+    const spanss = document.querySelectorAll('.store-schedules');
+    const md_ss = APP_CONFIG.getStoreSchedules();
+    const schedules = translateCustomMarkdown(md_ss);
+    
+    // Batch update all schedule containers
+    spanss.forEach(p => p.innerHTML = schedules );
 }
 
 
-// Variable global para detectar si estamos en vista móvil
-let IS_MOBILE = window.innerWidth <= 992;
-window.addEventListener("resize", () => {
-    // Función que actualiza el estado de `isMobile`
-    function checkIsMobile() {
-        IS_MOBILE = window.innerWidth <= 992;
-    }
-    debounce(checkIsMobile, 500);
-});
-
-
-
 /**
- * Formats a number by adding dots as thousand separators.
- * 
- * @param {number|string} number - The number to be formatted (can be an integer, float, or string).
- * @param {bool} allowZero - This flag allow returns Zero for some case.
- * @returns {string} The formatted number as a string with dots as thousand separators.
+ * Custom Markdown to HTML Translator.
+ * Processes a restricted subset of Markdown and custom shortcodes (YouTube)
+ * into semantic HTML strings.
+ * * Supported Syntax:
+ * - Titles: "## Title" -> <h3>
+ * - Line Breaks: "--" -> <br>
+ * - YouTube: "YT[url/id]" -> Responsive iframe
+ * - Bold: "**text**" -> <b> (styled)
+ * - Highlights: "(*)" -> Styled bold indicator
+ * - Custom Bullets: "* " -> Icon, "*- " -> Unicode bullet
+ * - Links: "[text](url)" -> <a> (external)
+ * * @param {string} text - The raw markdown-like text to translate.
+ * @returns {string} The resulting HTML string.
  */
-function formatNumberWithPoints(number, allowZero = false) {
-    // If the value is null, undefined, or an empty string, return a blank space
-    if (number === null || number === undefined || number === "") return " ";
+function translateCustomMarkdown(text) {
+    // Splits by line, trims whitespace, and ignores empty strings
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line);
 
-    // Convert the string value to a number
-    const price = parseFloat(number);
-    
-    // Check if the price is 0
-    if (price === 0) 
-        if (!allowZero) return 'Gratis';
-        else return price;
+    const dot_desc = APP_CONFIG.getIcon('dot_desc');
 
-    // If the number is an integer, format it with thousand separators using dots
-    if (Number.isInteger(price)) return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-    // If the number has decimals, format it by separating thousands with dots and decimals with a comma
-    let [integerPart, decimalPart] = price.toString().split(".");
-    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    
-    return decimalPart ? `${integerPart},${decimalPart}` : integerPart;
-}
-
-
-
-
-
-/**
- * Dark Mode Event Listener.
- * 
- */
-document.addEventListener('DOMContentLoaded', () => {
-    const themeToggleButtons = document.querySelectorAll('.theme-toggle');
-    const themeIcons = document.querySelectorAll('.theme-icon');
-    const htmlElement = document.documentElement;
-
-    function setTheme(theme) {
-        // Limpia todas las clases primero
-        htmlElement.classList.remove('light-mode', 'dark-mode');
+    const htmlLines = lines.map(line => {
+        // --- 1. ELEMENTOS DE BLOQUE (Línea completa) ---
         
-        if (theme === 'light') {
-            htmlElement.classList.add('light-mode');
-            localStorage.setItem('themePreference', 'light');
-        } else if (theme === 'dark') {
-            htmlElement.classList.add('dark-mode');
-            localStorage.setItem('themePreference', 'dark');
+        // Títulos: Detecta "## " al inicio. Retorna un <h3> y detiene el procesamiento de esa línea.
+        if (/^##\s+/.test(line)) {
+            const titleText = line.replace(/^##\s+/, '');
+            return /*html*/`<h3 class="font-lg">${titleText}</h3>`;
         }
-        
-        updateThemeIcons(theme);
-    }
 
-    function updateThemeIcons(theme) {
-        const isDark = theme === 'dark';
-        
-        themeIcons.forEach(icon => {
-            icon.classList.toggle('ri-moon-line', !isDark);
-            icon.classList.toggle('ri-contrast-2-line', isDark);
-        });
-    }
+        // Separador / Salto: Si la línea es exactamente "--", inserta un <br>.
+        if (line === '--') return /*html*/`<br>`;
 
-    function cycleTheme() {
-        const currentTheme = htmlElement.classList.contains('dark-mode') ? 'dark' : 'light';
-        const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
-        setTheme(nextTheme);
-    }
-    
-    themeToggleButtons.forEach(button => {
-        button.addEventListener('click', cycleTheme);
+        // Video de YouTube: Si la línea contiene YT[codigo], genera el iframe.
+        // Se procesa antes que el <p> para evitar anidación incorrecta.
+        if (/YT\[(.+?)\]/.test(line)) {
+            const rawContent = line.match(/YT\[(.+?)\]/)[1];
+
+            // Esta Regex busca el ID de 11 caracteres en cualquier formato de URL de YouTube
+            const videoIdMatch = rawContent.match(
+                /(?:youtu\.be\/|youtube\.com\/(?:.*v=|\/embed\/|v\/))?([a-zA-Z0-9_-]{11})/
+            );
+            const cleanId = videoIdMatch ? videoIdMatch[1] : rawContent;
+            
+            return /*html*/`
+                <div class="video-container my-2">
+                    <iframe 
+                        width="100%" height="315"    
+                        src="https://www.youtube.com/embed/${cleanId}"
+                        title="YouTube video player" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; 
+                        gyroscope; picture-in-picture; web-share" 
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen>
+                    </iframe>
+                </div>`;
+        }
+
+        // --- 2. ELEMENTOS INLINE (Dentro del texto) ---
+
+        // Notación especial (*): Resalta el símbolo asterisco entre paréntesis.
+        line = line.replace(/\(\*\)/g, /*html*/`<b>(*)</b>`); 
+
+        // Negritas: Transforma **texto** en etiquetas <b> con clase específica.
+        line = line.replace(/\*\*(.+?)\*\*/g, /*html*/`<b class="font-md">$1</b>`);
+
+        // Bullets (Puntos): Reemplaza el "*" al inicio por un icono o el "*-" por un punto simple.
+        if (/^\*\s+/.test(line)) {
+            line = line.replace(/^\*\s+/, /*html*/`<i class="${dot_desc} font-md"></i>`); 
+        } else if (/^\*-\s+/.test(line)) {
+            line = line.replace(/^\*-\s+/, '• ');
+        }
+
+        // Enlaces: Formato [texto](url).
+        line = line.replace(
+            /\[(.+?)\]\((.+?)\)/g, 
+            /*html*/`<a href="$2" target="_blank" class="bold-main-light fw-normal-plus">$1</a>`
+        );
+
+        // Wrap any remaining plain text in paragraph tags
+        return /*html*/`<p>${line}</p>`;
     });
 
-    // Only update if we're in auto mode
-    if (!localStorage.getItem('themePreference')) {
-        // Inicializa con el tema claro por defecto (ignorando localStorage)
-        setTheme('light');
-    } else {
-        const currentPreference = localStorage.getItem('themePreference') || 'light';
-        setTheme(currentPreference);
-    }
-});
+    return htmlLines.join('');
+}
 
 
 /**
@@ -254,3 +182,215 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+
+/**
+ * Utility to safely retrieve JSON data from Django json_script tags.
+ * @param {string} id - The ID assigned in the template.
+ * 
+ * @returns {Object|null}
+ */
+const getDjangoData = (id, debug = false) => {
+    // 1. Get the raw JSON string from the script tag
+    const el = document.getElementById(id);
+
+    // 2. Parse it into a JS Object
+    const data = el ? JSON.parse(el.textContent) : null;
+
+    if (debug) {
+        // 3. Optional: Verify in console
+        console.log(`Data from ${id}:`, data);
+    }
+
+    return data;
+};
+
+
+/**
+ * Dark Mode Event Listener.
+ * 
+ */
+/**
+ * Theme Manager Module
+ * Handles light/dark mode switching and persistence.
+ */
+function initThemeManager() {
+    const htmlElement = document.documentElement;
+    const themeToggleButtons = document.querySelectorAll('.theme-toggle');
+    const themeIcons = document.querySelectorAll('.theme-icon');
+
+    /**
+     * Updates the UI icons based on the current theme.
+     * Uses APP_CONFIG to retrieve centralized icon classes.
+     * @param {'light'|'dark'} theme 
+     */
+    function updateThemeIcons(theme) {
+        const isDark = theme === 'dark';
+        themeIcons.forEach(icon => {
+            // Usamos nombres semánticos de tu CONFIG
+            icon.classList.toggle(APP_CONFIG.getIcon('moon'), !isDark);
+            icon.classList.toggle(APP_CONFIG.getIcon('sun'), isDark);
+            // icon.className = `theme-icon ${isDark ? APP_CONFIG.getIcon('sun') : APP_CONFIG.getIcon('moon')}`;
+        });
+    }
+
+    /**
+     * Applies the theme to the document and saves preference.
+     * @param {'light'|'dark'} theme 
+     */
+    function setTheme(theme) {
+        // limpiar clases
+        htmlElement.classList.remove('light-mode', 'dark-mode');
+
+        htmlElement.classList.add(`${theme}-mode`);
+        localStorage.setItem('themePreference', theme);
+        updateThemeIcons(theme);
+    }
+
+    /**
+     * Cycles between light and dark themes.
+     */
+    function cycleTheme() {
+        const nextTheme = htmlElement.classList.contains('dark-mode') ? 'light' : 'dark';
+        setTheme(nextTheme);
+    }
+
+    // Event Listeners
+    themeToggleButtons.forEach(btn => btn.addEventListener('click', cycleTheme));
+
+    // Initialization: Priority 1. LocalStorage | 2. Default Light
+    // Only update if we're in auto mode
+    const savedTheme = localStorage.getItem('themePreference') || 'light';
+    setTheme(savedTheme);
+}
+
+
+/**
+ * Custom logger that prints a message and optional data followed by a separator.
+ * Only executes if debug mode is enabled.
+ * * @param {string} msg - The main message to display.
+ * @param {any[]} params - Optional objects, arrays, or variables to inspect.
+ */
+function logger(msg, color = 'blue', time = 1000, ...params) {
+    // stupid check
+    if (!APP_CONFIG.DEBUG) return;
+
+    const separator = "%c=========================================";
+    const styles = [
+        "color: #5e08e7; font-weight: bold;", // Violeta principal
+        "color: #9554ff; font-weight: bold;", // Lila claro
+        "color: #008b8b; font-weight: bold;", // Verde agua oscuro (DarkCyan)
+        "color: #228b22; font-weight: bold;", // Verde bosque (ForestGreen)
+        "color: #c71585; font-weight: bold;"  // Rosa oscuro (MediumVioletRed)
+    ];
+    // Elegimos un índice al azar entre 0 y el largo de la lista
+    const randomIndex = Math.floor(Math.random() * styles.length);
+    const selectedStyle = styles[randomIndex];
+    
+    console.log(msg);
+    openAlert(msg, color, time);
+
+    // If there are extra parameters, log them properly
+    if (params.length > 0) {
+        params.forEach(param => {
+            // Si es un objeto, usa console.dir para poder desplegarlo; si no, log normal
+            if (typeof param === 'object' && param !== null) {
+                console.dir(param);
+            } else {
+                console.log(param);
+            }
+        });
+    }
+
+    console.log(separator, selectedStyle);
+}
+
+
+/**
+ * Analyzes the current DOM structure and payload size.
+ * * This function measures:
+ * 1. Total DOM nodes (recursive count).
+ * 2. HTML size in Bytes, KB, and MB.
+ * 3. Performance impact (via console.time).
+ * 4. Elements with excessive children (Threshold: 50).
+ * * It runs recursively every 3 seconds for real-time monitoring.
+ * 
+ * * Analyzes the DOM but only for a limited number of iterations.
+ * @param {number} iterations - How many times it should run.
+ * 
+ * @function analyzeHTML
+ */
+function analyzeHTML(iterations = 3) {
+    // Si ya no quedan vueltas, nos detenemos
+    if (iterations <= 0) {
+        console.log("%cAnálisis automático finalizado.", "color: #ff9900; font-weight: bold;");
+        return;
+    }
+    
+    console.log("%c=========================================", "color: #5e08e7; font-weight: bold;");
+    console.log(`Vuelta restante: ${iterations}`);
+    console.time("Analysis Time");
+
+    // 1. Recursive DOM Node Counter
+    let totalNodes = 0;
+    (function count(node) {
+        totalNodes++;
+        node = node.firstChild;
+        while (node) {
+            count(node);
+            node = node.nextSibling;
+        }
+    })(document.documentElement);
+
+    console.log(`Total DOM Nodes: ${totalNodes}`);
+
+    // 2. HTML Payload Size Estimation
+    const html = document.documentElement.innerHTML;
+    const bytes = new Blob([html]).size;
+    const kb = (bytes / 1024).toFixed(2);
+    const mb = (kb / 1024).toFixed(2);
+
+    // Tamaño aproximado del HTML
+    console.log(`Tamaño del HTML:`);
+    console.log(`→ Bytes: ${bytes}`);
+    console.log(`→ KB: ${kb}`);
+    console.log(`→ MB: ${mb}`);
+
+    /* / 3. Identify Bloated Elements (Elements with > 50 children)
+    const elementsWithManyChildren = [...document.querySelectorAll("*")]
+        .map(el => ({ tag: el.tagName, count: el.children.length, el }))
+        .filter(item => item.count > 50)
+        .sort((a, b) => b.count - a.count);
+
+    if (elementsWithManyChildren.length > 0) {
+        console.warn(`High Density Elements (More than 50 children):`);
+        elementsWithManyChildren.forEach(({ tag, count, el }) => {
+            console.log(`→ <${tag}> with ${count} children:`, el);
+        });
+    } else {
+        console.log("No bloated elements found (under 50 children).");
+    } */
+
+    console.timeEnd("Analysis Time");
+
+    // Recursive call every 3 seconds for 3 times
+    setTimeout(() => {
+        analyzeHTML(iterations - 1);
+    }, 3000);
+}
+
+
+/**
+ * Forces a full page reload by appending or updating a unique query parameter to the current URL.
+ *
+ * This technique helps to bypass browser cache by ensuring the URL is unique on each reload.
+ *
+ * Usage:
+ * You can place this function at the end of your JS file or inside a <script> tag
+ * after the page has loaded.
+ */
+function forceReload() {
+    const url = new URL(window.location.href);
+    url.searchParams.set('v', Date.now()); // Add unique parameter to bust cache
+    window.location.href = url.toString();
+};

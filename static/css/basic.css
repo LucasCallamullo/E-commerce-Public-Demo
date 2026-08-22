@@ -1,8 +1,5 @@
-
-
-
-
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap");
+
 
 :root {
     /* color-scheme: light dark;  Permite ambos, pero no fuerza ninguno */
@@ -30,8 +27,14 @@
     --orange-color: #ff9900 ;
     --green-wsp-color: #2db742;
 
+    /* Alert Semantic Colors (Used by JS openAlert) */
+    --color-success: #28a745;   /* Un verde más estándar y legible */
+    --color-error: #dc3545;     /* Un rojo más "vibrante" pero profesional */
+    --color-info: #007bff;      /* Un azul menos "eléctrico" que el #0000ff */
+    --color-warning: #ffc107;   /* Un ámbar/amarillo que permite leer mejor */
+
     --border-cont: rgba(0, 0, 0, .125);
-    --bg-images: #fff;    /* this is for bg on some images space
+    --bg-images: #fff;    /* this is for bg on some images space */
 
     /* Font Sizes */
     --font-x-small: 0.75rem;     /* 12px */

@@ -40,6 +40,6 @@
 }
 
 .modal[data-state="open"] {
-    display: block;
+    display: grid;    /* block */
     pointer-events: auto;
 }
