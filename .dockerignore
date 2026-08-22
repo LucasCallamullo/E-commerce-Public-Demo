@@ -44,4 +44,4 @@ staticfiles
 
 # archivo de pruebas
 *.http
-requirements-dev.txt
+# requirements-dev.txt

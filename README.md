@@ -1,6 +1,6 @@
 
 
-<h1 align="center">E-commerce Engine — Django & Docker</h1>
+<h1 align="center">Public e-commerce Engine — Django & Docker</h1>
 
 <div align='center'>
   <strong>Documentation:</strong>
