@@ -10,11 +10,11 @@
     
 
 {% block main_content %}
+    {# BOTONES PARALELOGRAMOS INICIALES #}
     <div class="d-flex mb-2 gap-1">
         <a class="btn btn-parallelogram" href="{% url 'Home' %}">
             <span class="font-md px-1">Home</span>
         </a>
-
         <button class="btn btn-parallelogram px-1">
             <span class="font-md px-1">Registro</span>
         </button>
@@ -40,7 +40,11 @@
         {# Segunda Fila #}
         <form class="d-grid cont-grid-122 gap-2 h-min bg-primary border-hover p-3" id="register-form">
             {% csrf_token %}
-            
+
+            {% if flag_to_login %}	
+                <input type="hidden" name="next" value="{{ request.path }}">
+            {% endif %}
+
             {# Fila para Email y Password #}
             <label class="d-flex-col gap-1 bolder">
                 E-mail
@@ -55,52 +59,58 @@
             {# Fila para Nombre y Apellido #}
             <label class="d-flex-col gap-1 bolder">
                 Nombre
-                <input type="text" name="first_name" required>
+                <input type="text" name="first_name">
             </label>
 
             <label class="d-flex-col gap-1 bolder">
                 Apellido
-                <input type="text" name="last_name" required>
+                <input type="text" name="last_name">
             </label>
-
-            {# Fila para Teléfono y Provincia #}
-            <label class="d-flex-col gap-1 bolder">
-                Celular
-                <input type="text" name="cellphone" required>
-            </label>
-
+            {# Fila para Provincia y Dirección #}
             <label class="d-flex-col gap-1 bolder">
                 Provincia
-                <select name="province" id="id_province">
+                <select name="province">
                     {% for key, value in provinces %}
-                        <option value="{{ key }}">{{ value }}</option>
+                        <option value="{{ key }}" {% if key == 'cordoba' %}selected{% endif %}>{{ value }}</option>
                     {% endfor %}
                 </select>
             </label>
-
-            {# Fila para Dirección #}
-            <label class="d-flex-col gap-1 bolder address-label grid-col-all">
+            <label class="d-flex-col gap-1 bolder">
                 Dirección
-                <input type="text" name="address" required>
+                <input type="text" name="address">
             </label>
-
+            {# Fila para Celular y DNI #}
+            <label class="d-flex-col gap-1 bolder">
+                Celular
+                <input type="tel" name="cellphone">
+            </label>
+            <label class="d-flex-col gap-1 bolder">
+                DNI
+                <input type="text" name="dni">
+            </label>
             {# buttons form #}
             <div class="mt-2 grid-col-all d-flex gap-2">
-                <button class="btn btn-32 w-50 p-2 btn-main font-md bolder" type="submit"
-                data-action="Register" data-url="{% url 'register_user' %}">
+                <button class="btn btn-32 w-50 p-2 btn-main font-md bolder" type="submit" data-action="register">
                     Crear
                 </button>
-
                 <button class="btn btn-32 w-50 py-1 px-2 btn-alt" id="have-account" type="button">
                     <span class="text-truncate font-md bolder">Ya tengo cuenta</span>
                 </button>
             </div>
         </form>
     </div>
+
+
+
 {% endblock %}
 
 
 {% block extra_scripts %}
+    <script>
+        window.TEMPLATE_URLS = {
+            register: "{% url 'register' %}"
+        }
+    </script>
     {% compress js %}
         <script src="{% static 'users/js/register_user.js' %}"></script>
     {% endcompress %}

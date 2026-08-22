@@ -1,0 +1,53 @@
+
+
+{# Formulario para editar perfil datos basicos #}
+<form class="modal modal-edit-user" data-state="null" id="form-edit-user">
+    {% csrf_token %}
+    <div class="cont-space-between">
+        <h2 class="bold-main">Editar Perfil</h2>
+        <button class="btn btn-close btn-28 justify-self-end" type="button">
+            <i class="ri-close-line font-xl"></i>
+        </button>
+    </div>
+
+    {# campos con inputs para completar y/o actualizar #}
+    <div class="d-grid cont-grid-122 h-min gap-2 mt-2">
+        <label class="d-flex-col gap-1 bolder">
+            Nombre:
+            <input type="text" name="first_name" value="{{ user.first_name|default:'' }}">
+        </label>
+        <label class="d-flex-col gap-1 bolder">
+            Apellido:
+            <input type="text" name="last_name" value="{{ user.last_name|default:'' }}">
+        </label>
+        {# separado cada 2 para claridad #}
+        <label class="d-flex-col gap-1 bolder">
+            Celular:
+            <input type="tel" name="cellphone" value="{{ user.cellphone|default:'' }}">
+        </label>
+        <label class="d-flex-col gap-1 bolder">
+            Provincia:
+            <select name="province">
+                {% for k, v in provinces %}
+                    <option value="{{k}}" {% if user.province and user.province == k %}selected{% endif %}>{{v}}</option>
+                {% endfor %}
+            </select>
+        </label>
+        {# separado cada 2 para claridad #}
+        <label class="d-flex-col gap-1 bolder">
+            Dirección:
+            <input type="text" name="address" value="{{ user.address|default:'' }}">
+        </label>
+        <label class="d-flex-col gap-1 bolder">
+            DNI:
+            <input type="text" name="dni" value="{{ user.dni|default:'' }}">
+        </label>
+        {# los dos atributos data- * son necesarios para funcionamiento del js  asociado al form #}
+        <button class="btn btn-main grid-col-all w-min justify-self-center mt-2 px-2 
+        py-1 gap-1 bolder text-truncate" type="submit"> 
+            <i class="ri-save-3-line fw-normal font-lg"></i>Guardar 
+        </button>
+    </div>
+</form>
+{# overlay necesario para modal #}
+<div class="overlay overlay-edit-user"></div>

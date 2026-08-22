@@ -1,0 +1,180 @@
+<!-- templates/reset_password_form.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static compress %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    {# para precargar la fuente y remix icons #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css">
+
+    {# Page icons for different devices #}
+    <link rel="shortcut icon" href="{% static 'ico/favicon-16x16.png' %}" type="image/x-icon">
+    <link rel="icon" href="{% static 'ico/favicon-32x32.png' %}" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="{% static 'ico/apple-touch-icon.png' %}">
+    <link rel="icon" sizes="192x192" href="{% static 'ico/android-chrome-192x192.png' %}">
+    <link rel="icon" sizes="512x512" href="{% static 'ico/android-chrome-512x512.png' %}">
+    <link rel="manifest" href="{% static 'ico/site.webmanifest' %}">
+
+    {% compress css %}
+        <link href="{% static 'css/basic.css' %}" rel="stylesheet"> 
+        <link href="{% static 'css/buttons.css' %}" rel="stylesheet">
+        <link href="{% static 'css/containers.css' %}" rel="stylesheet">
+        <link href="{% static 'css/cont-images.css' %}" rel="stylesheet">
+        <link href="{% static 'css/effects.css' %}" rel="stylesheet">
+        <link href="{% static 'css/text-utils.css' %}" rel="stylesheet">
+        <link href="{% static 'css/gap-margin-utils.css' %}" rel="stylesheet">
+    {% endcompress %}
+
+    <title>Nueva Contraseña | {{store.name}}</title>
+
+
+    <style>
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .error { color: var(--red-color); background: #ffe6e6; }
+        .success { color: var(--green-color); background: #e6ffe6; }
+        .bg-main-color { 
+            background-color: var(--main-color); 
+            padding: 16px var(--padding-container-page);
+
+        }
+        .img-dimension { width: 220px; height: 110px;}
+    </style>
+</head>
+<body>
+
+    <div class="d-flex cont-space-between w-100 gap-3 bg-main-color" style="">
+
+        <a class="cont-img-100-off img-dimension" href="{% url 'Home' %}">
+            <img src="{% static 'ico/logo.jpg' %}" alt="Logo {{store.name}}" class="img-cover"
+                loading="lazy" width="100" height="100">
+        </a>
+
+        <h1 class="text-white font-lg">{{store.name}}</h1>
+    </div>
+    
+
+    <div class="container">
+        <h2>Crear Nueva Contraseña</h2>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="{{ message.tags }} bolder p-2 mt-2">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        
+        {% if valid %}
+            <form class="d-flex-col gap-4" id="resetForm">
+                {% csrf_token %}
+                <input type="hidden" id="uid" value="{{ uidb64 }}">
+                <input type="hidden" id="token" value="{{ token }}">
+                
+                <label class="bolder d-flex-col gap-1">
+                    Nueva Contraseña:
+                    <input type="password" id="new_password" required 
+                           placeholder="Mínimo 4 caracteres">
+                </label>
+                
+                <label class="bolder d-flex-col gap-1">
+                    Confirmar Contraseña:
+                    <input type="password" id="confirm_password" required 
+                           placeholder="Repite la contraseña">
+                </label>
+                
+                <div id="error" class="error bolder p-2" style="display: none;"></div>
+                <div id="success" class="success bolder p-2" style="display: none;"></div>
+                
+                <button class="btn btn-main p-2 font-md bolder" type="submit">
+                    Cambiar Contraseña
+                </button>
+            </form>
+            
+            <script>
+                document.getElementById('resetForm').onsubmit = async function(e) {
+                    e.preventDefault();
+                    
+                    const newPassword = document.getElementById('new_password').value;
+                    const confirmPassword = document.getElementById('confirm_password').value;
+                    
+                    // Validaciones básicas
+                    if (newPassword.length < 4) {
+                        showError('La contraseña debe tener al menos 4 caracteres');
+                        return;
+                    }
+                    
+                    if (newPassword !== confirmPassword) {
+                        showError('Las contraseñas no coinciden');
+                        return;
+                    }
+
+                    // Enviar a API
+                    try {
+                        const url = "{% url 'api_password_reset_confirm' %}";
+                        // const response = await fetch('/api/auth/password-reset/confirm/', {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                            },
+                            body: JSON.stringify({
+                                uid: document.getElementById('uid').value,
+                                token: document.getElementById('token').value,
+                                new_password: newPassword
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok) {
+                            showSuccess(data.message || '¡Contraseña cambiada!');
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 2000);
+                        } else {
+                            showError(data.error || 'Error al cambiar contraseña');
+                        }
+                        
+                    } catch (error) {
+                        showError('Error de conexión');
+                    }
+                };
+                
+                function showError(msg) {
+                    document.getElementById('error').textContent = msg;
+                    document.getElementById('error').style.display = 'block';
+                    document.getElementById('success').style.display = 'none';
+                }
+                
+                function showSuccess(msg) {
+                    document.getElementById('success').textContent = msg;
+                    document.getElementById('success').style.display = 'block';
+                    document.getElementById('error').style.display = 'none';
+                }
+            </script>
+            
+        {% else %}
+            <p class="mt-2">Este enlace ya no es válido.</p>
+
+            <a class="mt-2 btn btn-main p-2 bolder font-md" href="/">Volver al Home</a>
+        {% endif %}
+    </div>
+
+
+</body>
+</html>

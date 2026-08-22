@@ -12,17 +12,28 @@ document.addEventListener('DOMContentLoaded', () => {
      * which is preloaded earlier in base.html due to its script placement.
      */
     const form = document.getElementById('register-form');
-    widgetUserForms(form);
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.submitter;
+            // users/static/users/js/widget_login.js
+            const action = btn.dataset.action;    // acciones: register
+            
+            await widgetUserForms(form, action);
+        });
+    }
 
     // ACCOUNT BUTTON HANDLER
     const btn = document.querySelector('#have-account');
     const userBtns = document.querySelectorAll('.user-button');
-    btn.addEventListener('click', (e) => {
-        const index = IS_MOBILE ? 1 : 0;
-        const userLoginBtn = userBtns[index];
-        if (userLoginBtn) { 
-            userLoginBtn.click();
-            e.stopPropagation();
-        }
-    });
+    if (btn) {
+        btn.addEventListener('click', (e) => {
+            const index = IS_MOBILE ? 1 : 0;
+            const userLoginBtn = userBtns[index];
+            if (userLoginBtn) { 
+                userLoginBtn.click();
+                e.stopPropagation();
+            }
+        });
+    }
 });
