@@ -4,7 +4,7 @@ from rest_framework import status
 
 from favorites.services import FavoritesService
 from products.models.product import Product
-from core.utils.utils_basic import valid_id_or_None
+from core.utils.utils_parsers import valid_id_or_None
 
 
 class ToggleFavoriteProduct(APIView):
