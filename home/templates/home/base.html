@@ -145,15 +145,14 @@
         <div class="d-flex-col gap-2 cont-wsp-menu__white text-start font-sm text-secondary">
             Nuestro equipo responde en pocos minutos.
 
-            {# id="wsp-link" data-wsp="{{ store_info.store.wsp_number }}" #}
             {# wsp href por defecto, después logica con js para cambiar el href #}
             <a href="https://wa.me/{{store_info.store.wsp_number}}" target="_blank" title="Whatsapp"
-                class="d-flex gap-2 wsp-menu__btn btn-wsp" 
+                class="d-flex gap-2 wsp-menu__btn btn-wsp" id="btn-wsp"
                 data-type="menu">
 
                 {# usamos logo de la tienda si tuviera #}
                 {% if store_info.logo_wsp.image_url %}
-                    <img src="{{ store_info.logo.image_url }}" 
+                    <img src="{{ store_info.logo_wsp.image_url }}" 
                         class="img-cover" alt="Logo Wsp {{ store_info.store.name }}"
                         loading="lazy" width="100" height="100">
                 {% else %}
@@ -201,10 +200,11 @@
         {{ user.role|json_script:"user-role" }}
     {% endcomment %}
 
+    {# product_detail 0(product_id) '__SLUG__'(product_slug) #}
     <script>
         window.BASE_URLS = {
-            cartActions: "{% url 'cart-api' 0 %}".replace('/0/', '/{product_id}/'),
-            productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
+            cartActions: "{% url 'api_cart' 0 %}".replace('0', 'product_id'),
+            productDetail: "{% url 'product_detail' 0 '__SLUG__' %}",
             resumeOrder: "{% url 'resume-order' %}",
             productList: "{% url 'product_list' %}",
             cartPageDetail: "{% url 'cart_page_detail' %}",

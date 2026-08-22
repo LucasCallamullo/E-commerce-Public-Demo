@@ -5,7 +5,7 @@ from rest_framework import serializers
 from core.utils.utils_db import model_optimized_update
 from core.utils.utils_parsers import (parse_url, parse_bool)
 # home app
-from home.models import SocialMedia
+from home.models.social_media import SocialMedia
 
 
 class SocialMediaSerializer(serializers.ModelSerializer):

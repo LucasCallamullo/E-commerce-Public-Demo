@@ -108,7 +108,7 @@ main { padding-top: 0;    /* mobile changes */ }
 /* El contenedor del swiper debe tener una altura fija o mínima */
 .swiper-offers {
     height: 380px; /* Ajusta según el alto de tus cartas */
-    margin: 20px 0;
+    margin: 8px 0 12px 0;
     width: 100%;
     max-width: 100%;
     overflow: hidden;

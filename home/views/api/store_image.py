@@ -4,10 +4,10 @@ from rest_framework.response import Response
 
 # core app
 from core.permissions import IsAdminOrSuperUser
-from core.utils.utils_files import delete_physical_files_from_urls
 from core.views.get_object_mixin import GetObjectMixin
 
-from home.models import StoreImage
+from home.models.store_images import StoreImage
+
 from home.services.store import StoreService
 from home.serializers.store_image import StoreImageSerializer
 from home.services.store_image import StoreImageService
@@ -149,6 +149,6 @@ class StoreImageAPI(APIView, GetObjectMixin):
         return self.get_from_service_or_error(
             obj_id=store_id,
             model_name='Store',
-            service_call=lambda v_id: StoreService.get_public_store(v_id)
+            service_call=lambda v_id: StoreService.get_public_store(store_id=v_id)
         )
     

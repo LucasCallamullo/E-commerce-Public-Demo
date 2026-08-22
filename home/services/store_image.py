@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from core.utils.utils_db import model_optimized_update
-from home.models import StoreImage
+from home.models.store_images import StoreImage
 
 
 class StoreImageService:
@@ -15,7 +15,6 @@ class StoreImageService:
     Service layer for managing Store Image retrieval and processing.
     Handles grouping logic for dashboards and public homepages.
     """
-    MODEL = StoreImage
     IMAGE_TYPE_BANNER = StoreImage.ImageType.BANNER    # eg: 'banner'
     IMAGE_TYPE_HEADER = StoreImage.ImageType.HEADER
     IMAGE_TYPE_LOGO = StoreImage.ImageType.LOGO
@@ -110,7 +109,7 @@ class StoreImageService:
             if a main image exists; otherwise, None.
         """
         return (
-            cls.MODEL.objects
+            StoreImage.objects
             .filter(store_id=store_id, image_type=image_type, main_image=True)
             .values('id', 'image_url', 'redirect_url')
             .first()
@@ -120,7 +119,7 @@ class StoreImageService:
     
     @classmethod
     @transaction.atomic
-    def handle_delete(cls, *, instance: MODEL, store_id: int | str) -> Optional[MODEL]:
+    def handle_delete(cls, *, instance: StoreImage, store_id: int | str) -> Optional[StoreImage]:
         """
         Orchestrates the deletion of an image and manages the succession logic.
         If the deleted image was 'Main', it promotes the next best candidate.
@@ -151,8 +150,8 @@ class StoreImageService:
     
     @classmethod
     @transaction.atomic
-    def handle_update(cls, *, qs: QuerySet, instance: MODEL, 
-        validated_data: dict) -> Tuple[MODEL, Optional[MODEL]]:
+    def handle_update(cls, *, qs: QuerySet, instance: StoreImage, 
+        validated_data: dict) -> Tuple[StoreImage, Optional[StoreImage]]:
         """
         Handles image updates with side-effect management for 'main_image' status.
         - CASE A: New image becomes Main -> Demote others.
@@ -180,7 +179,7 @@ class StoreImageService:
     
     @classmethod
     @transaction.atomic
-    def handle_create(cls, *, qs: QuerySet, validated_data: dict) -> MODEL:
+    def handle_create(cls, *, qs: QuerySet, validated_data: dict) -> StoreImage:
         """
         Creates a new image while maintaining the single-main-image invariant.
         Automatically promotes the first image of any type to 'Main'.
@@ -196,10 +195,10 @@ class StoreImageService:
                 validated_data['main_image'] = True
                 logger.info(f"[CREATE]: No Main found for this type. Setting new image as Main.")
 
-        return cls.MODEL.objects.create(**validated_data)
+        return StoreImage.objects.create(**validated_data)
         
     @staticmethod
-    def _find_and_promote_successor(*, qs: QuerySet) -> Optional[MODEL]:
+    def _find_and_promote_successor(*, qs: QuerySet) -> Optional[StoreImage]:
         """
         Business Logic: Finds the best candidate to become the new Main image.
         Prioritizes 'available' images, then orders by oldest (ID).
@@ -222,7 +221,7 @@ class StoreImageService:
     def get_qs_serializer(cls, *, store_id: int, image_type: str, exclude_id: int) -> QuerySet:
         """ Returns a base QuerySet filtered by store and image category. """
         # qs base para casos de post, patch, delete
-        qs = cls.MODEL.objects.filter(store_id=store_id, image_type=image_type)
+        qs = StoreImage.objects.filter(store_id=store_id, image_type=image_type)
         if exclude_id:
             qs = qs.exclude(id=exclude_id)
         return qs
@@ -239,7 +238,7 @@ class StoreImageService:
         Returns a single dict if pk is provided, otherwise returns a ordered QuerySet.
         """
         # 1. Base QuerySet
-        qs = cls.MODEL.objects.filter(store_id=store_id)
+        qs = StoreImage.objects.filter(store_id=store_id)
 
         if pk:
             return qs.filter(id=pk).values(*cls.VALUES).first()
@@ -292,7 +291,7 @@ class StoreImageService:
         """
         Repository-like method to construct the base StoreImage QuerySet.
         """
-        qs = cls.MODEL.objects.filter(store_id=store_id)
+        qs = StoreImage.objects.filter(store_id=store_id)
         
         if only_actives:
             qs = qs.filter(available=True)

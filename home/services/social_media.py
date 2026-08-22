@@ -1,5 +1,5 @@
 from typing import Any
-from home.models import SocialMedia
+from home.models.social_media import SocialMedia
 
 
 class SocialMediaService:

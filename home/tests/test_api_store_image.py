@@ -1,6 +1,7 @@
 import pytest
 from django.urls import reverse
-from home.models import Store, StoreImage
+from home.models.store import Store
+from home.models.store_images import StoreImage
 
 
 @pytest.mark.django_db

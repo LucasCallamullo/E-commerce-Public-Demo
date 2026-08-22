@@ -1,63 +1,6 @@
 from django.db import models
 import logging
 logger = logging.getLogger(__name__)
-
-
-class Store(models.Model):
-    """
-    Represents the identity and global configuration of the store.
-    
-    This model centralizes contact information, tax data, and banking 
-    configurations. Since this is a single-store application, it is 
-    recommended to access this data via a Cache-enabled Context Processor 
-    to optimize performance.
-    """
-    # --- Basic Information ---
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, max_length=700)
-    schedules = models.TextField(blank=True, max_length=250)
-    
-    # --- Contact Information ---
-    # Note: WhatsApp number should include the country code (e.g., 549351...)
-    # for correct URL construction in the frontend.
-    email = models.EmailField(blank=True, null=True)
-    address = models.CharField(max_length=180, blank=True, null=True)
-    cellphone = models.CharField(max_length=20, blank=True, null=True)
-    wsp_number = models.CharField(max_length=20, blank=True, null=True)
-    
-    # --- Financial Configuration ---
-    # "Official or internal exchange rate for USD to ARS conversions."
-    usd_exchange_rate = models.DecimalField(
-        max_digits=10, decimal_places=2, default='1000.00')
-    
-    # "Last time the exchange rate was updated."
-    usd_last_update = models.DateTimeField(auto_now=True)
-    
-    # --- Administrative and Banking Data ---
-    # These fields are used for billing information and user transfer details.
-    """ 
-    BANCO GALICIA
-    Alias: EMPRESA.GALICIA.CBA
-    CBU: 0070148420000008022035
-    Cuenta N° 0008022-0 148-3
-    Cuit: 30-71750886-2
-    Razón Social: EMPRESA GAMES S.A.S.
-    """
-    # Banco o Billetera (ej: Galicia, Mercado Pago)
-    bank_name = models.CharField(max_length=50, blank=True, null=True)
-    # Razón Social o Nombre del dueño 
-    account_holder = models.CharField(max_length=100, blank=True, null=True)
-    # CUIT/CUIL del titular
-    cuit = models.CharField(max_length=20, blank=True, null=True)
-    # El identificador de 22 dígitos
-    cbu_cvu = models.CharField(max_length=22, blank=True, null=True)
-    # El nombre corto (ej: TIENDA.GALICIA.CBA)
-    alias = models.CharField(max_length=50, blank=True, null=True)
-    # Opcional: El número de cuenta formateado (ej: 0008022-0 148-3)
-    account_number = models.CharField(max_length=50, blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.name} - ID: {self.id}"
     
     
 class StoreImage(models.Model):
@@ -81,7 +24,7 @@ class StoreImage(models.Model):
             return (cls.HEADER, cls.BANNER)
         
     # The store this image belongs to.
-    store = models.ForeignKey('Store', related_name='images', on_delete=models.CASCADE)
+    store = models.ForeignKey('home.Store', related_name='images', on_delete=models.CASCADE)
     
     # Category of the image for UI placement.
     image_type = models.CharField(
@@ -166,57 +109,3 @@ class StoreImage(models.Model):
         indexes = [
             models.Index(fields=['image_type', 'available', '-main_image']),
         ]
-
-    
-class SocialMedia(models.Model):
-    """
-    Manages social media profiles associated with a Store.
-    
-    Includes a platform mapping to Remix Icon classes for frontend rendering.
-    Enforces a unique platform per store via Meta constraints.
-    """
-    
-    class PlatformEnum(models.TextChoices):
-        """Enumeration of supported social media platforms."""
-        FB = 'fb', 'Facebook'
-        GG = 'gg', 'Google'
-        GM = 'gm', 'Google Maps'
-        IG = 'ig', 'Instagram'
-        TT = 'tt', 'TikTok'
-        TW = 'tw', 'X (Twitter)'
-        YT = 'yt', 'YouTube'
-    
-    store = models.ForeignKey('Store', related_name='social_networks', on_delete=models.CASCADE)
-    platform = models.CharField(
-        max_length=10, 
-        choices=PlatformEnum.choices, 
-        default=PlatformEnum.IG
-    )
-    url = models.URLField(blank=True, null=True, default="https://www.instagram.com")
-    is_active = models.BooleanField(default=True)
-    is_main = models.BooleanField(default=False)
-
-    class Meta:
-        unique_together = ('store', 'platform')
-        
-    def __str__(self):
-        return f"{self.get_platform_display()} - {self.store.name}"
-        
-    @staticmethod
-    def get_icon_class(value: str) -> str:
-        """
-        Returns the specific Remix Icon (ri-) class based on the platform.
-        Usage in templates: {{ object.icon_class }}
-        """
-        icons = {
-            'gg': 'ri-google-fill',
-            'ig': 'ri-instagram-line',
-            'fb': 'ri-facebook-box-fill',
-            'tt': 'ri-tiktok-fill',
-            # 'tw': 'ri-twitter-line',
-            'tw': 'ri-twitter-x-line',
-            'yt': 'ri-youtube-fill',
-            'gm': 'ri-pin-distance-line',
-        }
-        # Returns a generic community icon if the platform is not found
-        return icons.get(value, 'ri-user-community-line') # Icono por defecto

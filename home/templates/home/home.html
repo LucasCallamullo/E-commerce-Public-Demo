@@ -62,7 +62,7 @@
 
 
 {# TITULO OFERTAS #}
-<div class="cont-space-between mt-2 mb-1 swiper_offers__title">
+<div class="cont-space-between mt-2 swiper_offers__title">
     <div class="separator gap-1">
         <h2 class="text-main" id="offers-title'">¡Ofertas!</h2>
         <div class="separator-line"></div>
@@ -80,7 +80,7 @@
 </div>
 
 {# TARJETAS DE OFERTAS #}
-<section class="swiper-offers" aria-labelledby="offers-title">
+<section class="swiper-offers" aria-labelledby="offers-title" id="cont-swipers-offers-home">
     <div class="swiper-wrapper">
         {% for prod in products_offer %}
             {# Agregamos itemscope para SEO de Google Shopping #}
@@ -122,10 +122,13 @@
                     <meta itemprop="priceCurrency" content="ARS"> {# Cambia por tu moneda #}
                 </div>
                 {# button to add product #}
-                <button class="btn btn-main py-1 px-2 grid-col-all justify-self-center mb-1 w-min bolder btn-add"
-                    aria-label="Agregar {{prod.name}} al carrito" data-id="{{prod.id}}">
-                    Agregar
-                </button>
+                <form class="grid-col-all justify-self-center mb-1 product-card__offer-btn" 
+                    data-index="{{prod.id}}" 
+                    data-stock="{{prod.stock}}">
+                    <button class="btn btn-main gap-1 btn-32 w-min btn-add font-md" type="submit">
+                        Agregar<i class="ri-shopping-basket-2-fill"></i>
+                    </button>
+                </form>
             </article>
         {% endfor %}
     </div>
@@ -139,13 +142,13 @@
 <div class="w-100 mt-3" id="cont-swipers-home"> 
     {# despliega productos por category cada swiper #}
     {# data en este caso hace referencia a una lista de productos y datos de la categoria #}
-    {% for key, data in products_by_category.items %}    
+    {% for section in products_by_category %}    
         <div class="carousel-category">
             <div class="cont-space-between cont_carousel__title">
                 <div class="d-flex justify-start px-2 h-100 carousel__title">
                     <h2 class="font-md text-white bolder">
-                        <a href="{% url 'pl_category' cat_slug=data.slug %}" class="text-white underline-anim">
-                            <span>{{ data.name }}</span>
+                        <a href="{% url 'product_list_category' section.slug %}" class="text-white underline-anim">
+                            <span>{{ section.name }}</span>
                         </a>
                     </h2>
                 </div>
@@ -163,7 +166,7 @@
             {# aca realmente empieza la parte de products #}
             <div class="swiper-products" id="swiper-{{forloop.counter0}}">
                 <div class="swiper-wrapper">  
-                    {% include 'products/components/card__product.html' with products=data.products category=data.name %}
+                    {% include 'products/components/card__product.html' with products=section.products category=section.name %}
                 </div>
             </div>
         </div>
@@ -223,14 +226,17 @@
 
     <script>
         window.TEMPLATE_URLS = {
-            favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
-            cartActions: "{% url 'cart-api' 0 %}".replace('/0/', '/{product_id}/'),
-            productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
-            category: "{% url 'pl_category' cat_slug='__CAT__' %}",
-            subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
-            brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}",
+            // HTML
+            productDetail: "{% url 'product_detail' 0 '__SLUG__' %}",
+            brand: "{% url 'product_list_brand' '__BRAND__' %}",
+            category: "{% url 'product_list_category' '__CAT__' %}",
+            subcategory: "{% url 'product_list_subcategory' '__CAT__' '__SUBCAT__' %}",
+
+            // API
             productList: "{% url 'api_products' %}",
-            productImages: "{% url 'api_product_images' 0 %}".replace('/0/', '/{product_id}/')
+            productImages: "{% url 'api_product_images' 0 %}".replace('/0/', '/{product_id}/'),
+
+            favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/')
         };
     </script>
 
@@ -240,6 +246,7 @@
         <script src="{% static 'products/js/logic/product_store.js' %}"></script>
         <script src="{% static 'products/js/logic/cards_products.js' %}"></script>
         <script src="{% static 'products/js/components/carousel_products.js' %}"></script>
+        <script src="{% static 'products/js/components/cards_products.js' %}"></script>
         <script src="{% static 'home/js/home.js' %}"></script>
     {% endcompress %}
 {% endblock %}

@@ -7,7 +7,7 @@ from core.permissions import IsAdminOrSuperUser
 from core.views.get_object_mixin import GetObjectMixin
 
 # home app
-from home.models import SocialMedia
+from home.models.social_media import SocialMedia
 from home.services.store import StoreService
 from home.services.social_media import SocialMediaService
 from home.serializers.social_media import SocialMediaSerializer

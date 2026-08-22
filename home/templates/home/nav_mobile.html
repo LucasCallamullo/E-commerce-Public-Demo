@@ -79,7 +79,7 @@
                     <ul class="dropdown-menu" data-state="null">
 
                     {# Viene del contexto values, category & subcategories, son dicts values #}
-                    {% for item in categories_dropmenu.values %}
+                    {% for item in categories_dropmenu %}
                         <li>
                         {# si tiene subcategories lo hacemos de esta forma #}
                         {% if item.subcategories %}
@@ -95,7 +95,7 @@
                             {% for subcat in item.subcategories %}
                                 {% if forloop.first %}
                                 <li class="item__menu-mobile border__menu-mobile bg-secondary">
-                                    <a href="{% url 'pl_category' item.category.slug %}" 
+                                    <a href="{% url 'product_list_category' item.category.slug %}" 
                                     class="cont-space-between cont-100 bolder">
                                         Todos
                                     </a>
@@ -103,7 +103,7 @@
                                 {% endif %}
                                     
                                 <li class="item__menu-mobile border__menu-mobile bg-secondary">
-                                    <a href="{% url 'pl_subcategory' item.category.slug subcat.slug %}" 
+                                    <a href="{% url 'product_list_subcategory' item.category.slug subcat.slug %}" 
                                     class="cont-space-between cont-100 bolder">
                                         {{ subcat.name }}
                                     </a>
@@ -114,7 +114,7 @@
                         {% else %}
                             {# Item without sub menu #}
                             <div class="item__menu-mobile bg-gray-light text-primary"> 
-                                <a href="{% url 'pl_category' item.category.slug %}" 
+                                <a href="{% url 'product_list_category' item.category.slug %}" 
                                 class="cont-space-between cont-100 bolder">
                                     {{ item.category.name }}
                                 </a>

@@ -12,59 +12,51 @@ from products.services.brand import BrandService
 
 
 def home(request):
+    """
+    Main entry point for the store's landing page.
     
-    # obtener headers y banners dsde el servicio
+    This view orchestrates the data retrieval from multiple specialized services 
+    to build the home screen context. It prioritizes cached data for high 
+    performance, ensuring minimal database interaction.
+
+    The view context includes:
+    - Marketing images (headers and banners).
+    - Grouped products by category for specialized sections.
+    - Global lists of brands and categories.
+    - Curated product lists (general and discounted offers).
+
+    Args:
+        request: The Django HttpRequest object.
+
+    Returns:
+        HttpResponse: Rendered 'home/home.html' template with the full context.
+    """
+    # 1. Retrieve store configuration and marketing assets (Cached)
     store = StoreService.get_public_store(store_id=1)
     store_images = StoreImageService.get_home_active_images(store_id=store.get('id', 1))
     
-    # retorna una lista de diccionarios de los productos -> list[{}, {}, {}]
-    products = ProductService.for_home(user=request.user)
+    # 2. Fetch curated product data (includes 'is_favorite' flag if user is logged in)
+    # This service method likely hits the cache for the bulk of product data.
+    data_products = ProductService.get_home_data(user=request.user)
     
-    # maybe in the future get categories with image_url to home
-    categories = CategoryService.for_cards(from_cache=True)
-    brands = BrandService.for_cards(brand_ids=None)
+    # 3. Fetch master lists for navigation and filtering (Cached)
+    categories = CategoryService.get_categories_list()
+    brands = BrandService.get_brands_list()
     
-    # obtengo productos agrupados por category para renderizar en js
-    # Crear diccionario mejorado: id -> {name, slug}
-    category_map = {
-        c["category"]["id"]: {
-            "name": c["category"]["name"],
-            "slug": c["category"]["slug"],  # ¡IMPORTANTE!
-            "id": c["category"]["id"]
-        }
-        for c in categories
-    }
-        
-    # Agrupar productos con info completa de categoría
-    products_by_category = {}
-    for p in products:
-        cat_info = category_map.get(p["category_id"])
-        if not cat_info:
-            continue
-        
-        # Usar slug como key (o id)
-        key = cat_info["id"]  # "electronica"
-        
-        if key not in products_by_category:
-            products_by_category[key] = {
-                "name": cat_info["name"],
-                "slug": cat_info["slug"],
-                "id": cat_info["id"],
-                "products": []
-            }
-        
-        products_by_category[key]["products"].append(p)
-        
-    products_offer = Product.objects.filter(available=True, discount_ars__gt=0)
-        
+    # 4. Process data in memory to group products by category for UI sections
+    products_by_category = CategoryService.get_products_by_category(
+        products=data_products['products'],
+        categories=categories
+    )
+    
     context = {
         'headers': store_images.get('headers', []),
         'banners': store_images.get('banners', []),
-        'products_by_category': products_by_category,
         'brands': brands,
         'categories': categories,
-        'products': products,
-        'products_offer': products_offer
+        'products_by_category': products_by_category,
+        'products': data_products['products'],
+        'products_offer': data_products['offers']
     }
 
     return render(request, 'home/home.html', context)

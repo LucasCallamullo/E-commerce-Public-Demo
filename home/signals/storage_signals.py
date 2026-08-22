@@ -6,17 +6,20 @@ from django.dispatch import receiver
 # core app
 from core.utils.utils_files import delete_physical_files_from_urls
 
+# necesario para que cachee antes
+from home.models.store import Store
+
 import logging
 logger = logging.getLogger(__name__)
 
-
+"""
 @receiver(pre_save, sender='home.StoreImage')
 def store_image_cleanup_file_on_update(sender, instance, **kwargs):
     # from home.models import StoreImage
     # type -> instance: StoreImage
-    """
+    
     Handles physical file deletion when an existing instance updates its image URL.
-    """
+    
     # 1. Skip if it's a new instance (no PK yet).
     if not instance.pk:
         now = instance.safe_original_url or 'NOT_LOADED'
@@ -45,14 +48,14 @@ def store_image_cleanup_file_on_update(sender, instance, **kwargs):
     instance.safe_original_url = instance.image_url
     
     logger.debug(f"[STATE SYNCED]: Current: {instance.image_url} | Private_attr: {instance.safe_original_url}")
-
-
+"""
+"""
 @receiver(post_delete, sender='home.StoreImage')
 def store_image_cleanup_file_on_delete(sender, instance, **kwargs):
-    """
+    
     Handles physical file deletion after an instance is removed from the database.
     The instance is still available in memory, allowing access to its attributes.
-    """
+    
     
     # Accessing __dict__ directly is the safest way to retrieve the value 
     # without triggering accidental 'Lazy Loading' queries, especially 
@@ -69,3 +72,4 @@ def store_image_cleanup_file_on_delete(sender, instance, **kwargs):
     transaction.on_commit(
         lambda: delete_physical_files_from_urls(urls=[url])
     )
+"""

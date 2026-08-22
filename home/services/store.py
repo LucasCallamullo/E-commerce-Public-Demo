@@ -1,7 +1,7 @@
 # stores/services/store.py
 from typing import Any, Iterable
 
-from home.models import Store
+from home.models.store import Store
 from home.services.social_media import SocialMediaService
 from home.services.store_image import StoreImageService
 from home.cache_utils import get_or_set_store_data, KEY_STORE_PAYMENTS

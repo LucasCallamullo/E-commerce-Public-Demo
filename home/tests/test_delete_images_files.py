@@ -9,7 +9,7 @@
 import pytest
 from unittest.mock import patch
 from django.db import transaction
-from home.models import StoreImage
+from home.models.store_images import StoreImage
 
 
 # I use transactional=True to test transaction.on_commit hooks.

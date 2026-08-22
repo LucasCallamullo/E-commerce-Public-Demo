@@ -2,8 +2,8 @@ import pytest
 from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
 
-from home.models import Store
-from home.models import StoreImage
+from home.models.store import Store
+from home.models.store_images import StoreImage
 
 # others apps
 User = get_user_model()

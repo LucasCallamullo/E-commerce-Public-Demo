@@ -3,7 +3,7 @@ from rest_framework import serializers
 # core app
 from core.utils.utils_parsers import parse_bool, parse_url
 
-from home.models import StoreImage
+from home.models.store_images import StoreImage
 from home.services.store_image import StoreImageService
 
 class StoreImageSerializer(serializers.ModelSerializer):

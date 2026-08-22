@@ -4,6 +4,9 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
+from home.models.social_media import SocialMedia
+from home.models.store_images import StoreImage
+
 User = get_user_model()
 
 import logging
@@ -36,7 +39,8 @@ USER_CONFIG = {
 # Prevents script execution if the required 'home' application is missing.
 STOP_SCRIPT = False
 try:
-    from home.models import Store, StoreImage, SocialMedia
+    # from home.models import Store, StoreImage, SocialMedia
+    from home.models.store import Store
 except ImportError:
     logger.warning("[HOME APP] The 'home' app is not installed or models are missing.")
     STOP_SCRIPT = True

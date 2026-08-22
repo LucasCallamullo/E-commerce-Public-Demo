@@ -6,8 +6,7 @@ from core.utils.utils_parsers import (
     sanitize_text, validate_email_format, parse_wsp_number, parse_decimal
 )
 # home app
-from home.models import Store
-
+from home.models.store import Store
 
 class StoreSerializer(serializers.ModelSerializer):
     # Sobrescribimos para aplicar nuestra lógica personalizada de validación

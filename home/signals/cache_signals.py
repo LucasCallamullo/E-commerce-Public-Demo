@@ -5,13 +5,13 @@ from django.db import transaction
 # home app
 from home.cache_utils import delete_store_cache, KEY_STORE_PAYMENTS, KEY_STORE_PUBLIC
 
-
+""" 
 @receiver([post_save, post_delete], sender='home.Store')
 @receiver([post_save, post_delete], sender='home.StoreImage')
 @receiver([post_save, post_delete], sender='home.SocialMedia')
 def clear_store_cache(sender, instance, **kwargs):
     # from home.models import Store, StoreImage, SocialMedia
-    """
+    
     Invalidates the global store cache whenever store-related data is modified.
     
     Design Decision:
@@ -22,7 +22,7 @@ def clear_store_cache(sender, instance, **kwargs):
     This ensures that changes to basic info, images, or social links are 
     immediately reflected on the public site by forcing the StoreService 
     to re-fetch and re-cache the 'Big Blob' on the next request.
-    """
+    
     
     # maybe in the future apply this for generics but for now hardcoded store_id = 1
     # Identify the correct store_id based on the model triggered
@@ -48,3 +48,5 @@ def clear_store_cache(sender, instance, **kwargs):
     # Wait for the database to confirm the changes before clearing the cache.
     # This prevents the cache from being re-populated with stale data from an uncommitted transaction.
     transaction.on_commit(invalidate)
+    
+"""

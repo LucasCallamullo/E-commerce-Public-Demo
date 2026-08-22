@@ -1,6 +1,6 @@
 import pytest
 from django.urls import reverse
-from home.models import SocialMedia
+from home.models.social_media import SocialMedia
 
 @pytest.mark.django_db
 class TestSocialMediaAPI:

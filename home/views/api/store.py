@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from core.permissions import IsAdminOrSuperUser
 from core.views.get_object_mixin import GetObjectMixin
 
-from home.models import Store
+from home.models.store import Store
 from home.serializers.store import StoreSerializer
 
 
