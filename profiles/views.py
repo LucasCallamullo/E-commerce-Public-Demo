@@ -8,17 +8,18 @@ from profiles import utils_tabs
 
 # Create your views here.
 def profile_page(request):
-    user = request.user
+    from users.models import Provincia
     
+    user = request.user
     if not user.is_authenticated:
         return redirect('/')
 
     # Verificar si es admin o superadmin
-    if user.id == 1 or user.role == 'admin':
-        return render(request, 'profiles/admin/adm_profile.html')
+    if user.role == 'admin':
+        return render(request, 'profiles/admin/adm_profile.html', {'provinces': Provincia.choices})
 
     # User Profile Comun
-    return render(request, 'profiles/user/user_profile.html')
+    return render(request, 'profiles/user/user_profile.html', {'provinces': Provincia.choices})
 
 
 def profile_tabs(request, tab_name):

@@ -35,16 +35,16 @@
             <span class="text-truncate"> {{ user.email }} </span>
         
             {# BOTONES EDITAR Y LOGEARSE #}
-            <form class="d-flex-col mt-1 w-100 form-close-profile">
+            <form class="d-flex-col mt-1 w-100 close-profile">
                 {% csrf_token %}
-                <button class="btn gap-1 btn-secondary border-secondary p-border-top btn-36 w-100
+                <button class="btn gap-1 btn-secondary border-secondary p-border-top btn-36 w-100 btn-edit
                 font-sm bolder" type="button">
                     <i class="ri-settings-4-line fw-normal font-lg"></i>
                     Editar Datos
                 </button>
             
                 <button class="btn gap-1 btn-secondary border-secondary p-border-bot btn-36 w-100 font-sm bolder"
-                type="submit" data-action="Close" data-url="{% url 'close_session' %}">
+                type="submit" data-action="logout">
                     <i class="ri-door-open-fill fw-normal font-lg"></i>
                     Cerrar Sesión
                 </button>
@@ -77,7 +77,6 @@
         {# BANNER #}
         <img src="https://i.pinimg.com/736x/3b/da/58/3bda585ceabcae86a826c57305d1ff39.jpg" 
             class=" img-cover cont-banner-profile" alt="BANNER PROFILE">
-        
         {# ITEMS BANNER #}
         <div class="d-grid w-100 cont-tabs">
             <button class="active-tab btn-tabs btn btn-alt gap-1 btn-40 w-100 bolder font-md" data-tab="orders-tab">
@@ -94,47 +93,40 @@
             </button>
         </div>
 
-        {# DASHBOARD PRODUCTOS #}
+        {# Tabs con contenido dinamico #}
         <div class="tab-content p-2" id="orders-tab"></div>
         <div class="tab-content p-2" id="favorites-tab"></div>
         <div class="tab-content p-2" id="invoices-tab"></div>
     </div>
 </div>
-    {# componente reutilizable modal uno solo #}
-    {% include "products/components/card__modal.html" %}
+
+{# componente reutilizable formulario modal #}
+{% include "users/form_edit_user.html" %}
+
+{# componente reutilizable modal uno solo #}
+{% include "products/components/card__modal.html" %}
 
 {% endblock main_content %}
 
-    {% comment %}
-        window.TEMPLATE_URLS = {
-            {# users/urls.py #}
-            profileTabs: "{% url 'profile_tabs' 0 %}".replace('0/', '{tab_name}/'),
-            {# favorites/urls.py #}
-            favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
-            {# orders/urls.py #}
-            orderDetail: "{% url 'order-detail' 0 %}".replace('0/', '{order_id}/'),
-            productList: "{% url 'product_list' %}",
-            {# products/urls.py #}
-            productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
-            category: "{% url 'pl_category' cat_slug='__CAT__' %}",
-            subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
-            brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}"
-        };
-    {% endcomment %}
 
 {% block extra_scripts %}
-    {# JavaScript for Product Page #}
+    {# JavaScript for user profile Page #}
     <script>
         window.TEMPLATE_URLS = {
+            userPatch: "{% url 'user_me' %}",    // users
+            // profiles
             profileTabs: "{% url 'profile_tabs' 0 %}".replace('0/', '{tab_name}/'),
+            // orders
             orderDetail: "{% url 'order-detail' 0 %}".replace('0/', '{order_id}/'),
+            // favorites
             favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
-            productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
-            category: "{% url 'pl_category' cat_slug='__CAT__' %}",
-            subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
-            brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}",
-            productList: "{% url 'product-update-api' 0 %}".replace('/0/', '{product_id}'),
-            productImages: "{% url 'product-images-api' 0 %}".replace('/0/', '/{product_id}/')
+            // products
+            productDetail: "{% url 'product_detail' 0 '__SLUG__' %}",
+            category: "{% url 'product_list_category' '__CAT__' %}",
+            subcategory: "{% url 'product_list_subcategory' '__CAT__' '__SUBCAT__' %}",
+            brand: "{% url 'product_list_brand' '__BRAND__' %}",
+            productList: "{% url 'product_list' %}",
+            productImages: "{% url 'api_product_images' 0 %}".replace('/0/', '/{product_id}/')
         };
     </script>
 
@@ -143,9 +135,14 @@
 
     {% compress js %}
         <script src="{% static 'favorites/js/add_favorites.js' %}"></script>
+        {# necesarios para logica inicial de carousel SSR #}
+        <script src="{% static 'products/js/logic/product_store.js' %}"></script>
         <script src="{% static 'products/js/logic/cards_products.js' %}"></script>
         <script src="{% static 'products/js/components/cards_products.js' %}"></script>
         <script src="{% static 'products/js/components/carousel_products.js' %}"></script>
+        {# logica para cada tab del perfil de cliente/buyer #}
+        <script src="{% static 'profiles/js/endpoints/users_edit.js' %}"></script>
+        <script src="{% static 'profiles/js/tabs/tab_invoices.js' %}"></script>
         <script src="{% static 'profiles/js/tabs/tab_orders.js' %}"></script>
         <script src="{% static 'profiles/js/tabs/tab_favorites.js' %}"></script>
         <script src="{% static 'profiles/js/user_profile.js' %}"></script>

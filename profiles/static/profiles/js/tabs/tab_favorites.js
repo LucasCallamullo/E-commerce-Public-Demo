@@ -1,3 +1,7 @@
+/// <reference path="../../../../../products/static/products/js/components/cards_products.js" />
+/// <reference path="../../../../../products/static/products/js/components/carousel_products.js" />
+/// <reference path="../../../../../products/static/products/js/logic/cards_products.js" />
+/// <reference path="../../../../../products/static/products/js/logic/product_store.js" />
 
 
 /**
@@ -26,39 +30,65 @@ function renderEmptyTabFavorites(container) {
 
 
 /**
- * Creates and renders the "Favorites" tab carousel.
+ * Renders the "Favorites" tab carousel.
  *
- * @param {HTMLElement} container - The container where the favorites carousel will be rendered.
- * @param {Array<Object>} products - List of product objects to display as favorites.
+ * This function is responsible for rendering a favorites carousel inside the
+ * provided container. It delegates the actual DOM rendering to a callback
+ * (`onRender`) and relies on `createCarouselCards` to handle common carousel
+ * initialization logic (events, Swiper setup, etc.).
  *
- * This function:
- *  - Clears the container.
- *  - Stores product data using `ProductStore.setData`.
- *  - Creates a swiper carousel for the "Favoritos" category.
- *  - If there are products, it appends each as a card inside the carousel and initializes Swiper.
- *  - If there are no products, it calls `renderEmptyTabFavorites` to show the empty state message.
+ * Execution flow:
+ * 1. Receives a container element and a list of products (already resolved).
+ * 2. Defines an `onRender` callback responsible for:
+ *    - Creating the carousel structure
+ *    - Rendering product cards
+ *    - Handling the empty state
+ *    - Initializing Swiper instances
+ * 3. Calls `createCarouselCards`, passing the container, products and render callback.
+ *
+ * Notes:
+ * - This function does NOT fetch data.
+ * - It does NOT depend directly on global stores.
+ * - It is safe to call multiple times with different containers or product lists.
+ *
+ * @param {HTMLElement} container - DOM element where the favorites carousel will be rendered.
+ * @param {Array<Object>} products - List of favorite products to render.
  */
 function createTabfavorites(container, products) {
-    container.innerHTML = '';
+    
+    const onRender = (container, products) => {
+        // Clear previous content safely (without using innerHTML)
+        container.replaceChildren();
 
-    // All logic below depends on carousel_cards and related functions from that module
-    ProductStore.setData(products);
-    const fragment = document.createDocumentFragment(); // Temporary holder to reduce reflows
+        // Temporary holder to reduce reflows
+        const fragment = document.createDocumentFragment();
 
-    // Reuse this function since it only requires a name and an index starting from 0
-    const { element, swiperWrapper } = renderSwiperCategory('Favoritos', 0);
+        // Reuse this function since it only requires a name and an index starting from 0
+        const { element, swiperWrapper } = renderSwiperCategory('Favoritos', 0);
 
-    // Render and append each product card
-    if (products && products.length > 0) {
-        products.forEach(product => {
-            swiperWrapper.appendChild(renderCards(product, true));
-        });
+        // Render and append each product card
+        if (products && products.length > 0) {
+            products.forEach(product => {
+                swiperWrapper.appendChild(renderCards(product, true));
+            });
+        } else {
+            renderEmptyTabFavorites(swiperWrapper);
+        }
+
+        // Append the completed carousel to the fragment
+        fragment.appendChild(element);
+
+        // Mount everything at once
+        container.appendChild(fragment);
+
+        // Initialize Swiper for favorites carousel
         initSwipers(container);
-    } else {
-        renderEmptyTabFavorites(swiperWrapper);
-    }
+    };
 
-    // Append the completed carousel to the fragment
-    fragment.appendChild(element);
-    container.appendChild(fragment);
+    // carousel_products.js to render favorites and to provide carousel functionality
+    createCarouselCards({
+        container,
+        products,
+        onRender
+    });
 }

@@ -30,22 +30,27 @@
             <span class="text-truncate"> {{ user.email }} </span>
             <span class="bold-green">Rol: <b class="bold-main text-capitalize">{{ user.role }} </b></span>
         
-            <a href="{% url 'main_dashboard' %}" class="btn btn-40 w-100 gap-1 btn-main bolder">
+            <a href="{% url 'main_dashboard' %}" class="btn btn-40 w-100 gap-1 btn-main bolder font-sm">
                 <i class="ri-dashboard-horizontal-line fw-normal font-xl"></i>
-                Panel de control
+                Panel de Control
+            </a>
+
+            <a href="{% url 'sales_dashboard' %}" class="btn btn-40 w-100 gap-1 btn-main bolder font-sm">
+                <i class="ri-price-tag-3-line fw-normal font-xl"></i>
+                Panel de Ventas
             </a>
 
             {# BOTONES EDITAR Y LOGEARSE #}
-            <form class="d-flex-col mt-1 w-100 form-close-profile">
+            <form class="d-flex-col mt-1 w-100 close-profile">
                 {% csrf_token %}
-                <button class="btn gap-1 btn-secondary border-secondary p-border-top btn-36 w-100
+                <button class="btn gap-1 btn-secondary border-secondary p-border-top btn-36 w-100 btn-edit
                 font-sm bolder" type="button">
                     <i class="ri-settings-4-line fw-normal font-lg"></i>
                     Editar Datos
                 </button>
             
                 <button class="btn gap-1 btn-secondary border-secondary p-border-bot btn-36 w-100 font-sm bolder"
-                type="submit" data-action="Close" data-url="{% url 'close_session' %}">
+                type="submit" data-action="close">
                     <i class="ri-door-open-fill fw-normal font-lg"></i>
                     Cerrar Sesión
                 </button>
@@ -100,14 +105,16 @@
             </button>
         </div>
 
-        <div class="tab-content bg-primary p-2" id="orders-tab"></div>
-
-        <div class="tab-content bg-primary p-2" id="users-tab"></div>
-
-        <div class="tab-content bg-primary p-2" id="store-data-tab"></div>
+        {# tabs con conteneido dinamico #}
+        <div class="tab-content p-2" id="orders-tab"></div>
+        <div class="tab-content p-2" id="users-tab"></div>
+        <div class="tab-content p-2" id="store-data-tab"></div>
     </div>
 
 </div>
+
+{# componente reutilizable formulario modal #}
+{% include "users/form_edit_user.html" %}
 
 {% endblock main_content %}
 
@@ -136,15 +143,18 @@
     <script>
         window.TEMPLATE_URLS = {
             profileTabs: "{% url 'profile_tabs' 0 %}".replace('0/', '{tab_name}/'),
-            storeUpdate: "{% url 'update_store' 0 %}".replace('0/', '{store_id}/'),
+            
             orderDetail: "{% url 'order-detail' 0 %}".replace('0/', '{order_id}/'),
             productList: "{% url 'product_list' %}",
-            shipmentUpdate: "{% url 'update_shipment' 0 %}".replace('0/', '{shipment_id}/'),
-            paymentUpdate: "{% url 'update_payment' 0 %}".replace('0/', '{payment_id}/'),
-            userRoleUpdate: "{% url 'user_edit_role' 0 %}".replace('0/', '{user_id}/')
+            
+            userRoleUpdate: "{% url 'user_update_role' 0 %}".replace('0/', '{user_id}/'),
+            userPatch: "{% url 'user_me' %}"
         };
     </script>
+    
     {% compress js %}
+        {# logica para cada tab del perfil de cliente/buyer #}
+        <script src="{% static 'profiles/js/endpoints/users_edit.js' %}"></script>
         <script src="{% static 'profiles/js/tabs/tab_orders.js' %}"></script>
         <script src="{% static 'profiles/js/tabs/tab_store.js' %}"></script>
         <script src="{% static 'profiles/js/tabs/tab_roles.js' %}"></script>

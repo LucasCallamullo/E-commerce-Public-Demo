@@ -18,13 +18,13 @@
  *   - containerSelect: The DOM element inside `htmlToAppend` where the orders stauts will be rendered dynamically.
  */
 function renderOrderTabInit(isAdmin) {
+    // Crear todo el HTML como un único string
+    const html = /*html*/`
+        <h2 class="bold-main justify-self-center mt-3 mb-2 font-xxl">Lista de Pedidos</h2>
 
-    const htmlParts = [
-        /*html*/`<h1 class="bold-main mt-1 mb-2 font-xxl">Lista de Pedidos</h1>`,
-
-        // If user is admin, add the filter form including search input and status select
-        isAdmin ? /*html*/`
-            <form class="d-flex-col-row justify-center align-center gap-2 mt-1 mb-3" id="form-order-table">
+        <!-- If user is admin, add the filter form including search input and status select -->
+        ${isAdmin ? /*html*/`
+            <form class="d-flex-col-row justify-center align-center gap-2 mt-1" id="form-order-table">
                 <strong class="bold-main">Filtrar por N° Orden:</strong>
                 <div class="cont-user-search">
                     <input type="search" name="order_id" value='' placeholder="Buscar N° Orden...">
@@ -34,28 +34,27 @@ function renderOrderTabInit(isAdmin) {
                 </div>
                 <select class="w-min select-orders" name="status"></select>
             </form>
-        `.trim() : '',
+        ` : ''}
 
-        // Add an empty container where the orders table will be rendered dynamically
-        /*html*/`<div class="d-grid cont-table-orders mt-2 bolder font-md"></div>`
-    ];
+        <!-- Add an empty container where the orders table will be rendered dynamically -->
+        <div class="d-grid cont-header-orders mt-4 bolder font-md"></div>
+        <div class="d-grid cont-table-orders bolder font-md"></div>
+    `;
 
     // Create a temporary container element and insert the HTML string
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlParts.join('');
+    const t = document.createElement('div');
+    t.innerHTML = html.trim().replace(/<!--[\s\S]*?-->/g, '');
 
-    // Get reference to the container where orders will be rendered later
-    const containerTable = tempDiv.querySelector('.cont-table-orders');
-    const containerSelect = tempDiv.querySelector('.select-orders');
-
+    // sirve para incluir todos los nodos dentro de fragment en lugar de encerrar todo en un 
+    // div contenedor de todo e insertarlo como unico child
     const fragment = document.createDocumentFragment();
-    while (tempDiv.firstChild) {
-        fragment.appendChild(tempDiv.firstChild);
-    }
+    fragment.append(...t.childNodes)
+    // while (t.firstChild) fragment.appendChild(tempDiv.firstChild);    //tmb valido
     
     // Return the temporary container and the orders container element
-    return { htmlToAppend: fragment, containerTable, containerSelect };
+    return { htmlToAppend: fragment };
 }
+
 
 
 /**
@@ -73,18 +72,18 @@ function renderOrderTabInit(isAdmin) {
  *     - total: The total amount of the order.
  *     - status__name: The status name of the order.
  */
-function renderOrderTable(container, orders) {
+function renderOrderTable(tableCont, tableHeader, orders, isAdmin) {
     const hasOrders = (orders.length > 0);
     let tableRows = '';
 
     if (hasOrders) {
-        // Create table header
-        tableRows += /*html*/`
-            <b class="text-center text-break text-secondary">Orden</b>
-            <b class="text-start text-break text-secondary d-desktop-block">Fecha</b>
-            <b class="text-center text-break text-secondary">Estado</b>
-            <b class="text-center text-break text-secondary">Resumen</b>
-            <b class="text-start text-break text-secondary d-desktop-block">Factura</b>
+        // Create table header add column only for admin
+        tableHeader.innerHTML = /*html*/`
+            <b class="text-break text-secondary ver-order">Orden</b>
+            <b class="text-break text-secondary d-desktop-block">Fecha</b>
+            <b class="text-break text-secondary">Estado</b>
+            <b class="text-break text-secondary">Resumen</b>
+            ${(isAdmin) ? /*html*/`<b class="text-break text-secondary d-desktop-block">Captura</b>`: ''}
         `.trim();
 
         // Create table rows for each order
@@ -93,36 +92,47 @@ function renderOrderTable(container, orders) {
             const url = window.TEMPLATE_URLS.orderDetail.replace('{order_id}', `${order.id}`);
             const dateFormat = shortDate(`${order.created_at}`);
             return /*html*/`
-                <a class="text-center row-order bold-main underline-anim" 
-                    href="${url}"># ${order.id}
+                <a class="row-order bold-main ver-order underline-anim" href="${url}">
+                    <span>#${order.id}&nbsp;</span>
                 </a>
-                <div class="text-start row-order bolder d-desktop-block">${dateFormat}</div>
-                <div class="text-center row-order bold-orange text-truncate">${order.status__name}</div>
-                <div class="text-center row-order bolder">$ ${order.total}</div>
-                <a class="text-start row-order bold-main underline-anim d-desktop-block" href="${url}">
-                    Ver Orden
-                </a>
+                <div class="row-order bolder d-desktop-block">${dateFormat}</div>
+                <div class="row-order bold-orange text-truncate">${order.status_name}</div>
+                <div class="row-order bolder">$ ${formatNumberWithPoints(order.total)}</div>
+
+                ${(isAdmin) ? /* columna extra agregada para admin bajar capturas */ /*html*/`
+                    <a class="row-order bold-main underline-anim d-desktop-block" 
+                    href="${url}" 
+                    target="_blank"
+                    rel="noopener noreferrer">
+                        <span>Descargar</span>
+                    </a>
+                `: ''}
             `;
         }).join('');
 
-        tableRows += tableHtml;
+        tableRows += tableHtml.trim().replace(/<!--[\s\S]*?-->/g, '');
     } else {
         // If no orders, show a friendly message with a link to browse products
         const url = window.TEMPLATE_URLS.productList;
-        const tableRow = /*html*/`
-            <h3 class="grid-col-all mt-1 text-break font-lg">Todavía no hay ordenes.</h3>
-            <h4 class="grid-col-all text-break font-md">Mira nuestros productos:</h4>
-            <div class="grid-col-all justify-self-center">
+        const tableRow = (isAdmin) ? /*html*/`
+            <h2 class="grid-col-all mt-1 text-break font-lg ver-order">No hay ordenes.</h2>
+            <p class="grid-col-all mt-3 mb-2 text-break font-md ver-order"> 
+                Por favor elija otro filtro de estado para buscar ordenes.
+            </p>
+        `: /*html*/`
+            <h2 class="grid-col-all mt-1 text-break font-lg ver-order">Todavía no hay ordenes.</h2>
+            <h3 class="grid-col-all text-break font-md ver-order">Mira nuestros productos:</h3>
+            <div class="grid-col-all justify-self-center mb-4">
                 <a href="${url}" class="w-min text-truncate btn btn-main gap-2 px-2 py-1 bolder font-md">
                     <i class="ri-shopping-cart-2-line fw-normal font-lg"></i>Todos nuestros productos
                 </a>
             </div>
-        `.trim();
-        tableRows += tableRow;
+        `;
+        tableRows += tableRow.trim();
     }
 
     // Insert and replace with the generated HTML directly into the container
-    container.innerHTML = tableRows;
+    tableCont.innerHTML = tableRows;
 }
 
 /**
@@ -165,30 +175,33 @@ function renderOrderSelect(container, ordersStatus, statusId) {
  *     - status_id: The currently selected status id (optional).
  */
 function createTabOrders(container, data) {
-    // container.innerHTML = ''; // Clear the container before rendering
-    if (!container._hasInit) {
-        // Generate base HTML structure
-        const { htmlToAppend, containerTable, containerSelect } = renderOrderTabInit(data.is_admin || false);
-        
-        // Render the orders inside the table container
-        if (containerTable) renderOrderTable(containerTable, data.orders || []);
+
+
+    const render = (cont, isAdmin) => {
+        // Get reference to the container where orders will be rendered later
+        const tableCont = cont.querySelector('.cont-table-orders');
+        const tableHeader = cont.querySelector('.cont-header-orders');
+        const containerSelect = cont.querySelector('.select-orders');
+
+        if (tableCont) renderOrderTable(tableCont, tableHeader, data.orders || [], isAdmin);
+
         if (containerSelect) {
             // if is null get 2, default
             renderOrderSelect(containerSelect, data.status_orders || [], data.status_id || 2); 
         }
+    }
 
+    // container.innerHTML = ''; // Clear the container before rendering
+    if (!container._hasInit) {
+        // Generate base HTML structure
+        const { htmlToAppend } = renderOrderTabInit(data.is_admin || false);
+
+        render(htmlToAppend, data.is_admin || false);
         container.appendChild(htmlToAppend); // Append the fragment to the container
         container._hasInit = true;
         return;
     }
 
-    // after the first render only refill this containers
-    const containerTable = container.querySelector('.cont-table-orders');
-    const containerSelect = container.querySelector('.select-orders');
-    if (containerTable) renderOrderTable(containerTable, data.orders || []);
-    if (containerSelect) {
-        // if is null get 2, default
-        renderOrderSelect(containerSelect, data.status_orders || [], data.status_id || 2); 
-    }
+    render(container, data.is_admin || false);
 }
 

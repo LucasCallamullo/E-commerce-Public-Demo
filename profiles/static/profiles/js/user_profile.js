@@ -1,35 +1,11 @@
 /// <reference path="../../../../static/js/base.js" />
+/// <reference path="../../../../static/js/overlay_modal.js" />
+/// <reference path="../../../../users/static/users/js/widget_login.js" />
 /// <reference path="../../../../products/static/products/js/components/cards_products.js" />
 /// <reference path="../../../../products/static/products/js/logic/cards_products.js" />
+/// <reference path="../../../../products/static/products/js/logic/product_store.js" />
 /// <reference path="../../../../products/static/products/js/components/carousel_products.js" />
 /// <reference path="../../../../profiles/static/profiles/js/tabs/tab_orders.js" />
-
-
-function initSwiperFavorites () { 
-    // el nombre de la clase  es el que define a que swiper corresponde esta config
-    const swiper = new Swiper(`#swiper-favs`, {
-        loop: true, // Evita acumulación de slides mal posicionados
-        autoplay: {
-            delay: 6000,
-            disableOnInteraction: false,
-        },
-        slidesPerView: "auto", // Se ajusta con el CSS
-        centeredSlides: false, // Evita que los slides se centren incorrectamente
-        grabCursor: true,
-        navigation: {
-            nextEl: `#next-fav`,
-            prevEl: `#prev-fav`,
-        },
-    });
-
-}
-
-
-
-
-
-
-
 
 
 /**
@@ -59,71 +35,78 @@ async function getTabContentAJAX({ container, tabId, params = '' } = {}) {
          // Inicializa eventos específicos según el tab activo
         if (tabId === 'orders-tab') {
             createTabOrders(container, data);
-            
         }
         else if (tabId === 'favorites-tab') {
-            createCarouselCards(container, data.products);
+            // All logic below depends on carousel_cards and related functions from that module
+            // necesarias listas globales auxiliares en memoria js para hacer busquedas filtros desde
+            // window.PRODUCT_STORE. y obtener valores asociados con mejor performance por filtros
+            CATALOG_MODAL_STORE.setCatalog(data.categories || [], data.brands || []);
+            PRODUCT_MODAL_STORE.setData(data.products || []);
+            createTabfavorites(container, PRODUCT_MODAL_STORE.getData());
 
         } else if (tabId === 'invoices-tab') {
-            createTabOrders(container, data);
-
-        } 
+            createTabInvoices(container, data);
+        }
 
     } catch (error) {
         // Manejo de errores en caso de fallo en la carga
         console.error('Error loading content:', error);
-        container.innerHTML = '<p>Algo salió mal recargue la página.</p>';
+        container.innerHTML = /*html*/`<p>Algo salió mal recargue la página.</p>`;
     }
 }
 
 
 /**
- * Initializes the tab interface once the DOM is fully loaded.
- * 
- * - Adds click event listeners to tab buttons to load and display tab content dynamically.
- * - Hides all tab content divs and shows only the selected tab's content.
- * - Fetches tab content via AJAX using the tab's name in the URL.
- * - Calls specific event setup functions based on the active tab.
- * - Automatically triggers a click on the second tab on page load to display its content.
+ * Initializes the tab navigation system.
+ *
+ * - Handles click events on tab buttons using event delegation.
+ * - Prevents unnecessary reloads when clicking the active tab.
+ * - Toggles the "active-tab" class between buttons.
+ * - Shows the selected tab content and hides the rest.
+ * - Loads tab content asynchronously via AJAX.
+ * - Automatically opens the second tab on page load.
  */
-document.addEventListener('DOMContentLoaded', () => {
+function initTabs() {
     const contBtnTabs = document.querySelector('.cont-tabs');
-    const btnTabs = document.querySelectorAll('.btn-tabs');
+    if (!contBtnTabs) return;
+
+    const btnTabs = contBtnTabs.querySelectorAll('.btn-tabs');
     const divTabs = document.querySelectorAll('.tab-content');
-    
-    contBtnTabs.addEventListener('click', async function (e) {
 
+    contBtnTabs.addEventListener('click', async (e) => {
         const btn = e.target.closest('.btn-tabs');
-        if (!btn) return; // Si no se hizo click en un .btn-tabs, ignorar
 
-        // Opcional: evitar repetir acción si ya está activo
-        if (btn.classList.contains('active-tab')) return;
+        // Optional: prevent reloading if the tab is already active
+        if (!btn || btn.classList.contains('active-tab')) return;
 
-        // Remove 'active' class from all tab buttons
-        btnTabs.forEach(btn => btn.classList.remove('active-tab'));
+        // Remove 'active-tab' class from all buttons
+        btnTabs.forEach(b => b.classList.remove('active-tab'));
         btn.classList.add('active-tab');
 
         const tabId = btn.dataset.tab;
         const container = document.getElementById(tabId);
 
-        // Hide all tab content divs and show only the selected one
+        // Hide all tab content containers and show only the selected one
         divTabs.forEach(div => div.style.display = 'none');
         container.style.display = 'block';
 
-        await getTabContentAJAX({ container, tabId })
-    })
-
-    // form to close session with drf api
-    const formsClose = document.querySelectorAll('.form-close-profile');
-    formsClose.forEach((form) => {
-        if (form) widgetUserForms(form, "Close");
+        // Fetch and render tab content dynamically
+        await getTabContentAJAX({ container, tabId });
     });
 
-    // Automatically trigger click on the second tab to show it on page load
-    const firstTab = btnTabs[1];
-    if (firstTab) {
-        firstTab.click();
-    }
-});
+    // Automatically trigger click on the second tab on page load
+    btnTabs[1]?.click();
+}
 
+
+/**
+ * Entry point for page-specific JavaScript.
+ * Initializes all UI modules once the DOM is fully loaded.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    initTabs();
+    // events in endpoints / users_edit.js
+    initLogoutForm();
+    initEditUserForm();
+});
 

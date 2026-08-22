@@ -46,8 +46,13 @@
     height: 44px;
 }
 
-.btn-tabs.active {
-    background-color: #007bff;
+.btn-tabs.active-tab {
+    background-color: var(--main-color);
+}
+
+/* Form edit user */
+.modal-edit-user {
+    height: min-content !important;
 }
 
 /* Styles for large desktops (mín. 993px to max. infinite) */
@@ -64,6 +69,10 @@
         grid-template-columns: repeat(3, 1fr);
         height: 42px;
         max-height: 42px;
+    }
+
+    .modal-edit-user {
+        width: 50%;
     }
 }
 
@@ -94,6 +103,12 @@
     }
 }
 
+#store-data-tab input,
+#store-data-tab textarea {
+    font-weight: 400;
+    background-color: var(--bg-primary);   
+}
+
 #store-data-tab input[type="checkbox"] {
     height: 24px;
     width: 24px;
@@ -101,9 +116,10 @@
 }
 
 
-/* 
+
+/* ==========================================================================
     users section 
-*/
+========================================================================== */
 .cont-table-user {
     display: grid;
     grid-template-columns: 1.25fr 0.75fr 0.25fr;
@@ -137,6 +153,7 @@
     font-size: 14px;
     outline: none;
     transition: 0.3s;
+    background-color: var(--bg-primary);
 }
 
 /* Efecto al enfocar el input */
@@ -157,16 +174,93 @@
     color: #007bff;
 }
 
+@media (min-width: 992px) {
+    .cont-table-user {
+        grid-template-columns: 0.7fr 0.7fr 1.7fr 0.7fr 0.4fr;
+        height: 48px;
+        column-gap: 16px;
+    }
+}
 
-/* 
+.select-users-role {
+  /* Dimensiones y espaciado */
+  width: 200px;
+  padding: 8px 12px;
+  
+  /* Bordes */
+  border: 2px solid #e2e8f0;
+  
+  /* Texto */
+  color: var(--text-primary);
+  
+  /* Fondo */
+  background-color: var(--bg-primary);
+  
+  /* Efectos */
+  transition: border-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  
+  /* Apariencia específica para select */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* Efecto hover y focus */
+.select-users-role:hover {
+  border-color: #94a3b8;
+}
+
+.select-users-role:focus {
+  outline: none;
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Agregar ícono de flecha personalizado */
+.select-users-role {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+/* Los options tienen estilos muy limitados, pero puedes hacer algo */
+.select-users-role option {
+  padding: 8px;
+  color: var(--text-secondary);
+  max-width: 200px;
+}
+
+/* ==========================================================================
     Orders section 
-*/
+========================================================================== */
+.cont-header-orders,
 .cont-table-orders {
     /* id     status.name    price  */
     padding: 0;
     gap: 16px;
     column-gap: 0;
-    grid-template-columns: 0.4fr 1.1fr 0.9fr;
+    grid-template-columns: 0.6fr 0.9fr 0.8fr;
+    background-color: var(--bg-primary);
+    border: 2px solid var(--text-primary);
+}
+
+.cont-header-orders {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.cont-table-orders {
+    padding-top: 10px;
+    border-top: none;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.ver-order {
+    padding-left: 8px;
 }
 
 .row-order {
@@ -182,14 +276,16 @@
 
 /* Styles for large desktops (mín. 992px to max. infinite) */
 @media (min-width: 992px) {
-    .cont-table-user {
-        grid-template-columns: 0.7fr 0.7fr 1.7fr 0.7fr 0.4fr;
-        height: 48px;
-        column-gap: 16px;
+
+    .cont-header-orders,
+    .cont-table-orders {
+        /* id     date    status.name    price   */
+        justify-self: center;
+        grid-template-columns: 0.6fr 0.7fr 1fr 1fr 0.7fr;
     }
 
-    .cont-table-orders {
-        /* id     date    status.name    price    href */
-        grid-template-columns: 0.4fr 0.6fr 1.1fr 1.1fr 0.5fr;
+    .ver-order {
+        padding-left: 24px;
     }
 }
+

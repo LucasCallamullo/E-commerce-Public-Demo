@@ -51,9 +51,18 @@
     height: 44px;
 }
 
+/* Form edit user */
+.modal-edit-user {
+    height: min-content !important;
+}
+
 
 /* Styles for large desktops (mín. 993px to max. infinite) */
 @media (min-width: 992px) {
+    .modal-edit-user {
+        width: 50%;
+    }
+
     .white-border-right-left {
         border: none;
         height: 40px;
@@ -70,23 +79,34 @@
 }
 
 
-
-
-
-
-
-
-
-
 /* =========================================================================================
-            TAB PERSONALIZADO DE ORDERS
+    TAB PERSONALIZADO DE ORDERS
 ========================================================================================= */
+.cont-header-orders,
 .cont-table-orders {
     /* id     status.name    price  */
     padding: 0;
     gap: 16px;
     column-gap: 0;
-    grid-template-columns: 0.4fr 1.1fr 0.9fr;
+    grid-template-columns: 0.6fr 0.9fr 0.8fr;
+    background-color: var(--bg-primary);
+    border: 2px solid var(--text-primary);
+}
+
+.cont-header-orders {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.cont-table-orders {
+    padding-top: 10px;
+    border-top: none;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.ver-order {
+    padding-left: 8px;
 }
 
 .row-order {
@@ -102,14 +122,60 @@
 
 /* Styles for large desktops (mín. 992px to max. infinite) */
 @media (min-width: 992px) {
-    .cont-table-user {
-        grid-template-columns: 0.7fr 0.7fr 1.7fr 0.7fr 0.4fr;
-        height: 48px;
-        column-gap: 16px;
+
+    .cont-header-orders,
+    .cont-table-orders {
+        /* id     date    status.name    price   */
+        width: 80%;
+        justify-self: center;
+        grid-template-columns: 0.6fr 0.7fr 1.2fr 0.9fr;
     }
 
-    .cont-table-orders {
-        /* id     date    status.name    price    href */
-        grid-template-columns: 0.4fr 0.6fr 1.1fr 1.1fr 0.5fr;
+    .ver-order {
+        padding-left: 24px;
+    }
+}
+
+
+/* =========================================================================================
+    TAB PERSONALIZADO DE PAYMENTS
+========================================================================================= */
+.cont-header-payments,
+.cont-table-payments {
+    /* id     status.name    price  */
+    padding: 0;
+    gap: 16px;
+    column-gap: 0;
+    grid-template-columns: 0.7fr 0.7fr 1fr;
+    background-color: var(--bg-primary);
+    border: 2px solid var(--text-primary);
+    width: 100%;
+    max-width: 100%;
+}
+
+.cont-table-payments .underline-anim span::after {
+    background-color: var(--main-light-color);
+}
+
+.cont-header-payments {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.cont-table-payments {
+    padding-top: 10px;
+    border-top: none;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Styles for large desktops (mín. 992px to max. infinite) */
+@media (min-width: 992px) {
+
+    .cont-header-payments,
+    .cont-table-payments {
+        /* Factura_Id     date    payment.name    total_price    invoice(download)   */
+        justify-self: center;
+        grid-template-columns: 0.65fr 0.65fr 0.9fr 1fr 0.5fr;
     }
 }

@@ -269,59 +269,64 @@ async function getTabContentAJAX({ container, tabId, params = '' } = {}) {
 }
 
 
+
 /**
- * Initializes the tab interface once the DOM is fully loaded.
- * 
- * - Adds click event listeners to tab buttons to load and display tab content dynamically.
- * - Hides all tab content divs and shows only the selected tab's content.
- * - Fetches tab content via AJAX using the tab's name in the URL.
- * - Calls specific event setup functions based on the active tab.
- * - Automatically triggers a click on the second tab on page load to display its content.
+ * Initializes the tab navigation system.
+ *
+ * - Handles click events on tab buttons using event delegation.
+ * - Prevents unnecessary reloads when clicking the active tab.
+ * - Toggles the "active-tab" class between buttons.
+ * - Shows the selected tab content and hides the rest.
+ * - Loads tab content asynchronously via AJAX.
+ * - Automatically opens the second tab on page load.
  */
-document.addEventListener('DOMContentLoaded', () => {
-    
+function initTabs() {
     const contBtnTabs = document.querySelector('.cont-tabs');
-    const btnTabs = document.querySelectorAll('.btn-tabs');
+    if (!contBtnTabs) return;
+
+    const btnTabs = contBtnTabs.querySelectorAll('.btn-tabs');
     const divTabs = document.querySelectorAll('.tab-content');
-    
-    contBtnTabs.addEventListener('click', async function (e) {
 
+    contBtnTabs.addEventListener('click', async (e) => {
         const btn = e.target.closest('.btn-tabs');
-        if (!btn) return; // Si no se hizo click en un .btn-tabs, ignorar
 
-        // Opcional: evitar repetir acción si ya está activo
-        if (btn.classList.contains('active')) return;
+        // Optional: prevent reloading if the tab is already active
+        if (!btn || btn.classList.contains('active-tab')) return;
 
-        // Remove 'active' class from all tab buttons
-        btnTabs.forEach(btn => btn.classList.remove('active'));
-        btn.classList.add('active');
+        // Remove 'active-tab' class from all buttons
+        btnTabs.forEach(b => b.classList.remove('active-tab'));
+        btn.classList.add('active-tab');
 
         const tabId = btn.dataset.tab;
         const container = document.getElementById(tabId);
 
-        // Hide all tab content divs and show only the selected one
+        // Hide all tab content containers and show only the selected one
         divTabs.forEach(div => div.style.display = 'none');
         container.style.display = 'block';
 
-        await getTabContentAJAX({ container, tabId })
-    })
-
-    const formsClose = document.querySelectorAll('.form-close-profile');
-    formsClose.forEach((form) => {
-        // this function its from users/widget_login-js
-        if (form) widgetUserForms(form, "Close");
+        // Fetch and render tab content dynamically
+        await getTabContentAJAX({ container, tabId });
     });
 
-    // Automatically trigger click on the second tab to show it on page load
-    const firstTab = btnTabs[2];
-    if (firstTab) {
-        firstTab.click();
-        /*
-        const tabId = firstTab.dataset.tab;
-        const container = document.getElementById(tabId);
-        getTabContentAJAX({ container, tabId }) */
-    }
+    // Automatically trigger click on the second tab on page load
+    btnTabs[1]?.click();
+}
+
+
+
+/**
+ * Entry point for page-specific JavaScript.
+ * Initializes all UI modules once the DOM is fully loaded.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    initTabs();
+    // events in endpoints / users_edit.js
+    initLogoutForm();
+    initEditUserForm();
 });
+
+
+
 
 
 
