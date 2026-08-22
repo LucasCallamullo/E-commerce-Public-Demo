@@ -24,3 +24,32 @@
         max-height: 40px;
     }
 }
+
+
+/* especial para contact page */
+.icons-contact .ri-tiktok-fill, 
+.icons-contact .ri-twitter-line, 
+.icons-contact .ri-pin-distance-line, 
+.icons-contact .ri-twitter-x-line {
+    color: var(--text-primary);
+}
+
+.icons-contact .ri-facebook-box-fill {
+    color: #1877F2;
+}
+
+.icons-contact .ri-instagram-line {
+    color: #E4405F;
+}
+
+.icons-contact .ri-google-fill {
+    color: #DB4437;
+}
+
+.icons-contact .ri-youtube-fill {
+    color: #DB4437;
+}
+
+.icons-contact .ri-whatsapp-line {
+    color: var(--green-wsp-color);
+}

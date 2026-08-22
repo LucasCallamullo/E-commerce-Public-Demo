@@ -2,7 +2,7 @@
 {% load compress static %}
 
 {% block extra_head %}
-    <title>Contacto | {{store.name}}</title>
+    <title>Contacto | {{ store_info.store.name}}</title>
     {% compress css %}
         <link rel="stylesheet" href="{% static 'contact/css/contact.css' %}">
     {% endcompress %}
@@ -10,7 +10,7 @@
 
 
 {% block main_content %}
-<div class="d-flex gap-2">
+<div class="d-flex gap-1">
     <a class="btn btn-parallelogram w-min px-2 font-md" href="{% url 'Home' %}"><span>Home</span></a>
     <button class="btn btn-parallelogram w-min px-2 font-md"><span>Contacto</span></button>
 </div>
@@ -26,49 +26,56 @@
 
     {# Info basica de la tienda #}
     <div class="d-flex-col gap-2 h-min bg-primary border-hover p-3">
+
         <h2 class="bold-main">Contactanos</h2>
 
         <h3>Sucursal:</h3>
 
         <p class="d-flex text-start gap-1 pxl-2">
             <i class="ri-map-pin-line font-xl"></i>
-            <span class="text-break">{{store.address}}, Córdoba, Argentina.</span>
+            <span class="text-break">{{ store_info.store.address }}, Córdoba, Argentina.</span>
         </p>
 
         <p class="d-flex gap-1 pxl-2">
             <i class="ri-whatsapp-line font-xl"></i>
-            {{store.cellphone}}
+            {{ store_info.store.cellphone }}
         </p>
 
+        {# Hporarios #}
         <div class="d-flex gap-1 pxl-2">
             <i class="ri-time-line font-xl"></i>
-            <p class="d-flex-col gap-1 text-justify">
-                <span>Lunes a Viernes de 10hs a 14hs y de 15hs a 18:50hs.</span>
-                Sábado hasta el mediodía.
-            </p>
+            <span class="d-flex-col gap-1 text-justify store-schedules">
+                {% if not store_info.store.schedules %}
+                    <p>Lunes a Viernes de 10hs a 14hs y de 15hs a 18:50hs.</p>
+                    <p>Sábado mediodía.</p>
+                {% endif %}
+            </span>
         </div>
 
         <span class="d-flex gap-1 pxl-2">
             <i class="ri-mail-line font-xl"></i>
-            {{store.email}}
+            {{ store_info.store.email }}
         </span>
 
         <h3>Redes:</h3>
 
         {# Icon Container  #} 
-        <div class="d-flex ms-1 gap-3 icons-footer pxl-2">
-            <a href="{{store.tt_url}}" class="hover-up" target="_blank">
-                <i class="ri-tiktok-fill font-xxl"></i>
+        <div class="d-flex ms-1 icons-contact gap-3 pxl-2">
+            {# WSP siempre irá primero ver después logica con js para cambiar el href #}
+            <a href="https://wa.me/{{ store_info.store.wsp_number }}" target="_blank" title="Whatsapp"
+                class="text-white hover-up justify-self-center" 
+                data-type="footer">
+                <i class="ri-whatsapp-line font-xxl"></i>
             </a>
-            <a href="{{store.fb_url}}" class="hover-up" target="_blank">
-                <i class="ri-facebook-box-fill font-xxl"></i>
-            </a>
-            <a href="{{store.ig_url}}" class="hover-up" target="_blank">
-                <i class="ri-instagram-line font-xxl"></i>
-            </a>
-            <a href="{{store.google_url}}" class="hover-up" target="_blank">
-                <i class="ri-google-fill font-xxl"></i>
-            </a>
+
+            {# creamos dinamicamente los iconos asociados #}
+            {% for social in store_info.social_networks.all %}
+                <a href="{{social.url}}" class="text-white hover-up justify-self-center" 
+                target="_blank" title="{{social.name}}">
+                    {# Usamos la icon_class y name que generamos dinámicamente en el Service #}
+                    <i class="{{social.icon_class}} font-xxl"></i>
+                </a>
+            {% endfor %}
         </div>
 
         <b>Presupuestos de PC y consultas particulares por Whatsapp</b>
