@@ -104,10 +104,10 @@ INSTALLED_APPS = [
     
     # --- PROJECT BUSINESS LOGIC (Internal Apps) ---
     'core',           # Shared utilities and base classes
-    'home',           # Marketing and landing pages
     'users',          # User authentication and management
-    'profiles',       # User profiles and preferences
+    'home',           # Marketing and landing pages
     'products',       # Catalog and product management
+    'profiles',       # User profiles and preferences
     'favorites',      # Wishlists and user bookmarks
     
     # --- E-COMMERCE ENGINE ---
@@ -116,9 +116,10 @@ INSTALLED_APPS = [
     'payments',       # Payment gateway integration (e.g., Mercado Pago)
     
     # --- ANALYTICS AND BACKOFFICE ---
-    # 'dashboard',       # General administration dashboard
-    # 'dashboard_sales', # Specialized sales analytics
-    # 'audit',           # Logging and system activity tracking
+    'dashboard',       # General administration dashboard
+    'dashboard_sales', # Specialized sales analytics
+    'audit',           # Logging and system activity tracking
+    'analytics',       # analytics price tracking
     
     'contact',         # Contact forms and support (email smtp)
 ]
@@ -243,6 +244,9 @@ COMPRESS_ENABLED = False if DEBUG else True
 # This is why we run 'python manage.py compress --force' in the Dockerfile/Compose command
 COMPRESS_OFFLINE = False if DEBUG else True
 
+# esto hace que al comprimir cree tambien su respectivo archivo .gz ya comprimido 
+# servido para Nginx
+COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
 
 # ---------------------------------------------------------------------------------- 
 # DJANGO REST FRAMEWORK CONFIGURATION 
@@ -347,7 +351,6 @@ LOGGING = {
     },
 }
 # Optional: Use colored logs in Development (DEBUG=True) if colorlog is installed
-"""  
 if DEBUG:
     try:
         import colorlog
@@ -361,7 +364,6 @@ if DEBUG:
         LOGGING["handlers"]["console"]["formatter"] = "colored"
     except ImportError:
         pass # If colorlog is not installed, it falls back to the simple formatter
-"""
 
 
 # ---------------------------------------------------------------------------------- 
@@ -369,6 +371,7 @@ if DEBUG:
 # ----------------------------------------------------------------------------------
 # In Development (DEBUG=True), we use local memory cache for simplicity.
 # In Production, we use Redis for high-performance distributed caching.
+""" 
 if DEBUG:
     CACHES = {
         'default': {
@@ -377,18 +380,19 @@ if DEBUG:
         }
     }
 else:
-    # Using Redis as the primary cache backend for high performance
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": "redis://redis_cliente_1:6379/1",    # Using database index 1 in Redis
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            }
+"""
+# Using Redis as the primary cache backend for high performance
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://redis_client_1:6379/1",    # Using database index 1 in Redis
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     }
-    
-    
+}
+
+
 # --- SESSION MANAGEMENT ---
 # Storing sessions in Redis instead of the database (Database-less sessions)
 # This significantly improves performance and reduces DB load
@@ -400,21 +404,21 @@ SESSION_CACHE_ALIAS = "default"
 
 # ALLOWED_HOSTS: Domains or IPs that can serve this Django app.
 # Note: In production, '*' should be replaced with your specific domain.
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 # CSRF_TRUSTED_ORIGINS: Required for secure requests (POST) from specific domains.
 # Must include the protocol (http/https) and the port.
-CSRF_TRUSTED_ORIGINS = [
-    'http://127.0.0.1:8000',
-    'http://localhost:8000',
-    'https://3a72490574f8.ngrok-free.app', # Temporary ngrok tunnel for testing
-]
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "http://127.0.0.1:8000").split(",")
+
+# BASE_URL_PAGE: Used for generating absolute URLs (e.g., for Mercado Pago webhooks)
+BASE_URL_PAGE = os.environ.get("BASE_URL_PAGE", "http://localhost:8000")
+CSRF_TRUSTED_ORIGINS.append(BASE_URL_PAGE)
+
+ALLOWED_HOSTS.append("95b5-2803-9800-9884-bf03-2ca8-9e40-6d8-40f2.ngrok-free.app")
+CSRF_TRUSTED_ORIGINS.append("https://95b5-2803-9800-9884-bf03-2ca8-9e40-6d8-40f2.ngrok-free.app")
 
 if DEBUG:
-    # BASE_URL_PAGE: Used for generating absolute URLs (e.g., for Mercado Pago webhooks)
-    BASE_URL_PAGE = "https://656321f2e712.ngrok-free.app"
-    CSRF_TRUSTED_ORIGINS.append(BASE_URL_PAGE)
-    
+    pass 
     # --- DEVELOPMENT TOOLS ---
     # Optional: Enable Django Debug Toolbar for performance profiling
     # INSTALLED_APPS += ['debug_toolbar']
