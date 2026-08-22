@@ -7,12 +7,42 @@ class PaymentMethodService:
     """
     Service responsible for retrieving payment method data.
     """
+    
+    @staticmethod
+    def get_dashboard_list() -> list[dict[str, Any]]:
+        """
+        Payment methods including administrative fields.
+        """
+        return PaymentMethodService._get_all(
+            values=('id', 'name', 'time', 'is_active', 'description')
+        )
+
+    @staticmethod
+    def for_checkout() -> list[dict[str, Any]]:
+        """
+        Payment methods available for checkout.
+        """
+        return PaymentMethodService._get_all(
+            values=('id', 'name', 'time', 'description'),
+            only_active=True
+        )
+
+    @staticmethod
+    def for_filters() -> list[dict[str, Any]]:
+        """
+        Payment methods optimized for filters or selects.
+        """
+        return PaymentMethodService._get_all(
+            values=('id', 'name'),
+            only_active=True
+        )
+
+    # -------------------- Private Helpers
 
     @staticmethod
     def _get_all(
-        *,
         values: Iterable[str],
-        only_active: bool = False,
+        only_active: bool = False
     ) -> list[dict[str, Any]]:
         """
         Internal helper to retrieve payment methods with custom fields.
@@ -30,34 +60,3 @@ class PaymentMethodService:
             qs = qs.filter(is_active=True)
 
         return list(qs.values(*values).order_by('id'))
-
-    # ---------- Public API ----------
-
-    @staticmethod
-    def for_admin() -> list[dict[str, Any]]:
-        """
-        Payment methods including administrative fields.
-        """
-        return PaymentMethodService._get_all(
-            values=('id', 'name', 'time', 'is_active', 'description')
-        )
-
-    @staticmethod
-    def for_checkout() -> list[dict[str, Any]]:
-        """
-        Payment methods available for checkout.
-        """
-        return PaymentMethodService._get_all(
-            values=('id', 'name', 'time', 'description'),
-            only_active=True,
-        )
-
-    @staticmethod
-    def for_filters() -> list[dict[str, Any]]:
-        """
-        Payment methods optimized for filters or selects.
-        """
-        return PaymentMethodService._get_all(
-            values=('id', 'name'),
-            only_active=True,
-        )

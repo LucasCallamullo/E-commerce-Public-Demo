@@ -1,6 +1,3 @@
-
-
-# Create your models here.
 from django.db import models
 
 
@@ -63,7 +60,7 @@ class ItemOrder(models.Model):
     quantity = models.IntegerField()
     
     final_price = models.DecimalField(max_digits=10, decimal_places=2)
-    discount = models.IntegerField(default=0)
+    discount = models.IntegerField(default=0)    # porcentual aplicado en algunos productos
     original_price = models.DecimalField(max_digits=10, decimal_places=2, default='0.00')
     
     class Meta:
@@ -84,11 +81,13 @@ class ItemOrder(models.Model):
         return f"{self.quantity} x {self.product.name}"
 
 
+from orders.enums import StatusOrderEnum
+
 class Order(models.Model):
     user = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, related_name='orders')
     
     # Foreign Keys
-    status = models.ForeignKey('StatusOrder', on_delete=models.SET_NULL, null=True, default=2)
+    status = models.ForeignKey('StatusOrder', on_delete=models.SET_NULL, null=True, default=StatusOrderEnum.PENDING)
     payment = models.ForeignKey('PaymentMethod', on_delete=models.SET_NULL, null=True)
     shipment = models.ForeignKey('ShipmentOrder', on_delete=models.SET_NULL, null=True)
     
@@ -144,3 +143,49 @@ class Invoice(models.Model):
     # maybe for analitycs
     total_mp = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
+
+from django.db.models import Q
+class OrderDraft(models.Model):
+    user = models.ForeignKey('users.CustomUser', null=True, blank=True, on_delete=models.SET_NULL)
+    """  
+    {
+        "items": [
+            {
+                "id": 41,
+                "name": "Peluche Espeon",
+                "slug": "peluche-espeon",
+                "price": 5000.0,
+                "image": "https://i.ibb.co/5hcz0zs0/246d972c1efc4.webp",
+                "quantity": 1,
+                "stock": 10,
+                "discount": 10
+            },
+        ],
+        "total_price": 10000.0,
+        "total_price_discount": 9000.0,
+        "total_quantity": 4
+    }
+    """
+    cart = models.JSONField()    # snapshot del carrito
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    
+    status = models.CharField(
+        max_length=20,
+        choices=[("OPEN", "Open"), ("USED", "Used"), ("EXPIRED", "Expired")],
+        default="OPEN"
+    )
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=["status"]),
+            models.Index(fields=["created_at"]),
+        ]
+        
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "status"],
+                condition=Q(status="OPEN"),
+                name="unique_open_draft_per_user"
+            )
+        ]

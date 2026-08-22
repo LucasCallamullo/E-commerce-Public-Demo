@@ -3,7 +3,7 @@ function renderTableModal(containerMain) {
     /**
      * Render a single cart row for the cart table.
      * 
-     * @param {Object} product - Product data object from CART_DATA.
+     * @param {Object} product - Product data object from CART_STORE.
      * @param {number} index - Position of the product in the list (0-based).
      * @returns {HTMLElement} - A DOM element representing the product row.
      */
@@ -13,7 +13,8 @@ function renderTableModal(containerMain) {
         // Use a fallback image if missing or relative
         const imgSrc = prod.image.startsWith('http') ? prod.image : 'default-image.jpg';
         const price = formatNumberWithPoints(prod.price);
-        const subTotal = formatNumberWithPoints((prod.price * prod.quantity));
+        const price_discount = formatNumberWithPoints(prod.price_discount);
+        const subTotal = formatNumberWithPoints((prod.price_discount * prod.quantity));
 
         // Build product detail URL
         const url = window.BASE_URLS.productDetail
@@ -24,6 +25,11 @@ function renderTableModal(containerMain) {
             <div class="cart-row ${(index == 0) ? 'border-top-tablets' : ''}">
                 <div class="image cont-img-100-off">
                     <img class="img-scale-down" src="${imgSrc}" alt="${prod.name}">
+
+                    ${prod.discount > 0 ? /*html*/`
+                        <span class="badge-discount bolder font-sm">
+                            -${prod.discount}%
+                        </span>` : ''}
                 </div>
 
                 <a class="name text-start bolder font-sm main-ref" href="${url}">
@@ -31,11 +37,19 @@ function renderTableModal(containerMain) {
                 </a>
 
                 <span class="price font-md bolder">
-                    $ ${price}
-                    <i class="ri-close-line font-md bolder"></i>
+                    <!-- según el tipo de descuento damos feedback visual -->
+                    ${prod.discount > 0 ? /*html*/`
+                        <div class="d-flex-col gap-1">
+                            &nbsp;$ ${price_discount}
+                            <span class="text-line-through text-secondary font-sm">
+                                &nbsp;$ ${price}
+                            </span>
+                        </div>
+                    ` : /*html*/`&nbsp;$ ${price}`}
                 </span>
                 
                 <span class="quantity font-md bolder">
+                    <i class="ri-close-line font-md bolder"></i>
                     ${prod.quantity}
                     <i class="ri-equal-line"></i>
                 </span>
@@ -46,7 +60,7 @@ function renderTableModal(containerMain) {
                     $ ${subTotal}
                 </span>
             </div>
-        `.trim();
+        `.trim().replace(/<!--[\s\S]*?-->/g, '');
 
         const wrapper = document.createElement('div');
         wrapper.innerHTML = cardWidget;
@@ -74,11 +88,11 @@ function renderTableModal(containerMain) {
         return tempDiv.firstElementChild;
     }
 
-    // CART_DATA contains the current cart state, populated by SSR or via AJAX.
+    // CART_STORE contains the current cart state, populated by SSR or via AJAX.
     const fragment = document.createDocumentFragment();
 
     // Render each cart product. Add header row before the first product.
-    window.CART_DATA.cart.forEach((product, index) => {
+    window.CART_STORE.items.forEach((product, index) => {
         if (index == 0) fragment.appendChild(renderHeaderTable());
         fragment.appendChild(renderTableCart(product, index));
     });
@@ -90,6 +104,7 @@ function renderTableModal(containerMain) {
 
     // Update all total price displays in the container
     const contTotals = containerMain.querySelectorAll('.modal-table-total');
-    const totalPrice = formatNumberWithPoints(window.CART_DATA.cart_price, true);
-    contTotals.forEach(t => { t.textContent = `$ ${totalPrice}` });
+    contTotals.forEach(t => { 
+        t.textContent = `$ ${formatNumberWithPoints(window.CART_STORE.totalPriceDiscount, true)}` 
+    });
 }

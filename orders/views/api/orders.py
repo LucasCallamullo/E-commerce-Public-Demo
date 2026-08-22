@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from cart.carrito import Carrito
-from orders.serializers import OrderFormSerializer
+from orders.serializers.orders import OrderFormSerializer
 from orders import utils
 from orders.services.orders import OrderService  
 
@@ -15,7 +15,6 @@ class OrderAPI(APIView):
     permission_classes = [IsAuthenticated]  # Solo usuarios autenticados pueden acceder
     # para rate limit 3/min
     throttle_scope = 'orders'
-    
     
     def post(self, request):
         # print(request.data)  # for debug # Para ver qué datos realmente llegan

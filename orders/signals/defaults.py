@@ -1,26 +1,8 @@
 from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 
-from orders.models import StatusOrder, PaymentMethod, ShipmentMethod
-
 import logging
 logger = logging.getLogger(__name__)
-
-def load_data(model_class, data, table_name='', unique_field='name'):
-    """
-    Carga datos maestros usando get_or_create.
-    """
-    for item in data:
-        lookup = {unique_field: item[unique_field]}
-        m, _ = model_class.objects.get_or_create(
-            **lookup,
-            defaults=item
-        )
-        logger.debug("[TABLA = %s][Creando: %s]",
-            table_name,
-            m.name    
-        )
-
 
 @receiver(post_migrate)
 def create_orders_defaults(sender, **kwargs):
@@ -28,6 +10,8 @@ def create_orders_defaults(sender, **kwargs):
     if sender.name != 'orders':
         return
 
+    from orders.models import StatusOrder, PaymentMethod, ShipmentMethod
+    
     # Datos a cargar
     data_order_status = [
         {'name': 'Cancelado', 'description': 'El envío fue cancelado.'},
@@ -68,6 +52,28 @@ def create_orders_defaults(sender, **kwargs):
          'description': 'Envío para otras provincias', 'is_active': False, 'price': 3000.00},
     ]
 
-    load_data(StatusOrder, data_order_status, 'StatusOrder')
-    load_data(PaymentMethod, data_payment_methods, 'PaymentMethod')
-    load_data(ShipmentMethod, data_envio_methods, 'ShipmentMethod')
+    def load_data(
+        model_class: StatusOrder | PaymentMethod | ShipmentMethod, 
+        data, 
+        unique_field='name'
+    ):
+        """ Carga datos maestros usando get_or_create. """
+        count = model_class.objects.count()
+        if count == 0:
+            for item in data:
+                lookup = {unique_field: item[unique_field]}
+                m, _ = model_class.objects.get_or_create(
+                    **lookup,
+                    defaults=item
+                )
+                logger.debug("[TABLA = %s][Creando: %s]",
+                    model_class.__name__,
+                    m.name    
+                )
+        else:
+            logger.debug('Existen %s registros de %s creados.', count, model_class.__name__)
+        
+
+    load_data(StatusOrder, data_order_status)
+    load_data(PaymentMethod, data_payment_methods)
+    load_data(ShipmentMethod, data_envio_methods)

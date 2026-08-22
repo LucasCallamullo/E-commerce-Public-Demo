@@ -1,7 +1,7 @@
 /// <reference path="../../../../static/js/base.js" />
 /// <reference path="../../../../static/js/forms.js" />
 /// <reference path="../../../../static/js/utils.js" />
-/// <reference path="../../../../static/js/overlay-modal.js" />
+/// <reference path="../../../../static/js/overlay_modal.js" />
 
 
 /**
@@ -98,6 +98,15 @@ function shippingRadio(containerMain, form) {
                 display.textContent = event.target.value;
             });
 
+            // update del total en base al precio de envío
+            const sum = (price === 'Gratis') ? 0 : parseFloat(price.replaceAll('.', ''));;
+            const totalsSpan = containerMain.querySelectorAll('.modal-table-total')
+            totalsSpan.forEach(s => {
+                s.textContent= `$ ${formatNumberWithPoints(
+                    sum + window.CART_STORE.totalPriceDiscount, true
+                )}`
+            });
+
             // agregamos dataset al form para usar despues antes de enviar
             inputForm.value = shipId || '0';
             
@@ -121,35 +130,33 @@ function shippingRadio(containerMain, form) {
 
 
 /**
- * Validates and submits the order form.
+ * Validates and submits the order form using already validated data.
  * Gathers form data, ensures that a payment and shipping method are selected,
  * then sends the data via POST in JSON format.
  *
- * @param {HTMLFormElement} form - The form element containing order details.
- * @returns {Promise<string|undefined>} - Returns the order ID on success, or undefined if failed.
+ * @param {Object} dataForm - Sanitized and validated form data
+ * @returns {Promise<string|undefined>}
  */
-async function validFormOrder(form) {
+async function validFormOrder(dataForm) {
 
-    // Build FormData and convert to JSON
-    const formData = new FormData(form);
-    const paymentId = formData.get('payment_method_id');
-    const shippingId = formData.get('shipping_method_id');
-
-    if (paymentId === '0' || shippingId === '0') {
+    // stupid check
+    if (dataForm.payment_method_id === '0' || dataForm.shipping_method_id === '0') {
         openAlert(
-            `Elija correctamente un método de ${(paymentId == '0') ? 'pago' : 'envío'}.`, 
-            'orange', 1500
+            `Elija correctamente un método de ${(dataForm.payment_method_id === '0') ? 'pago' : 'envío'}.`,
+            'orange',
+            1500
         );
         return;
-    }    
-    const jsonData = Object.fromEntries(formData.entries());
+    }
+ 
+    // const jsonData = Object.fromEntries(fromData.entries());
     const url = window.TEMPLATE_URLS.validOrder
 
     try {
         // Send the POST request to the server with JSON data
         const response = await fetch(url, { 
             method: 'POST',
-            body: JSON.stringify(jsonData),
+            body: JSON.stringify(dataForm),
             headers: {
                 'X-CSRFToken': getCookie('csrftoken'),
                 'Content-Type': 'application/json',
@@ -160,17 +167,17 @@ async function validFormOrder(form) {
 
         // If response is not ok, handle different types of errors
         if (!response.ok) {    
-            openAlert(data.detail || 'No hay suficiente Stock.', 'red', 1500);
+            openAlert(data.detail || 'No hay suficiente Stock.', 'red', 1000);
             return;
         }
 
         // On success, notify and return order ID
-        openAlert('Pedido guardado, complete su pago para finalizar!', 'green', 1500);
+        openAlert('Pedido guardado, complete su pago para finalizar!', 'green', 1000);
         return data.order_id;
 
     } catch (error) {
         console.error('Error:', error);
-        openAlert('Error al procesar la solicitud. Intenta nuevamente.', 'red', 2000);
+        openAlert('Error al procesar la solicitud. Intenta nuevamente.', 'red', 1500);
     }
 }
 
@@ -262,36 +269,61 @@ function eventFormOrder(containerMain, form) {
 };
 
 
-document.addEventListener('DOMContentLoaded', () => {
-
-    const containerMain = document.getElementById('main-base');
-    const form = containerMain.querySelector('#form-order');
-    let order_id;
+function eventFormCreateOrder(form) {
+    
+    const FIELD_LABELS = {
+        name_retire: 'Nombre de quien retira',
+        dni_retire: 'DNI de quien retira',
+        province: 'Provincia',
+        city: 'Ciudad',
+        address: 'Domicilio completo',
+        postal_code: 'Código postal',
+        detail: 'Detalles del envío',
+    };
 
     // Handle form submission
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            openAlert('Faltan completar campos en el formulario.', 'orange', 2000);
+            return;
+        }
+
         // Call the generic handler for form submission (includes animation, validation, and redirect)
         await handleGenericFormBase({
             form: form, 
             submitCallback: async () => {
-                try {
-                    order_id = await validFormOrder(form);
-                } catch (err) {
-                    console.log('Validation error:', err);
-                }
+                // Serialize FormData into a plain JSON object
+                const data = getFormPayload({ form: form });
+                const order_id = await validFormOrder(data);
+            
+                return { order_id: order_id };
             },
-            closeCallback: () => {
+            closeCallback: (data) => {
                 // Redirect user to the payment page with the correct order ID in the URL
-                if (!order_id) return; 
-                const url = window.TEMPLATE_URLS.paymentPage.replace('{order_id}', `${order_id}`);
-                window.location.href = url;
+                const ord_id = data?.order_id;
+
+                if (!ord_id) return;
+
+                window.location.href = window.TEMPLATE_URLS.paymentPage
+                    .replace('order_id', `${ord_id}`);
             },
             flag_anim: true,
             time_anim: 1500
         });
     });
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const containerMain = document.getElementById('main-base');
+    const form = containerMain.querySelector('#form-order');
+
+    // Initialize Logic related to form to create orders
+    eventFormCreateOrder(form)
 
     // Initialize logic related to selecting a payment method
     paymentRadio(containerMain, form);
@@ -302,6 +334,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize additional event handlers for the order form
     eventFormOrder(containerMain, form);
 
-    // renderizar inicialmente la table dentro del modal a partir de window.CART_DATA
+    // renderizar inicialmente la table dentro del modal a partir de window.CART_STORE
     renderTableModal(containerMain);
 });

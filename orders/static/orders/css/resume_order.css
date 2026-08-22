@@ -193,7 +193,7 @@ form textarea {
 	}
 
     .cart-row {
-        grid-template-columns: 1fr 2fr 0.8fr 0.7fr 1.5fr;
+        grid-template-columns: 1fr 1.6fr 1.1fr 0.8fr 1.5fr;
         grid-template-rows: none;
         grid-template-areas: "image name price quantity subtotal";
         height: 120px;

@@ -298,8 +298,8 @@ class OrderService:
                 ItemOrder(
                     order=new_order,
                     product=product,
-                    discount=product.discount,
-                    original_price=product.price,
+                    discount=product.discount_ars,
+                    original_price=product.price_ars,
                     quantity=quantity,
                     final_price=price_decimal,
                 )
@@ -365,7 +365,7 @@ class OrderService:
             Product.objects
             .filter(id__in=products_ids_qty.keys())
             .select_for_update()
-            .only("id", "name", "stock", "stock_reserved", "available", "price", "discount")
+            .only("id", "name", "stock", "stock_reserved", "available", "price_ars", "discount_ars")
             .in_bulk()   # returns {id: Product}
         )
 

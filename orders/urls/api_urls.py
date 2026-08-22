@@ -7,6 +7,19 @@ from orders.views.api.shipments import ShipmentAPI
 
 urlpatterns = [
     path("order-form/", OrderAPI.as_view(), name="valid_order_form"),
-    path("api/shipments/<int:shipment_id>/", ShipmentAPI.as_view(), name="update_shipment"),
-    path("api/payments/<int:payment_id>/", PaymentAPI.as_view(), name="update_payment"),
+    
+    # --- Shipment Methods Endpoints ---
+    path('api/shipments/', ShipmentAPI.as_view(), 
+        name='api_shipments'), # GET List
+    
+    path('api/shipments/<int:pk>/', ShipmentAPI.as_view(), 
+        name='api_shipments_detail'), # GET (detail), PATCH
+    
+    # --- Payment Methods Endpoints ---
+    path('api/payments/', PaymentAPI.as_view(), 
+        name='api_payments'), # GET List
+    
+    path('api/payments/<int:pk>/', PaymentAPI.as_view(), 
+        name='api_payments_detail'), # GET (detail), PATCH
+    
 ]

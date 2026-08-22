@@ -1,36 +1,64 @@
-from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-
-from orders.models import ShipmentMethod
-from orders.serializers import ShipmentSerializer
-
+# core app
 from core.permissions import IsAdminOrSuperUser
-from core.utils.utils_basic import valid_id_or_None
+from core.views.get_object_mixin import GetObjectMixin
+# orders app
+from orders.models import ShipmentMethod
+from orders.serializers.methods import ShipmentSerializer
 
-
-class ShipmentAPI(APIView):
-    # Verificar si es role == 'admin' o user.id == 1
-    permission_classes = [IsAuthenticated, IsAdminOrSuperUser]
+class ShipmentAPI(APIView, GetObjectMixin):
+    """
+    API View to manage Shipment Methods.
+    Provides optimized retrieval (GET) and partial updates (PATCH) 
+    with standardized response formatting.
+    """
+    permission_classes = [IsAdminOrSuperUser]
     
-    def patch(self, request, shipment_id):
+    def patch(self, request, pk: int | str) -> Response:
+        """
+        Partially updates a specific shipment method.
         
-        shipment_id = valid_id_or_None(shipment_id)
-        if not shipment_id:
-            return Response({"success": False, "detail": 'Shipment ID Incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+        1. Retrieves the model instance using GetObjectMixin.
+        2. Validates incoming JSON data via ShipmentSerializer.
+        3. Persists changes using optimized SQL updates.
+        """
+        shipment = self._get_shipment_method(shipment_id=pk)
         
-        try:
-            shipment = ShipmentMethod.objects.get(id=shipment_id)
-        except ShipmentMethod.DoesNotExist:
-            return Response({"success": False, "detail": "Método de envío no encontrado"}, status=status.HTTP_404_NOT_FOUND)
-        
-        # validar con el serializador el json recibido desde el form
+        # Initialize serializer with partial=True for PATCH operations
         serializer = ShipmentSerializer(shipment, data=request.data, partial=True)
 
-        # si esta todo bien se guarda el objeto automaticamente
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"success": True, "message": "Shipment actualizado correctamente"}, status=status.HTTP_200_OK)
-            
-        return Response({"success": False, "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        # Delegate validation and error raising to the serializer
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        
+        return self.success_response(data=serializer.data, key='shipment_method')
+
+    def get(self, request, pk: int | str = None) -> Response:
+        """
+        Retrieves shipment methods.
+        
+        If 'pk' is provided: Returns a single object as a dictionary.
+        If 'pk' is None: Returns a list of all shipment methods.
+        """
+        if pk:
+            # Use Mixin to retrieve a specific record as a dict (DB optimized)
+            ship = self.get_values_or_error(ShipmentMethod, pk)
+            return self.success_response(data=ship, key="shipment_method")
+        
+        # Retrieve all records as a list of dictionaries to bypass model instantiation overhead
+        shipments = list(ShipmentMethod.objects.all().values())
+        return self.success_response(
+            data=shipments,
+            key="shipment_methods",
+            count=len(shipments)
+        )
+        
+    def _get_shipment_method(self, shipment_id: int | str) -> ShipmentMethod:
+        """
+        Internal helper to fetch a ShipmentMethod instance or raise a 404/400 error.
+        """
+        return self.get_instance_or_error(
+            model_class=ShipmentMethod,
+            obj_id=shipment_id
+        )

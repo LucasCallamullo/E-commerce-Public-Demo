@@ -1,13 +1,12 @@
-
-
 from django.shortcuts import render
-# Create your views here.
+
+from users.models import Provincia
 
 from orders.services.orders_draft import OrderDraftService
 from orders.services.shipment_methods import ShipmentMethodService
 from orders.services.payment_methods import PaymentMethodService
-
 from orders.utils import get_order_detail_context
+
 
 def order_detail(request, order_id):
     user = request.user
@@ -19,8 +18,6 @@ def order_detail(request, order_id):
         render(request, "payments/fail_payments.html", {"error": "Order Not Found."})
     
     return render(request, "orders/order_detail.html", context)
-
-
 
 
 def resume_order(request):
@@ -37,9 +34,6 @@ def resume_order(request):
         3) Create or reuse a single OPEN draft for this user.
         4) Always keep the draft in sync with the latest cart state.
     """
-
-    from users.models import Provincia
-    
     def _redirect_to_login():
         context = {
             "flag_to_login": True,

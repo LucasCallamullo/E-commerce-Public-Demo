@@ -1,10 +1,5 @@
 
 
-function renderTableItems(containerMain) {
-
-}
-
-
 document.addEventListener('DOMContentLoaded', () => {
     
     const containerMain = document.getElementById('main-base');

@@ -12,24 +12,24 @@
 
 {% block main_content %}
 {# Primera fila #}
-<div class="d-flex mb-2 gap-1">
+<nav class="d-flex mb-2 gap-1">
 	<a class="btn btn-parallelogram px-2" href="{% url 'Home' %}">
-		<span class="font-md"> Home </span>
+		<span class="font-md">Home</span>
 	</a>
 	
 	<a class="btn btn-parallelogram d-desktop-flex px-2" href="{% url 'cart_page_detail' %}">
-		<span class="font-md"> Mi Carrito </span>
+		<span class="font-md">Mi Carrito</span>
 	</a>
 
 	<button class="btn btn-parallelogram px-2">
-		<span class="font-md"> Resumen Pedido </span>
+		<span class="font-md">Resumen Pedido</span>
 	</button>
-</div>
+</nav>
 
 
 <div class="cont-order-page">
 
-	<form class="d-grid cont-grid-122 bg-primary border-hover h-min shadow-low gap-2 p-3" id="form-order">
+	<form class="d-grid cont-grid-122 bg-primary border-hover h-min shadow-low gap-2 p-3" id="form-order" novalidate>
 		
 		<h1 class="grid-col-all bold-main">Tus Datos</h1>
 
@@ -47,7 +47,7 @@
 		{# Teléfono y DNI #}
 		<label class="d-flex-col gap-1 bolder">
 			Celular
-			<input type="text" name="cellphone" value="{{ user.cellphone|default:'' }}" required>
+			<input type="tel" name="cellphone" value="{{ user.cellphone|default:'' }}" required>
 		</label>
 
 		<label class="d-flex-col gap-1 bolder">
@@ -69,7 +69,7 @@
 
 		{# Extra form fore Retire #}
 		<section class="grid-col-all d-grid cont-grid-122 gap-2 mt-1" id="retire-form">
-			<h3 class="grid-col-all">Datos de Retiro</h3>
+			<h2 class="grid-col-all font-lg">Datos de Retiro</h2>
 
 			<label class="d-flex-col gap-1 bolder">
 				Nombre de quién retira
@@ -84,7 +84,7 @@
 
 		{# Extra form fore Shippin #}
 		<section class="grid-col-all d-grid cont-grid-122 gap-2 mt-1" id="shippin-form">
-			<h3 class="grid-col-all">Datos de Envío</h3>
+			<h2 class="grid-col-all font-lg">Datos de Envío</h2>
 
 			<label class="d-flex-col gap-1 bolder">Provincia
 				<select name="province" id="id_province" class="input-required">
@@ -158,7 +158,7 @@
 
 		{# Comienza opciones  #}
 		<section id="payment-methods-section" class="d-flex-col gap-1 fw-normal">
-			<h4 class="font-lg mb-1">Métodos de Pago</h4>
+			<h2 class="font-lg mb-1">Métodos de Pago</h2>
 
 			{% for payment in payment_methods %}
 				<label class="bg-secondary p-2 border-hover relative label-option">
@@ -175,19 +175,19 @@
 		<hr class="text-primary">
 
 		<section id="shipping-methods-section" class="d-flex-col gap-1">
-			<h4 class="font-lg mb-1">Métodos de Envío</h4>
+			<h2 class="font-lg mb-1">Métodos de Envío</h2>
 
 			{% for shipment in shipment_methods %}
 				<label class="bg-secondary p-2 border-hover relative label-option">
 					<input type="radio" name="ship" value="{{shipment.name}}" 
-						data-index="{{shipment.id}}" data-price="{{ shipment.price_float|floatformat:'-2' }}"
+						data-index="{{shipment.id}}" data-price="{{ shipment.price|floatformat:'-2' }}"
 						class="label-option__input"/>
 
 					<span class="label-option__checkmark"></span>
 
 					<b class="padding-left-40 font-md">{{ shipment.name }}</b>
 					<p class="padding-left-40 mt-1 font-sm text-secondary">
-						{% if shipment.price_float == 0 %}Gratis{% else %}$ {{shipment.price_float|intdot}}{% endif %}
+						{% if shipment.price == 0 %}Gratis{% else %}$ {{shipment.price|intdot}}{% endif %}
 					</p>
 				</label>
 			{% endfor %}
@@ -222,7 +222,7 @@
         Confirmar Pedido
     </button>
     <span class="d-flex gap-1 font-md justify-self-end bolder">
-        Total: <b class="font-md modal-table-total">$ {{total_price|intdot}}</b>
+        Total: <b class="font-md modal-table-total">$ </b>
     </span>
 </div>
 
@@ -235,7 +235,7 @@
     <script>
         window.TEMPLATE_URLS = {
             // payments/urls.py
-            paymentPage: "{% url 'payment-order-create' 0 %}".replace('0/', '{order_id}/'),
+            paymentPage: "{% url 'payment-order-create' 0 %}".replace('0', 'order_id'),
 
 			// orders/urls_api
 			validOrder: "{% url 'valid_order_form' %}"
