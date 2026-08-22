@@ -9,37 +9,35 @@ class ProductImage(models.Model):
     as the main image. This model manages individual image records as well
     as helper logic that automatically updates the main image selection.
     """
+    # "The product this image belongs to."
     product = models.ForeignKey(
-        "Product", on_delete=models.CASCADE, related_name='images', 
-        help_text="The product this image belongs to.")
+        'Product', 
+        on_delete=models.CASCADE, 
+        related_name='images',
+        # Desactivo el index por defecto que crea django en mi fk por mi index en Meta
+        db_index=False    
+    )
     
-    image_url = models.URLField(
-        null=True, blank=True, help_text="URL of the image.")
+    # CharField is used instead of ImageField for architectural design reasons:
+    # 1. Decoupling: Separates storage logic from the model. The path is managed 
+    #    externally (API/Services), facilitating future migrations to CDNs or Cloud Storage (S3).
+    # 2. Performance (Nginx): Enables Nginx to serve files directly as static resources 
+    #    via 'alias', bypassing the Django/Python overhead for high-performance delivery.
+    # 3. Efficiency: Avoids Django's automatic file-system validations, which can be 
+    #    resource-intensive during Bulk Load operations, and simplifies intelligent URL handling.
+    image_url = models.CharField(max_length=200, blank=True, null=True) # "URL of the image."
     
-    main_image = models.BooleanField(
-        default=False, help_text="Indicates whether this is the product's main image.")
+    # "Indicates whether this is the product's main image."
+    main_image = models.BooleanField(default=False)
 
-    def update_main_image(self, images_list=None):
-        """
-        Set this image as the product's main image.
 
-        If a list of prefetched images is provided, other images belonging
-        to the same product will be updated efficiently without triggering
-        extra database queries.
-
-        Args:
-            images_list (Iterable[ProductImage] | None):
-                Optional list or queryset of the product's images.
-                If provided, it avoids performing an additional fetch
-                to unset other main images.
-        """
-        if images_list is not None:
-            other_ids = [img.id for img in images_list if img.id != self.id]
-            if other_ids:
-                ProductImage.objects.filter(id__in=other_ids).update(main_image=False)
-
-        self.main_image = True
-        self.save(update_fields=['main_image'])
+    class Meta:
+        indexes = [
+            # Indice creado para velocidad en filter comunes, orders_by y cubre: 
+            # -    .filter(product_id=...)
+            # -    .filter(product_id=..., main_image=...)
+            models.Index(fields=['product', '-main_image']),
+        ]
 
     def delete(self, *args, **kwargs):
         """
@@ -60,7 +58,7 @@ class ProductImage(models.Model):
             if new_main:
                 new_main.update_main_image()
                 product.update_main_image(new_main.image_url)
+                
 
     def __str__(self):
-        """Readable representation of the image entry."""
-        return f"Url: {self.image_url} | Product ID: {self.product_id}"
+        return f"Image Url: {self.image_url} | Product ID: {self.product_id}"

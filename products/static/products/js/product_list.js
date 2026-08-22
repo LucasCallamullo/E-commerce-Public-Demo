@@ -1,8 +1,9 @@
 /// <reference path="../../../../static/js/base.js" />
-/// <reference path="./logic/cards_products.js" />
+/// <reference path="../../../../static/js/utils.js" />
+/// <reference path="../js/logic/product_store.js" />
+/// <reference path="../js/logic/cards_products.js" />
 /// <reference path="../js/components/pagination.js" />
-
-
+/// <reference path="../js/components/cards_products.js" />
 
 
 /**
@@ -23,7 +24,7 @@ function initSearchSidebar(container) {
      */
     function searchProducts(container, searchTerm) {
         if (searchTerm) {
-            const products = ProductStore.filterByName(searchTerm);
+            const products = PRODUCT_MODAL_STORE.filterByName(searchTerm);
             updateProductListCards(container, products);
         }
     }
@@ -72,7 +73,7 @@ function updateContBrands(contProducts) {
     }
 
     // Combinar opción "Todos" con las marcas únicas
-    const brands = [{ id: 0, name: 'Todos' }, ...ProductStore.getUniqueBrands(window.BRAND_LIST)];
+    const brands = [{ id: 0, name: 'Todos' }, ...PRODUCT_MODAL_STORE.getUniqueBrands()];
     const fragment = document.createDocumentFragment();
     brands.forEach(brand => { 
         fragment.appendChild(createBrandRadio(brand)); 
@@ -92,7 +93,7 @@ function updateContBrands(contProducts) {
                 const brandId = parseInt(input.value); // Get the selected brand ID
 
                 // Filter products using the selected brand ID
-                const filtered = ProductStore.filterByBrand(brandId);
+                const filtered = PRODUCT_MODAL_STORE.filterByBrand(brandId);
                 updateProductListCards(contProducts, filtered);
 
                 // Optionally scroll to the updated product section
@@ -125,7 +126,7 @@ function updateContPrices(contProducts) {
     }
 
     // Get current min and max prices from product store (considering discounts)
-    const { min: minPrice, max: maxPrice } = ProductStore.getPriceRange();
+    const { min: minPrice, max: maxPrice } = PRODUCT_MODAL_STORE.getPriceRange();
 
     console.log(`Precio mayor: ${minPrice} - Precio menor: ${maxPrice}`)
 
@@ -145,7 +146,7 @@ function updateContPrices(contProducts) {
 
     // Create a debounced function to filter products and update the UI
     const debouncedFilter = debounce((min, max) => {
-        const filteredProducts = ProductStore.filterByPrice(min, max);
+        const filteredProducts = PRODUCT_MODAL_STORE.filterByPrice(min, max);
         updateProductListCards(contProducts, filteredProducts);
 
         // hacer movimiento visual al nuevo grupo de tarjetas
@@ -212,17 +213,17 @@ function initFormSort(contProducts) {
     const select = document.getElementById('select-to-sort');
     
     const sortMethods = {
-        priceAsc: () => ProductStore.orderByPrice(false),
-        priceDesc: () => ProductStore.orderByPrice(true),
-        getList: () => ProductStore.getData(),
-        name: () => ProductStore.orderByName(),
-        discount: () => ProductStore.orderByDiscount(),
+        priceAsc: () => PRODUCT_MODAL_STORE.orderByPrice(false),
+        priceDesc: () => PRODUCT_MODAL_STORE.orderByPrice(true),
+        getList: () => PRODUCT_MODAL_STORE.getData(),
+        name: () => PRODUCT_MODAL_STORE.orderByName(),
+        discount: () => PRODUCT_MODAL_STORE.orderByDiscount(),
     };
 
     select.addEventListener('change', (e) => {
         const value = e.target.value;
         const sorted = (sortMethods[value] || sortMethods['getList'])();
-        ProductStore.setData(sorted);
+        // PRODUCT_MODAL_STORE.setData(sorted);
         updateProductListCards(contProducts, sorted);
     });
 }
@@ -233,6 +234,17 @@ function initFormSort(contProducts) {
  * Initializes the product listing page once the DOM is fully loaded.
  */
 document.addEventListener('DOMContentLoaded', () => {
+
+    // setear datos desde el template para tenerlos para operaciones con modales
+    PRODUCT_MODAL_STORE.setData(JSON.parse(
+        document.getElementById("products-data").textContent
+    ));
+
+    // setear data necesaria para los modales
+    categories = JSON.parse(document.getElementById("categories-data").textContent);
+    brands = JSON.parse(document.getElementById("brands-data").textContent);
+    CATALOG_MODAL_STORE.setCatalog(categories, brands);
+
     // Container element for product cards
     const container = document.getElementById('cont-product-cards');
 
@@ -243,11 +255,15 @@ document.addEventListener('DOMContentLoaded', () => {
     updateContPrices(container);
 
     // Render the full product list initially
-    updateProductListCards(container, ProductStore.getData());
+    // set events one time on static container
+    if (!container._hasInitEvents) {
+        productCardFormsEvents(container);
+        productCardModalEvent(container);
+        container._hasInitEvents = true;
+    }
 
     // Initialize the sidebar search bar with real-time search and debounce
     initSearchSidebar(container);
-
     initFormSort(container);
 
     // Setup pagination controls UI and logic
@@ -257,12 +273,13 @@ document.addEventListener('DOMContentLoaded', () => {
     historyPopState();
 
     // If the URL has query parameters, parse and fetch the product list accordingly
-    const params = new URLSearchParams(window.location.search);
+    /*
+    const params = new URLSearchParams(window . location.search);
     if (params.toString()) {
         const dict = {};
         for (const [key, value] of params.entries()) {
             dict[key] = value;
         }
         fetchProductList(dict);
-    }
+    } */
 });

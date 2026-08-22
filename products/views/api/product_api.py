@@ -3,9 +3,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 
-# core modules - otros
+# core modules
 from core.permissions import IsAdminOrSuperUser
-from core.utils.utils_basic import valid_id_or_None
+from core.utils.utils_parsers import valid_id_or_None
+from core.views.get_object_mixin import GetObjectMixin
 
 # products
 from products.serializers.product_serializer import ProductSerializer
@@ -15,101 +16,129 @@ from products.filters import get_filters_from_request
 
 # services products
 from products.services.pagination import PaginationService
-from products.services.products import ProductService
+from products.services.product import ProductService
 from products.services.brand import BrandService
 from products.services.category import CategoryService
 from products.services.subcategory import SubcategoryService
 
 
-class ProductAPIView(APIView):
+class ProductAPIView(APIView, GetObjectMixin):
     throttle_scope = 'search'
     
     def get_permissions(self):
-        """Permisos estrictos para POST y PATCH, para GET publico para otros"""
-        if self.request.method in ('GET'):
+        """Public access for GET, Admin only for write operations."""
+        if self.request.method == 'GET':
             return [AllowAny()]
-        
-        # 1. Verificar si es role == 'admin' o user.id == 1
-        return [IsAdminOrSuperUser()]    # Permissions custom en user.permissions
-    
-    
-    def get(self, request, product_id=None):
-        
-        if product_id:
-            pass
-        
-        else:
-            filters_args = get_filters_from_request(request)
-            
-            # Obtener los modelos asociados en caso de estar presentes
-            category = CategoryService.get_filtered_by_id(entity_id=filters_args.get('category'))
-            subcategory = SubcategoryService.get_filtered_by_id(entity_id=filters_args.get('subcategory'))
-            brand = BrandService.get_filtered_by_id(entity_id=filters_args.get('brand'))
-            
-            # obtener queryset a partir de los filtros que vienen como request params
-            qs = ProductService.qs_for_card_list(filters=filters_args)
-        
-            # Paginación ya devuelve una lista serializada con los products
-            page_num = request.GET.get('page', 1)
-            products, pagination = PaginationService.get_paginated_products(
-                qs=qs, 
-                page=page_num, 
-                page_size=100, 
-                user=request.user
-            )
-            
-            return Response({
-                'products': products,
-                'pagination': pagination,
-                'category': category,
-                'subcategory': subcategory,
-                'brand': brand,
-                'query': filters_args.get('query', ''),
-                'top_query': filters_args.get('top_query', ''),
-                'available': filters_args.get('available', False), 
-                'get_all': filters_args.get('get_all', False)
-            }, status=status.HTTP_200_OK)
-    
+        return [IsAdminOrSuperUser()]
     
     def post(self, request):
-        serializer = ProductSerializer(data=request.data, context={'user': request.user})
-        
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        product = serializer.save()
-        return Response({"success": True, "product_id": product.id}, status=status.HTTP_201_CREATED)
-        
-        
-    def put(self, request, product_id):
-        product_id = valid_id_or_None(product_id)
-        if not product_id:
-            return Response({"detail": "ID inválido: debe ser un número positivo"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # 2. Verificación de existencia (consulta a DB sólo si el ID es válido)
-        try:
-            product = ProductService.for_patch(entity_id=product_id)
-        except Product.DoesNotExist:
-            return Response({"success": False, "detail": "No existe el producto."}, status=status.HTTP_404_NOT_FOUND)
-        
-        # 3. llamar a servicio de product images
-        images = ProductImage.objects.filter(product=product)
-        
-        # 4. Pasamos al serializer el objeto, la data/json(body), y actualizacion parcial de campos
+        """Creates a new product."""
         serializer = ProductSerializer(
-            product, data=request.data, partial=True, 
+            data=request.data, 
             context={
-                'user': request.user,
-                'images': images,
-                'ip': request.META.get('REMOTE_ADDR') # Agregamos la IP
-            }
+                'user': request.user, 
+                'ip': request.META.get('REMOTE_ADDR')
+            })
+        
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        
+        return self.success_response(
+            key="product", 
+            data=serializer.data, 
+            status_code=status.HTTP_201_CREATED
         )
         
-        # 5. Verifica el formulario sino retorna algunos de los raise serializers.ValidationError
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
-        # 6. aca DRF llama internamente a update(instance, validated_data)
+    def patch(self, request, pk):
+        """Partial update of a product with image context."""
+        # Mixin handles validation and existence
+        product = self.get_from_service_or_error(
+            obj_id=pk,
+            model_name='Product',
+            service_call=lambda v_id: ProductService.get_product_for_update(entity_id=v_id)
+        )
+        
+        # 3. Pasamos al serializer el objeto, la data/json(body), y actualizacion parcial de campos
+        # Agregamos User y la IP Para Audit Service
+        serializer = ProductSerializer(
+            product, 
+            data=request.data, 
+            partial=True, 
+            context={'user': request.user, 'ip': request.META.get('REMOTE_ADDR')}
+        )
+        
+        serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({"success": True, "product_id": product_id}, status=status.HTTP_200_OK)
+        
+        return self.success_response(key="product", data=serializer.data)
     
+    def get(self, request, pk=None):
+        """
+        Handles single product detail or filtered/paginated list.
+        """
+        if pk:
+            # Optimized detail retrieval
+            product = self.get_values_or_error(
+                model_class=Product, 
+                obj_id=pk, 
+                values=(
+                    'id', 'name', 'price', 'stock', 'description', 'main_image',
+                    'category_id', 'category__name', 
+                    'subcategory_id', 'subcategory__name', 
+                    'brand_id', 'brand__name'
+                )
+            )
+            return self.success_response(key="product", data=product)
+
+        # List Logic
+        filters = get_filters_from_request(request)    # get a dict of filters
+        
+        # Hydrate filter models (delegated to services)
+        category = CategoryService.get_filtered_by_id(entity_id=filters.get('category'))
+        subcategory = SubcategoryService.get_filtered_by_id(entity_id=filters.get('subcategory'))
+        brand = BrandService.get_filtered_by_id(entity_id=filters.get('brand'))
+        
+        # Update IDs from hydrated models
+        filters.update({
+            'category': category.get('id') if category else None,
+            'subcategory': subcategory.get('id') if subcategory else None,
+            'brand': brand.get('id') if brand else None
+        })
+        
+        # obtener queryset a partir de los filtros que vienen como request params
+        qs = ProductService.qs_for_card_list(filters=filters)
+        
+        # Paginación ya devuelve una lista serializada con los products
+        page_num = request.GET.get('page', 1)
+        products, pagination = PaginationService.get_paginated_products(
+            qs=qs, 
+            page=page_num, 
+            page_size=100, 
+            user=request.user
+        )
+        
+        return self.success_response(
+            key="products", data=products,
+            pagination=pagination,
+            category=category,
+            subcategory=subcategory,
+            brand=brand,
+            query=filters.get('query', ''),
+            top_query=filters.get('top_query', ''),
+            available=filters.get('available', False), 
+            get_all=filters.get('get_all', False),
+            filters=filters # Agrupamos los filtros para limpiar el root del JSON
+        )
+        """ 
+        return Response({
+            'products': products,
+            'pagination': pagination,
+            'category': category,
+            'subcategory': subcategory,
+            'brand': brand,
+            'query': filters_args.get('query', ''),
+            'top_query': filters_args.get('top_query', ''),
+            'available': filters_args.get('available', False), 
+            'get_all': filters_args.get('get_all', False)
+        }, status=status.HTTP_200_OK)
+        """

@@ -5,6 +5,11 @@ from products.filters import get_filtered_entity_by_id, get_filtered_entity_by_s
 from products.models.category import Category
 from products.models.subcategory import Subcategory
 
+from products.cache_utils import (
+    set_products_cache, get_products_cache, 
+    KEY_CATEGORIES_LIST
+)
+
 class CategoryService:
     """
     Read-only service responsible for retrieving categories and subcategories
@@ -13,36 +18,27 @@ class CategoryService:
     This service builds a minimal category → subcategory tree and optionally
     caches it to avoid repeated database queries.
     """
-
-    #: Cache key used to store the category tree
-    CACHE_KEY = 'categories_dropmenu'
-
-    #: Cache time-to-live in seconds (2 hours)
-    CACHE_TTL = 60 * 120
+    
+    VALUES_CATEGORY_PUB = ('id', 'name', 'slug')
+    VALUES_SUBCATEGORY_PUB = ('id', 'name', 'slug', 'category_id')
     
     @staticmethod
-    def for_dashboard() -> list[dict[str, Any]]:
+    def get_dashboard_list() -> list[dict[str, Any]]:
         # Build minimal category tree and store it in cache
         categories_tree = (
             CategoryService
             ._build_categories_tree(
-                values_category=('id', 'name', 'is_default', 'image_url'),
-                values_subcategory=('id', 'name', 'is_default', 'category_id', 'image_url'),
-                get_all=True
+                values_category=('id', 'name', 'image_url'),
+                values_subcategory=('id', 'name', 'category_id', 'image_url'),
+                get_all=False
             )
         )
         return list(categories_tree.values())
 
-    @staticmethod
-    def for_cards(*, from_cache: bool = True) -> list[dict[str, Any]]:
+    @classmethod
+    def get_categories_list(cls) -> list[dict[str, Any]]:
         """
         Retrieve categories and their subcategories optimized for product card views.
-
-        When `from_cache` is enabled, the category tree will be fetched from cache
-        if available. Otherwise, the tree is rebuilt from the database and cached.
-
-        Args:
-            from_cache (bool): Whether to attempt retrieving data from cache first.
 
         Returns:
             list[dict[str, Any]]:
@@ -64,50 +60,80 @@ class CategoryService:
                             "slug": "phones",
                             "category_id": 1
                         },
-                        {
-                            "id": 11,
-                            "name": "Laptops",
-                            "slug": "laptops",
-                            "category_id": 1
-                        }
-                    ]
+                        ...
+                    ] # or []
                 },
-                {
-                    "category": {
-                        "id": 2,
-                        "name": "Furniture",
-                        "slug": "furniture"
-                    },
-                    "subcategories": []
-                }
+                ...
             ]
         """
-        if from_cache:
-            cached = cache.get(CategoryService.CACHE_KEY)
-            if cached:
-                return list(cached.values())
-
+        cached = get_products_cache(KEY_CATEGORIES_LIST)
+        if cached is not None:
+            return list(cached.values())
+        
         # Build minimal category tree and store it in cache
-        categories_tree = CategoryService._build_categories_tree()
-        CategoryService._set_cache_categories(categories_tree)
-
+        categories_tree = cls._build_categories_tree(
+            values_category = cls.VALUES_CATEGORY_PUB,
+            values_subcategory = cls.VALUES_SUBCATEGORY_PUB
+        )
+        cls._set_cache_categories(categories_tree)
         return list(categories_tree.values())
     
+    @classmethod
+    def get_products_by_category(cls, products: list[dict], categories: list[dict]) -> list[dict]:
+        """
+        Groups a flat list of products into a structured format categorized by their parent category.
+
+        This method transforms a flat product list into a hierarchical structure suitable for 
+        rendering UI sections (e.g., category-based carousels or grids). It uses an internal 
+        mapping to ensure high performance (O(n)) by avoiding nested loops for category lookups.
+
+        Args:
+            products (list[dict]): A list of product dictionaries. Each dictionary must 
+                contain at least a 'category_id' key.
+            categories (list[dict]): A list of category data dictionaries, typically 
+                containing nested "category" objects with 'id', 'name', and 'slug'.
+
+        Returns:
+            list[dict]: A list of grouped category objects. Each object contains:
+                - 'id': The category ID.
+                - 'name': The category name.
+                - 'slug': The category slug.
+                - 'products': A list of all products belonging to that category.
+
+        Example Output:
+            [
+                {
+                    "id": 1, "name": "Electronics", "slug": "electronics",
+                    "products": [{"id": 10, "name": "Smartphone", ...}, ...]
+                },
+                ...
+            ]
+        """
+        # 1. Map category metadata by referencing the inner 'category' dict directly
+        category_map: dict[int, dict] = {
+            c["category"]["id"]: c["category"] 
+            for c in categories
+        }
+        # 2. Group products into their respective categories
+        products_by_category = {}
+        for p in products:
+            
+            cat_id = p.get("category_id")
+            cat_info = category_map.get(cat_id)
+            
+            if not cat_info:
+                continue
+            
+            if cat_id not in products_by_category:
+                # We use {**cat_info} to create a copy so we don't mutate 
+                # the original category_map entry when adding the 'products' list
+                products_by_category[cat_id] = {**cat_info, "products": []}
+            
+            products_by_category[cat_id]["products"].append(p)
+        # 3. Return as a list of dictionaries for easier template iteration
+        return list(products_by_category.values())
     
-    @staticmethod
-    def get_categories_dropmenu(*, from_cache: bool = True) -> dict[int, dict[str, Any]]:
-        if from_cache:
-            cached = cache.get(CategoryService.CACHE_KEY)
-            if cached:
-                return cached
-
-        # Build minimal category tree and store it in cache
-        categories_tree = CategoryService._build_categories_tree()
-        CategoryService._set_cache_categories(categories_tree)
-
-        return categories_tree
-        
-
+    
     @staticmethod
     def get_filtered_by_id(*, entity_id: int | None = None) -> dict | None:
         """
@@ -128,7 +154,7 @@ class CategoryService:
 
                 Returns None if no matching category is found.
         """
-        values = ('id', 'slug', 'name')
+        values = ('id', 'slug', 'name', 'is_default')
         return get_filtered_entity_by_id(
             model=Category,
             id_value=entity_id,
@@ -162,16 +188,12 @@ class CategoryService:
                 Dictionary keyed by category ID containing category and
                 subcategory data.
         """
-        cache.set(
-            CategoryService.CACHE_KEY,
-            categories_tree,
-            timeout=CategoryService.CACHE_TTL,
-        )
+        set_products_cache(cache_key=KEY_CATEGORIES_LIST, value=categories_tree)
 
     @staticmethod
     def _build_categories_tree(
-        values_category: tuple = ('id', 'name', 'slug'),
-        values_subcategory: tuple = ('id', 'name', 'slug', 'category_id'),
+        values_category: tuple,
+        values_subcategory: tuple,
         get_all: bool = False
     ) -> dict[int, dict[str, Any]]:
         """
@@ -205,12 +227,10 @@ class CategoryService:
             }
         """
         # obtener segun bandera, es más para construir por dashboard or public
+        qs_sub = Subcategory.objects.all()
+        qs_cat = Category.objects.all()
         if not get_all:
-            qs_cat = Category.objects.filter(is_default=False)
-            qs_sub = Subcategory.objects.filter(is_default=False)
-        else:
-            qs_cat = Category.objects.all()
-            qs_sub = Subcategory.objects.all()
+            qs_cat = qs_cat.filter(is_default=False)
             
         categories = (
             qs_cat

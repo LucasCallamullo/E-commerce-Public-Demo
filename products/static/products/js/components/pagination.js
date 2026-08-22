@@ -1,169 +1,8 @@
 /// <reference path="../../../../../static/js/base.js" />
 /// <reference path="../../../../../static/js/utils.js" />
 /// <reference path="../../../../../favorites/static/favorites/js/add_favorites.js" />
+/// <reference path="../../../../../products/static/products/js/logic/product_store.js" />
 
-
-window.ProductStore = {
-    data: [],
-    setData(newData) {
-        /**
-         * Sets the internal product data store.
-         *
-         * @param {Array} newData - An array of product objects to be stored.
-         */
-        this.data = newData;
-    },
-    getData() {
-        /**
-         * Returns the current product data.
-         *
-         * @returns {Array} - The array of stored product objects.
-         */
-        return this.data;
-    },
-
-
-    getPriceRange() {
-        /**
-         * Calculates the minimum and maximum prices from the product list,
-         * taking into account any applicable discount on each product.
-         * Caches the result until data is updated.
-         * 
-         * @returns {Object} An object with the `min` and `max` prices (both rounded down).
-         */
-        if (!this.data.length) return { min: 0, max: 0 };
-
-        let minPrice = Infinity;
-        let maxPrice = -Infinity;
-
-        for (const p of this.data) {
-            const price = parseFloat(p.price);
-            const discount = p.discount;
-
-            const finalPrice = discount > 0
-                ? price - (price * (discount / 100))
-                : price;
-
-            if (finalPrice < minPrice) minPrice = finalPrice;
-            if (finalPrice > maxPrice) maxPrice = finalPrice;
-        }
-
-        return {
-            min: Math.floor(minPrice),
-            max: Math.floor(maxPrice),
-        };
-    },
-    filterByPrice(min, max) {
-        /**
-         * Filters the list of products based on a minimum and maximum price range.
-         * Takes into account the discount of each product to calculate the final price.
-         * 
-         * @param {number} min - The minimum price allowed (inclusive).
-         * @param {number} max - The maximum price allowed (inclusive).
-         * @returns {Array<Object>} An array of products whose final price is within the given range.
-         */
-        return this.data.filter(p => {
-            // Calculate discount if applicable
-            const finalPrice = p.discount > 0 
-                ? p.price - (p.price * (p.discount / 100)) 
-                : p.price;
-
-            // Check if the final price is within the given range (inclusive)
-            return finalPrice >= min && finalPrice <= max;
-        });
-    },
-    orderByPrice(desc = false) {
-        /**
-         * Sorts the product list by price.
-         *
-         * @param {boolean} desc - If true, sorts by descending price (highest to lowest).
-         *                         If false, sorts by ascending price (lowest to highest).
-         * @returns {Array} - A new array of products sorted by price.
-         */
-        return [...this.data].sort((a, b) =>
-            desc ? b.price - a.price : a.price - b.price
-        );
-    },
-    orderByDiscount() {
-        /**
-         * Sorts the product list by discount in descending order.
-         * Products with the highest discount appear first.
-         * Products without discounts (or discount = 0) are shown at the end.
-         *
-         * @returns {Array} - A new array of products sorted by discount.
-         */
-        return [...this.data].sort((a, b) => {
-            const aDiscount = a.discount || 0;
-            const bDiscount = b.discount || 0;
-            return bDiscount - aDiscount;
-        });
-    },
-
-
-    getUniqueBrands(brands) {
-        /**
-         * Retrieves the unique brands present in the current list of products.
-         *
-         * This method uses the `brand_id` of each product in `this.data` to filter
-         * the provided list of `brands`, returning only those that are associated
-         * with the products. The result is sorted alphabetically by brand name.
-         *
-         * @param {Array<{id: number, name: string, ...}>} brands - The complete list of available brands.
-         * @returns {Array<{id: number, name: string}>} - Array of unique brands present in the products, sorted by name.
-         */
-        
-        // 1. Create a Set of brand_ids present in the current products
-        const brandIdsSet = new Set(this.data.map(p => p.brand_id));
-
-        // 2. Filter the list of brands to only include those that exist in the products
-        const uniqueBrands = brands.filter(brand => brandIdsSet.has(brand.id));
-
-        // 3. Sort the filtered brands alphabetically by name
-        return uniqueBrands.sort((a, b) => a.name.localeCompare(b.name));
-    },
-
-
-    filterByBrand(brandId) {
-        /**
-         * Filtra los productos por ID de marca
-         * @param {number} brandId
-         * @returns {Array<Object>}
-         */
-        if (brandId === 0) return this.data
-        return this.data.filter(p => p.brand_id === brandId);
-    },
-
-    orderByName() {
-        /**
-         * Sorts the product list alphabetically by name in ascending order (A-Z).
-         *
-         * @returns {Array} - A new array of products sorted by name.
-         */
-        return [...this.data].sort((a, b) => {
-            return a.name.localeCompare(b.name);
-        });
-    },
-    filterByName(query) {
-        /**
-         * Filters the product list based on a search query.
-         * The query is split into words, and each word must be included in the product name.
-         * The comparison is case-insensitive.
-         *
-         * @param {string} query - The search string to filter product names.
-         * @returns {Array} - A filtered array of products whose names contain all words in the query.
-         */
-        if (!query) return this.data;
-
-        const words = query.toLowerCase().split(/\s+/); // split by whitespace
-        return this.data.filter(p => {
-            const name = p.name.toLowerCase();
-            return words.every(word => name.includes(word)); // all words must be found
-        });
-    },
-};
-
-window.ProductStore.setData(window.ProductList || []);
-delete window.ProductList;  // Elimino la variable global obtenida desde el ssr inicial
 
 /**
  * Fetches a product list using the current filters and updates the product view.
@@ -189,8 +28,7 @@ async function fetchProductList(dictAdd, activeCounter = true) {
     // 4. Create URLSearchParams from the combined filter dictionary
     const params = new URLSearchParams(dictBase);
 
-    const urlBase = `${window.TEMPLATE_URLS.productList.replace('{product_id}', '')}`;
-    const url = `${urlBase}/?${params.toString()}`;
+    const url = `${window.TEMPLATE_URLS.productList}?${params.toString()}`;
 
     try {
         const response = await fetch(url);
@@ -201,9 +39,16 @@ async function fetchProductList(dictAdd, activeCounter = true) {
         const contProducts = document.getElementById('cont-product-cards');
 
         // setear nueva lista del fetch
-        ProductStore.setData(data.products);
-        // actualizar vista
+        window.PRODUCT_STORE.setData(data.products);
+        
+        console.log(data.products)
+
+        // actualizar vista de lista de cartas
         updateProductListCards(contProducts, data.products, data);
+
+        // actualizas vista de botones
+        updateContPagination(data.pagination)
+
         // actualizar marcas
         updateContBrands(contProducts);
         updateContPrices(contProducts);
@@ -225,17 +70,55 @@ async function fetchProductList(dictAdd, activeCounter = true) {
 
 
 /**
- * Updates the pagination control container with page number buttons
- * and sets up an event listener to handle pagination clicks.
+ * Updates the pagination UI and the results range text based on
+ * pagination metadata returned by the backend.
  *
- * The container must have two data attributes:
- * - data-total-pages: total number of available pages.
- * - data-page-num: currently active page.
+ * This function supports two modes:
+ *
+ * 1) SSR mode:
+ *    When `pagination` is null, pagination data is read from
+ *    data attributes on the pagination container:
+ *
+ *    - data-total-pages: total number of available pages
+ *    - data-page-num: currently active page
+ *
+ * 2) CSR / API mode:
+ *    When a `pagination` object is provided, the pagination UI
+ *    and the results range text are recalculated dynamically
+ *    using backend-provided metadata.
+ *
+ * Expected pagination object structure:
+ * {
+ *   page: number,              // Current page (1-based)
+ *   page_size: number,         // Maximum number of results per page
+ *   total_pages: number,       // Total number of pages
+ *   results_on_page: number,   // Number of results returned for this page
+ *   total_results: number      // Total number of results available
+ * }
+ *
+ * @param {Object|null} pagination - Pagination metadata from the backend,
+ *                                   or null when using SSR data attributes.
  */
-function updateContPagination() {
+function updateContPagination(pagination = null) {
+
     const container = document.getElementById('cont-pagination');
-    const totalPages = parseInt(container.dataset.totalPages); // Total number of pages
-    const pageNum = parseInt(container.dataset.pageNum);       // Current page
+
+    let totalPages, pageNum;
+    if (pagination == null) {
+        totalPages = parseInt(container.dataset.totalPages); // Total number of pages
+        pageNum = parseInt(container.dataset.pageNum);       // Current page
+    } else {
+        totalPages = parseInt(pagination.total_pages);
+        pageNum = parseInt(pagination.page);
+        
+        // buscar si es mayor el resultado o el tamaño real del total por pagina 
+        const pageSize = parseInt(pagination.page_size);
+        const start = (pageNum > 0) ? (pageNum - 1) * pageSize + 1 : 0;
+        const end = Math.min(pageNum * pageSize, parseInt(pagination.total_results));
+        // actualiza el span text para ux
+        const s = document.getElementById('span-results-page');
+        s.textContent = `Mostrando (${start} - ${end}) de ${pagination.total_results} resultados`;
+    }
 
     container.innerHTML = '';
 

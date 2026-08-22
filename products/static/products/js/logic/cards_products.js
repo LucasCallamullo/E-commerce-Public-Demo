@@ -1,6 +1,9 @@
 /// <reference path="../../../../../static/js/base.js" />
 /// <reference path="../../../../../static/js/utils.js" />
 /// <reference path="../../../../../favorites/static/favorites/js/add_favorites.js" />
+/// <reference path="../../../../../products/static/products/js/logic/product_store.js" />
+
+/// <reference path="../../../../../products/static/products/js/components/pagination.js" />
 
 
 /**
@@ -34,8 +37,8 @@ function populateModalCard(modal, product_obj) {
     const discountLabel = modal.querySelector('.modal-discount');
     const discountGroup = modal.querySelectorAll('.modal-group-discount');
 
-    const discount = parseInt(product.discount);
-    const rawPrice = Number(product.price);
+    const discount = parseInt(product.discount_ars);
+    const rawPrice = Number(product.price_ars);
     let finalPrice = rawPrice;
 
     if (discount > 0) {
@@ -77,7 +80,7 @@ function populateModalCard(modal, product_obj) {
     const subcatLabel = modal.querySelector('#modal-subcategory');
     let displaySubcatLabel = false;
 
-    const categoryGroup = window.CATEGORIES_LIST.find(c => c.category.id === product.category_id);
+    const categoryGroup = CATALOG_MODAL_STORE.getCategoryById(parseInt(product.category_id) || 0);
     if (categoryGroup) {
         const category = deepEscape(categoryGroup.category);
         catLabel.textContent = category.name;
@@ -94,8 +97,8 @@ function populateModalCard(modal, product_obj) {
                     .replace('__CAT__', category.slug)
                     .replace('__SUBCAT__', sub.slug);
 
-                // this is for show correctly
-                if (category.id === sub.product_id) displaySubcatLabel = true;
+                // this is for show correctly   
+                if (category.id === sub.category_id) displaySubcatLabel = true;
             }
         }
     } 
@@ -106,8 +109,8 @@ function populateModalCard(modal, product_obj) {
     const brandLabel = modal.querySelector('.modal-brand');
     const brandGroup = modal.querySelector('.modal-brand-group');
 
-    const brand = window.BRAND_LIST.find(b => b.id === product.brand_id);
-    if (brand !== undefined) {
+    const brand = CATALOG_MODAL_STORE.getBrandById(product.brand_id);
+    if (brand !== null) {
         const b = deepEscape(brand);
         brandLabel.textContent = b.name;
         brandLabel.href = window.TEMPLATE_URLS.brand.replace('__BRAND__', b.slug);
@@ -141,19 +144,12 @@ async function imagesModalFetch(modal, product) {
     const data = await response.json();
     const images = data.images || [];
 
-    const cardMain = /*html*/`
-        <div class="cont-img-100-off cont-lil-prod-img border-main">
-            <img class="img-scale-down" src=${product.main_image} alt="Image">
-        </div>
-    `;
-    container.insertAdjacentHTML('beforeend', cardMain);
-
     images.forEach((img, index) => {
         if (index > 2) return;
 
         const cardHtml = /*html*/`
             <div class="cont-img-100-off cont-lil-prod-img">
-                <img class="img-scale-down" src=${img} alt="Image">
+                <img class="img-scale-down" src=${img} alt="${product.name} - Imagen">
             </div>
         `;
         container.insertAdjacentHTML('beforeend', cardHtml);
@@ -251,7 +247,8 @@ function productCardModalEvent(container) {
         onOpenCallback: ({ params }) => {
             const { btn } = params;
             const prodId = parseInt(btn.dataset.id);
-            const product = ProductStore.getData().find(p => p.id === prodId);
+            
+            const product = PRODUCT_MODAL_STORE.findById(prodId);
             if (product) populateModalCard(modal, product);
         },
     });
@@ -277,21 +274,23 @@ function productCardModalEvent(container) {
  */
 function formAddProductModal(modal) {
     const form = modal.querySelector('#form-modal-add');
+
+    // prevent double event
+    if (form._hasEvent) return;
+    form._hasEvent = true
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         // get default dynamic info from the form
-        const productId = form.dataset.id;
-        const stock = parseInt(form.dataset.stock);
-        
         await handleGenericFormBase({
             form,
             submitCallback: async () => {
                 await endpointsCartActions({
-                    productId: productId,
+                    productId: form.dataset.id,
                     action: 'add',
                     quantity: 1,
-                    stock: stock
+                    stock: parseInt(form.dataset.stock)
                 });
             },
         });
@@ -312,6 +311,7 @@ function formAddProductModal(modal) {
  * @param {HTMLElement} container - The parent element containing the product cards with forms.
  */
 function productCardFormsEvents(container) {
+    
     container.addEventListener('submit', async (e) => {
         const form = e.target.closest('form');
         if (!form) return;
@@ -323,11 +323,15 @@ function productCardFormsEvents(container) {
         // Handle "like" (favorite) form submissions
         if (form.classList.contains('form-btn__like')) {
             const productId = form.dataset.index;
+            debounce_on_favorites(productId, btn, form);
+
+            /*
+            const productId = form.dataset.index;
             await handleGenericFormBase({
                 form,
                 submitCallback: async () => formFavoritesEvents(productId, btn),
                 flag_anim: false,
-            });
+            }); */
         }
 
         // Handle "add to cart" form submissions
@@ -345,6 +349,14 @@ function productCardFormsEvents(container) {
                     });
                 },
             });
+        }
+
+        // Handle fetch product list and update list
+        else if (form.classList.contains('form-fetch-product-list')) {
+            e.preventDefault();
+
+            // Call function to fetch available products (category -1 = all, subcategory -1 = all)
+            fetchProductList({ available:'1', category:'-1', subcategory:'-1', page:'1' });
         }
     });
 }

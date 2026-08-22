@@ -155,3 +155,22 @@
     border-color: var(--black-color);
     transform: scale(1.02);
 }
+
+
+/* Styles for small mobile phones (hasta 480px) */
+/* Styles for small mobile phones */
+
+/* Styles for tablets (mín. 480px to max. 768px) */
+@media (min-width: 480px) {
+    /* Styles for tablets */
+}
+
+/* Styles for desktops (mín. 768px to max. 992px+)) */
+@media (min-width: 768px) {
+    /* Styles for desktops */
+}
+
+/* Styles for large desktops (mín. 992px to max. infinite) */
+@media (min-width: 992px) {
+    /* Styles for large desktops */
+}

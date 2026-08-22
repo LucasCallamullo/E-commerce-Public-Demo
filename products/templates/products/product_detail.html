@@ -4,7 +4,16 @@
 
 {# For More CSS Modules #}
 {% block extra_head %}
-    <title> {{ store.name }} | {{ product.name}} </title>
+    <title>{{ product.name }} | {{ store.name }}</title>
+
+    {# Swiper CSS #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+
+    {# esto es por SEO adaptar segun el caso en cada vista #}
+    {% block meta_description %}
+        <meta name="{{ product.name }}" content="Producto: {{ product.name }}">
+    {% endblock %}
+
     {% compress css %}
         <link href="{% static 'products/css/products_detail.css' %}" rel="stylesheet">
     {% endcompress %}
@@ -15,23 +24,26 @@
 {% block main_content %}
 
 {# Primera fila #}
-<div class="d-flex mb-3 gap-1">
+<nav class="d-flex mb-3 gap-1" aria-label="Breadcrumb">
     <a class="btn btn-parallelogram d-desktop-flex" href="{% url 'product_list' %}">
         <span>Todos Nuestros Productos</span>
     </a>
     
     {% if category %}
-        <a class="btn btn-parallelogram" href="{% url 'pl_category' category.slug %}">
+        <a class="btn btn-parallelogram" href="{% url 'product_list_category' category.slug %}">
             <span>{{ category.name }}</span>
         </a>
     {% endif %}
 
     {% if subcategory %}
-        <a class="btn btn-parallelogram" href="{% url 'pl_subcategory' category.slug subcategory.slug %}">
+        <a class="btn btn-parallelogram" href="{% url 'product_list_subcategory' category.slug subcategory.slug %}">
             <span>{{ subcategory.name }}</span>
         </a>
     {% endif %}
-</div>
+</nav>
+
+{# titulo solo por SEO #}
+<h1 class="seo-only">{{ product.name }}</h1>
 
 <div class="d-grid grid-product-detail">
 
@@ -47,11 +59,11 @@
                 </button>
 
                 <img id="prod-main-image" class="img-scale-down prod-image-preview prod-zoomed"
-                    src="{{ product.main_image }}" alt="{{ product.name }}">
+                    src="{{product.main_image}}" alt="{{product.name}}">
             </div> 
 
             {# Flechas de navegación #}
-            <figcaption class="w-100 d-flex justify-center mt-2 gap-3">
+            <figcaption class="w-100 d-flex justify-center mt-2 mb-1 gap-3">
                 {# Flecha izquierda #}
                 <button class="btn arrow-button left">
                     <i class="ri-arrow-drop-left-line font-xxl"></i>
@@ -65,10 +77,10 @@
         </figure>
         
         {# Contenedor de abajo con las imagenes #}
-        <div class="cont-grid-344">
+        <div class="d-grid cont-grid-334 gap-1">
             {% for image in images_urls %}
                 <div class="cont-img-100-off cont-lil-prod-img {% if forloop.first %}border-main{% endif %}" >
-                    <img class="img-scale-down" src="{{image}}" alt="No Imagen">
+                    <img class="img-scale-down" src="{{image}}" alt="{{product.name}} vista adicional">
                 </div>
             {% endfor %}
         </div>
@@ -77,19 +89,19 @@
     {# SEGUNDA COLUMNA #}
     <div class="d-flex-col gap-2 categories">
         <div class="d-flex-col border-hover bg-primary p-2 gap-2">
-            <h3>{{ product.name }}</h3>
+            <h2>{{ product.name }}</h2>
 
             <div class="d-flex gap-1">
                 {% if category %}
                     <a class="btn btn-alt px-2 font-sm bolder" 
-                    href="{% url 'pl_category' category.slug %}">
+                    href="{% url 'product_list_category' category.slug %}">
                         {{category.name}}
                     </a>
                 {% endif %}
 
                 {% if subcategory %}
                     <a class="btn btn-alt px-2 font-sm bolder" 
-                    href="{% url 'pl_subcategory' category.slug subcategory.slug %}">
+                    href="{% url 'product_list_subcategory' category.slug subcategory.slug %}">
                         {{ subcategory.name }}
                     </a>
                 {% endif %}
@@ -106,7 +118,7 @@
                     <div class="bg-secondary border-hover text-start d-flex-col p-1 px-2
                     text-secondary font-sm bolder">
                         Marca:
-                        <a href="{% url 'pl_brand' brand.slug %}" class="bold-main font-md">
+                        <a href="{% url 'product_list_brand' brand.slug %}" class="bold-main font-md">
                             {{brand.name}}
                         </a>
                     </div>
@@ -147,28 +159,29 @@
     {# TERCERA COLUMNA #}
     <div class="d-flex-col border-hover bg-primary h-min p-2 price">
 
-    {% if product.price_list %}  {% endif %}
+    {% if product.price_list %}  
         <b class="text-center mt-1">
             Precio Lista: ${{product.price_list|intdot}}
         </b>
         <span class="text-center font-sm bold-main">
             Precio de lista para pagos en cuotas.
         </span>
+    {% endif %}
     
-    {% if product.discount %}
+    {% if product.discount_ars %}
         <span class="offer-tag font-sm text-truncate text-white bolder mt-1">
-            % {{product.discount}} OFF
+            % {{product.discount_ars}} OFF
         </span>
         <span class="font-xl text-center gap-1 bolder">
             <i class="ri-fire-line bold-orange"></i>
             $ {{ product.calc_discount|intdot }}
         </span>
         <del class="font-md text-center text-secondary bolder">
-            $ {{ product.price|intdot }}
+            $ {{ product.price_ars|intdot }}
         </del>
     {% else %}
         <b class="font-xl text-center mt-1">
-            $ {{ product.price|intdot }}
+            $ {{ product.price_ars|intdot }}
         </b>
     {% endif %}
 
@@ -205,8 +218,9 @@
         </form>
 
         <a href="#" id="btn-prod-wsp-link" class="btn btn-40 w-100 gap-1 mt-2 wsp-button font-md bolder" 
-            target="_blank" data-wsp="{{store.wsp_number}}" data-name="{{product.name}}" 
-            data-price="{{product.price}}">
+            target="_blank" 
+            data-name="{{product.name}}" 
+            data-price="{{product.price_ars}}">
             <i class="ri-whatsapp-line font-xl fw-normal"></i> 
             Enviar mensaje
         </a>
@@ -215,24 +229,32 @@
 
 <div class="d-flex-col border-hover border-primary bg-primary px-3 py-3 mt-5 mb-5 gap-1">
 
-    {% if product.description %}
-        <template id="product-description">
-            {{ product.description }}
-        </template>
-
-        <div class="product-description">
+    <div class="product-description" id="product-description">
+        {% if product.description %}
             {# mediante js trasnfromamos el description de texto plano que llega #}
-        </div>
-    {% else %}
-        <p><strong>ESPECIFICACIONES TÉCNICAS</strong></p>
-        <p> ● Peso: 300 g</p>
-        <p> ● Dimensiones: 150 x 80 x 30 mm</p>
-        <p> • Material: Plástico ABS de alta resistencia</p>
-        <p> • Compatibilidad: Windows, macOS, Linux</p>
-        <p> • Conectividad: USB-C, Bluetooth 5.0</p>
-        <p> • Batería: Duración de hasta 20 horas</p>
-        <p> • Garantía: 2 años</p>
-    {% endif %}
+            {{ product.description }}
+        {% else %}
+            {# realmente es solo de muestra como quedaría un text content #}
+            ## TAMAÑO Y PESO
+            **Especificaciones técnicas:**
+            * **Peso:** 300 g
+            * Dimensiones: 150 x 80 x 30 mm
+            --
+            * Material: Plástico ABS de alta resistencia
+            * Conectividad: USB-C, Bluetooth 5.0
+            * Batería: Duración de hasta 20 horas
+            -- 
+            * Batería: Duración de hasta 20 horas
+            --
+            * Garantía: 1 año (*)
+            (*) Ciertas condiciones o consideraciones pueden afectar a la garantaía del prodcucto
+            [HOME](/)
+            --
+            --
+            --
+            YT[https://www.youtube.com/watch?v=64w8uaBcdaU&t=1057s]
+        {% endif %}
+    </div>
 </div>
 
 
@@ -275,9 +297,32 @@
 {# SCRIPTS #}
 {% block extra_scripts %}
 
+    {# Swiper JS sirve para el carousel #}
+    <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+
     {# este script es para hacer efecto de zoom and grab en las imagenes #}
     <script src="https://unpkg.com/@panzoom/panzoom/dist/panzoom.min.js"></script>
 
+    {# segun chat gpt da valor al seo asique nada toca creer #}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": "{{ product.name }}",
+        "image": ["{{ product.main_image }}"],
+        "brand": {
+            "@type": "Brand",
+            "name": "{{ brand.name }}"
+        },
+        "offers": {
+            "@type": "Offer",
+            "priceCurrency": "ARS",
+            "price": "{{ product.price_ars }}",
+            "availability": "https://schema.org/{% if product.stock > 0 %}InStock{% else %}OutOfStock{% endif %}"
+        }
+    }
+    </script>
+    
     {% compress js %}
         <script src="{% static 'products/js/product_detail.js' %}"></script>
     {% endcompress %}

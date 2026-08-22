@@ -1,0 +1,76 @@
+
+{% load custom_filters %}
+
+{% for prod in products %}
+    <article class="product__card w-100 relative swiper-slide">
+        <button class="btn corner-box" data-id="{{prod.id}}">
+            <i class="ri-focus-mode font-xl"></i>
+        </button>
+        
+        <div class="d-grid h-100 w-100 product-card__info">
+            <a href="{% url 'product_detail' prod.id prod.slug %}" class="cont-img-100">
+                <img class="img-scale-down" src="{{prod.main_image}}"
+                    alt="{{prod.name}} - {{category}}"
+                    loading="lazy" 
+                    width="100" height="100"
+                    itemprop="image">
+            </a>
+            {# NOMBRE como H3 (IMPORTANTE PARA SEO) #}
+            <h3 class="px-2 py-1 text-start text-truncate-multiline font-md bolder">
+                <a href="{% url 'product_detail' prod.id prod.slug %}" class="text-inherit main-ref">
+                    {{prod.name}}
+                </a>
+            </h3>
+            {# info extra card #}
+            <div class="d-grid px-2 product-card__grid-2 gap-2 align-center font-sm">
+                {# label de descuento #}
+                {% if not prod.available or prod.stock == 0 %}
+                    <p class="text-start text-truncate bold-red">No disponible</p>
+                {% elif prod.stock <= 3 %}
+                    <p class="text-start text-truncate bold-orange">Stock Bajo</p>
+                {% else %}
+                    <p class="text-start text-truncate bold-green">Disponible</p>
+                {% endif %}
+
+                {# boton de corazon #}
+                <form class="justify-self-end form-btn__like" data-index="{{prod.id}}">
+                    {% if prod.is_favorited %}
+                        <button class="btn btn-36 btn-like liked" type="submit">
+                            <i class="ri-heart-fill font-xl"></i>
+                        </button>
+                    {% else %}
+                        <button class="btn btn-36 btn-like" type="submit">
+                            <i class="ri-heart-line font-xl"></i>
+                        </button>
+                    {% endif %}
+                </form>
+                {# labels por descuento #}
+                {% if prod.discount_ars == 0 %}
+                    <p class="text-start bolder font-lg grid-col-all"> $ {{ prod.price_ars|intdot }} </p>
+                {% else %}
+                    <b class="text-line-through text-secondary font-md">$ {{ prod.price_ars|intdot }}</b>
+                    <b class="justify-self-end text-white product-card__offer-tag text-truncate font-xs">
+                        {{ prod.discount_ars }}% OFF</b>
+                    <b class="bolder font-lg grid-col-all">$ {{prod.price_discount|intdot}}</b>
+                {% endif %}
+            </div>
+        </div>
+
+        <form class="d-flex justify-center product-card__extender-btn" 
+        data-index="{{prod.id}}" data-stock="{{prod.stock}}">
+            <button class="btn btn-main gap-1 btn-32 w-75 btn-add-product-pc font-md bolder" type="submit">
+                Agregar<i class="ri-shopping-basket-2-fill"></i>
+            </button>
+        </form>
+    </article>
+
+{% empty %}
+    {# Formulario para hacer fect ajax en caso de no encontrar resultados #}
+    <h2 class="grid-col-all mt-1 text-break font-lg">Ningún Producto cumple con tus filtros.</h2>
+    <h3 class="grid-col-all text-break font-md">Volve a mirar todos nuestros productos:</h3>
+    <form class="grid-col-all justify-self-center form-fetch-product-list">
+        <button class="w-min text-truncate btn btn-main gap-2 px-2 py-1 bolder font-md" type="submit">
+            <i class="ri-shopping-cart-2-line font-lg"></i>Todos los Productos
+        </button>
+    </form>
+{% endfor %}

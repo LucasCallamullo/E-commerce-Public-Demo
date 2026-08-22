@@ -3,9 +3,12 @@
 
 
 function initSwipers(container) {
-
     // Loop through all swiper containers with the class "swiper-products"
-    const swipers = container.querySelectorAll('.swiper-products')
+    const swipers = container.querySelectorAll('.swiper-products');
+
+    // stupid check, to prevent some issues
+    if (!swipers) return;
+
     swipers.forEach((swiperContainer, index) => {
 
         // Count how many slides this container has
@@ -69,27 +72,29 @@ function renderSwiperCategory(category, counter) {
 }
 
 
-/* esto se crea parcialmente ya que es parte del modulo pagination orginalmente, pero es necesario
-este objeto para utilizar los modales */
-window.ProductStore = {
-    data: [],
-    setData(newData) {
-        /**
-         * Sets the internal product data store.
-         *
-         * @param {Array} newData - An array of product objects to be stored.
-         */
-        this.data = newData;
-    },
-    getData() {
-        /**
-         * Returns the current product data.
-         *
-         * @returns {Array} - The array of stored product objects.
-         */
-        return this.data;
-    },
+
+function createCarouselCards({
+    container,
+    products = [],
+    onRender = null
+}) {
+    if (!container) {
+        // container not found
+        console.error('container no encontrado');
+        return;
+    }
+
+    if (typeof onRender === 'function') {
+        onRender(container, products);
+    }
+
+    if (!container._hasInitEvents) {
+        productCardFormsEvents(container);
+        productCardModalEvent(container);
+        container._hasInitEvents = true;
+    }
 }
+
 
 
 /**
@@ -107,8 +112,8 @@ window.ProductStore = {
  * 
  * @param {HTMLElement} container - The DOM element where the carousels will be inserted.
  * @param {list} products - optional params in some views to use with a list fetch
- */
-function createCarouselCards(container, products=null) {
+
+function createCarouselCardsss(container, products=null) {
     
     // Validate container existence
     if (!container) {
@@ -139,20 +144,13 @@ function createCarouselCards(container, products=null) {
         }
 
         // Save all products into global ProductStore
-        ProductStore.setData(listToSet);
+        window.ProductStore.setData(listToSet);
 
         // Insert all carousels into the container in a single operation
         container.appendChild(fragment);
 
         // Initialize Swiper instances for all inserted carousels
         initSwipers(container);
-    }
-
-    if (products) {
-        // this function is from profile/js/tabs/tab_favorites.js
-        if (typeof createTabfavorites === 'function') {
-            createTabfavorites(container, products);
-        }
     }
 
     // Attach product events only once to the container (static delegation)
@@ -162,3 +160,4 @@ function createCarouselCards(container, products=null) {
         container._hasInitEvents = true;
     }
 }
+ */

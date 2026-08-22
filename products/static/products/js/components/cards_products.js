@@ -46,17 +46,17 @@ function renderFavoritesLabel(prod) {
  * @returns {string} HTML string representing the price section of the product card.
  */
 function renderDiscountLabel(prod) {
-    const price = formatNumberWithPoints(prod.price);
+    const price = formatNumberWithPoints(prod.price_ars);
 
     // If there is no discount, show only the normal price
-    if (prod.discount <= 0) {
+    if (prod.discount_ars <= 0) {
         return /*html*/`<p class="text-start bolder font-lg grid-col-all"> $ ${price}</p>`;
     }
 
-    const price_discount = formatNumberWithPoints(prod.price - (prod.price * prod.discount / 100));
+    const price_discount = formatNumberWithPoints(prod.price_ars - (prod.price_ars * prod.discount_ars / 100));
     return /*html*/`
         <b class="text-line-through text-secondary font-md">$${price}</b>
-        <b class="justify-self-end text-white product-card__offer-tag text-truncate font-xs">${prod.discount}% OFF</b>
+        <b class="justify-self-end text-white product-card__offer-tag text-truncate font-xs">${prod.discount_ars}% OFF</b>
         <b class="bolder font-lg grid-col-all">$ ${price_discount}</b>`;
 }
 
@@ -88,8 +88,8 @@ function renderCards(product, isSwiper=false) {
                     loading="lazy" width="100" height="100">
                 </a>
 
-                <a class="px-2 text-start text-truncate-multiline font-md bolder" href="${urlDetail}">
-                    ${prod.name}
+                <a class="px-2 text-start text-truncate-multiline font-md bolder main-ref" href="${urlDetail}">
+                    <span>${prod.name}</span>
                 </a>
 
                 <div class="d-grid px-2 product-card__grid-2 gap-2 align-center font-sm">
@@ -154,29 +154,15 @@ function renderingListCard(container, products) {
 function renderingEmptyListCard(contProducts) {
     contProducts.innerHTML = '';
     const cardHtml = /*html*/`
-        <h1 class="grid-col-all mt-1 text-break font-lg">Ningún Producto cumple con tus filtros.</h1>
-        <h2 class="grid-col-all text-break font-md">Volve a mirar todos nuestros productos:</h2>
-        <div class="grid-col-all justify-self-center">
-            <button class="w-min text-truncate btn btn-main gap-2 px-2 py-1 bolder font-md" id="get-all-products">
-                <i class="ri-shopping-cart-2-line font-lg"></i>
-                Todos los Productos
+        <h2 class="grid-col-all mt-1 text-break font-lg">Ningún Producto cumple con tus filtros.</h2>
+        <h3 class="grid-col-all text-break font-md">Volve a mirar todos nuestros productos:</h3>
+        <form class="grid-col-all justify-self-center form-fetch-product-list">
+            <button class="w-min text-truncate btn btn-main gap-2 px-2 py-1 bolder font-md" type="submit">
+                <i class="ri-shopping-cart-2-line font-lg"></i>Todos los Productos
             </button>
-        </div>
-    `;
+        </form>
+    `.trim();
     contProducts.insertAdjacentHTML('beforeend', cardHtml);
-    const btn = contProducts.querySelector('#get-all-products');
-
-    if (btn && !btn._hasInitEvents) {
-        btn.addEventListener('click', () => {
-            // Call function to fetch all available products (category 0 = all, subcategory 0 = all)
-            // fetchProductList({ available: 1, category: 0, subcategory: 0 });
-            if (window.ProductStore && typeof ProductStore.getData === 'function') {
-                updateProductListCards(contProducts, ProductStore.getData());
-            }
-        });
-        // Mark the button as initialized
-        btn._hasInitEvents = true;
-    }
 }
 
 

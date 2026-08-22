@@ -1,30 +1,33 @@
 from django.urls import path
 from products.views.api.product_api import ProductAPIView
-from products.views.api.categories_api import CategoryAPIView, SubcategoryAPIView, BrandAPIView
+from products.views.api.catalog_api import CategoryAPIView, SubcategoryAPIView, BrandAPIView
 from products.views.api.product_images_api import ProductImagesView
 
 
 # ==============================================================================
 #                        DRF API ENDPOINTS
 # ==============================================================================
-# NOTE for NAME URL on dtf we use -
-
 urlpatterns = [
-    # url para actualizar productos
-    path('api/product/', ProductAPIView.as_view(), name='api_product_list_create'), # POST for create
-    path('api/product/<int:product_id>/', ProductAPIView.as_view(), name='api_product_detail'), # GET, PUT, PATCH, DELETE
+    # ----------------------- Product
+    path('api/products/', ProductAPIView.as_view(), name='api_products'), # POST, GET
+    path('api/products/<int:pk>/', ProductAPIView.as_view(), name='api_products_detail'), # GET, PUT, PATCH, DELETE
     
-    # endpoints images    # url para actualizar imgenes
-    path('products-images/<int:product_id>/', ProductImagesView.as_view(), name='prod-images'),
-    path('api/product/<int:product_id>/images/', ProductImagesView.as_view(), name='product-images-api'),
+    # ----------------------- Product Images
+    path('api/products/<int:product_id>/images/', 
+        ProductImagesView.as_view(), name='api_product_images'), # GET, POST, DELETE
     
-    # urls endpoints para manejar category, subcategory, brand
-    path('api/category/', CategoryAPIView.as_view(), name='pcategory-create-api'),  # POST for create
-    path('api/category/<int:obj_id>/', CategoryAPIView.as_view(), name='pcategory-detail-api'),  # GET, PUT, PATCH, DELETE
+    # ----------------------- Category
+    path('api/categories/', CategoryAPIView.as_view(), name='api_categories'), # POST, GET
+    path('api/categories/<int:pk>/', 
+        CategoryAPIView.as_view(), name='api_categories_detail'),  # GET, PUT, PATCH, DELETE
     
-    path('api/subcategory/', SubcategoryAPIView.as_view(), name='psubcategory-create-api'),  # POST for create
-    path('api/subcategory/<int:obj_id>/', SubcategoryAPIView.as_view(), name='psubcategory-detail-api'),  # GET, PUT, PATCH, DELETE
+    # ----------------------- Subcategory
+    path('api/subcategories/', SubcategoryAPIView.as_view(), name='api_subcategories'), # POST, GET
+    path('api/subcategories/<int:pk>/', 
+        SubcategoryAPIView.as_view(), name='api_subcategories_detail'),  # GET, PUT, PATCH, DELETE
     
-    path('api/brand/', BrandAPIView.as_view(), name='pbrand-create-api'),  # POST for create
-    path('api/brand/<int:obj_id>/', BrandAPIView.as_view(), name='pbrand-detail-api'),  # GET, PUT, PATCH, DELETE
+    # ----------------------- Brand
+    path('api/brands/', BrandAPIView.as_view(), name='api_brands'), # POST, GET
+    path('api/brands/<int:pk>/', 
+        BrandAPIView.as_view(), name='api_brands_detail'),  # GET, PUT, PATCH, DELETE
 ]

@@ -2,14 +2,14 @@ from django.shortcuts import render, redirect
 
 # core module
 from core.permissions import admin_or_superuser_required
-from core.utils import utils_basic
+from core.utils import utils_parsers
 
 # models
 from products.models.product import Product
 
 # services - products
 from products.services.pagination import PaginationService
-from products.services.products import ProductService
+from products.services.product import ProductService
 from products.services.brand import BrandService
 from products.services.category import CategoryService
 from products.services.subcategory import SubcategoryService
@@ -24,7 +24,7 @@ def product_list(request, cat_slug=None, subcat_slug=None, brand_slug=None):
     brand = BrandService.get_filtered_by_slug(entity_slug=brand_slug)
     
     # Normalizar búsqueda
-    top_query = utils_basic.normalize_or_None(request.GET.get('topQuery', ''))
+    top_query = utils_parsers.normalize_or_None(request.GET.get('topQuery', ''))
     
     # Aplicar filtros
     filter_args = {
@@ -48,11 +48,11 @@ def product_list(request, cat_slug=None, subcat_slug=None, brand_slug=None):
 
     # get unique brands on page for some utils select forms 
     # maybe in the future apply this for performance
-    # brand_ids_in_page = {p['brand_id'] for p in products_page}
-    brands = BrandService.for_cards(brand_ids=None)
+    # brand_ids_in_page = {p['brand_id'] for p in products}
+    brands = BrandService.get_brands_list(brand_ids=None)
     
     # get categories from cache 
-    categories = CategoryService.for_cards(from_cache=True)
+    categories = CategoryService.get_categories_list()
     
     context = {
         'products': products,
@@ -73,7 +73,7 @@ def product_detail(request, product_id, slug):
         id (int): ID of the product to search and display its detail.
         slug (str): slug of the product to search and display its detail.
     """
-    value_id = utils_basic.valid_id_or_None(product_id)
+    value_id = utils_parsers.valid_id_or_None(product_id)
     if not value_id:
         return redirect('Home')
     
@@ -83,7 +83,7 @@ def product_detail(request, product_id, slug):
         return redirect('Home')
     
     # We get all the necessary data from the product
-    category = product.subcategory.category
+    category = product.category
     subcategory = product.subcategory
     brand = product.brand
     images_urls = product.get_all_images_url()
@@ -91,7 +91,7 @@ def product_detail(request, product_id, slug):
         'product': product,
         'images_urls': images_urls,
         'category': category if not category.is_default else None,
-        'subcategory': subcategory if not subcategory.is_default else None,
+        'subcategory': subcategory if subcategory else None,
         'brand': brand if not brand.is_default else None
     }
     return render(request, 'products/product_detail.html', context)

@@ -1,21 +1,52 @@
-
-
 from django.core.management.base import BaseCommand
-from openpyxl import load_workbook
-
-from products import utils
-from products.models import Product, PCategory, PSubcategory, PBrand, ProductImage
-from users.models import CustomUser
-
-# mys scripts folder for first update
-from products.data.load_orders import load_orders_init
-from products.data.load_users import load_users_init
-from products.data.load_store import load_store_init
-
-# command python manage.py load_data_project
+from django.db import transaction
 from django.utils.text import slugify
 from django.utils.crypto import get_random_string
 
+from openpyxl import load_workbook
+from django.contrib.postgres.search import SearchVector
+
+from core.utils.utils_parsers import normalize_or_None
+
+from products.models.product import Product
+from products.models.category import Category
+from products.models.subcategory import Subcategory
+from products.models.brand import Brand
+from products.models.product_image import ProductImage
+
+
+def update_defaults_slugs():
+    # Categorías
+    categories_to_update = []
+    for c in Category.objects.filter(is_default=False):
+        if not c.slug:
+            c.slug = slugify(c.name)
+            categories_to_update.append(c)
+    if categories_to_update:
+        Category.objects.bulk_update(categories_to_update, ['slug'])
+
+    # Subcategorías
+    subcategories_to_update = []
+    for sc in Subcategory.objects.filter(is_default=False):
+        if not sc.slug:
+            sc.slug = slugify(sc.name)
+            subcategories_to_update.append(sc)
+    if subcategories_to_update:
+        Subcategory.objects.bulk_update(subcategories_to_update, ['slug'])
+
+    # Marcas
+    brands_to_update = []
+    for b in Brand.objects.filter(is_default=False):
+        if not b.slug:
+            b.slug = slugify(b.name)
+            brands_to_update.append(b)
+    if brands_to_update:
+        Brand.objects.bulk_update(brands_to_update, ['slug'])
+
+    print("Slugs actualizados correctamente.")
+    
+
+# command python manage.py load_data_project
 def unique_slug(base_slug, model):
     slug = base_slug
     while model.objects.filter(slug=slug).exists():
@@ -36,177 +67,211 @@ def clean_value(value, zero=False):
         Returns a valid value or None or Zero as appropriate
     """
     result = None if not value or value == '' else value
-
     if zero:
         return 0 if result is None else result
     
     return result
-        
-def update_main_imagess():
-    products = Product.objects.all()
 
-    for product in products:
-        images = product.images.all()
-        
-        if not images:
-            print(f'⚠️ Product "{product.name}" has no images.')
-            continue
 
-        # Set the first image as main
-        first_image = images[0]
-        first_image.main_image = True
-        first_image.save()
-
-        # Optionally, set all others to False (cleanup)
-        for img in images[1:]:
-            if img.main_image:
-                img.main_image = False
-                img.save()
-
-        # Update product's main_image field
-        product.main_image = first_image.image_url
-        product.save()
-        print(f'✔ Main image updated for product "{product.name}"')
-
-from django.contrib.auth.hashers import make_password
-from users.models import CustomUser
 class Command(BaseCommand):
     help = "To generically load all the necessary data for the models we created "
     help += "in this case, it includes loading Product models from Excel to the database. "
     help += "On the other hand, dictionaries were simply used to create model examples like Store, User, Orders"
         
     def handle(self, *args, **kwargs):
+        self.load_products_from_excel()
+        # update_defaults_slugs()
+        # self.update_main_imagess()
         
-        self.stdout.write(self.style.SUCCESS("✔ Desactivado por si sos medio boludo."))
-        
-        user, created = CustomUser.objects.get_or_create(
-            email="admin@gmail.com",
-            defaults={
-                "password": make_password("1234"),
-                "first_name": "Admin",
-                "last_name": "SuperAdmin",
-                "is_active": True,
-                "is_staff": True,
-                "is_superuser": True,
-                "role": 'admin',
-            }
-        )
-        
-        if created:
-            print(f'El Super usuario {user.email} Se creo exitosamente')
-        
-        return
 
-        self.stdout.write(self.style.SUCCESS("✔ Datos iniciales cargados correctamente."))
-        # Path to the Excel file
+    def load_products_from_excel(self, file_path='products/data/products_data.xlsx'):
+        """
+        Importa productos desde un archivo Excel a la base de datos.
+
+        - Crea categorías, subcategorías y marcas si no existen.
+        - Actualiza productos existentes según el nombre.
+        - Añade imágenes asociadas evitando duplicados.
+        """
+
         try:
-            file = 'products/data/products_data.xlsx'
-            
+            wb = load_workbook(file_path)
         except FileNotFoundError:
-            print(f'File not found: {file}')
-            return None
+            print(f"Archivo no encontrado: {file_path}")
+            return
+
+            
+        qs = Product.objects.all()
+        if qs.exists():
+            print("Ya se cargo el excel")
+            return
         
-        # Lista de nombres de las columnas en orden
+        """ 
+        # Primero borramos las imágenes asociadas
+        ProductImage.objects.all().delete()
+
+        # Luego borramos los productos
+        Product.objects.all().delete()
+        """
+    
+        ws = wb.active
+        
+
+        # Columnas esperadas
         columns = [
-            'id', 'name', 'price', 'available', 'stock', 'category', 'subcategory', 'brand', 
+            'id', 'name', 'price', 'available', 'stock', 'category', 'subcategory', 'brand',
             'discount', 'description', 'image_url', 'image_url2'
         ]
 
-        # Abrimos el archivo Excel
-        wb = load_workbook(file)
-        ws = wb.active
+        # Cache para no repetir queries
+        categories_cache = {}
+        subcategories_cache = {}
+        brands_cache = {}
 
-        # Si querés ignorar el encabezado real del archivo y usar tu lista:
-        for fila in ws.iter_rows(min_row=2, values_only=True):  # Salta el encabezado
-            fila_dict = dict(zip(columns, fila))  # Empareja nombre-columna con valor
-            
-            # obtener un name necesario y unico para productos
-            name = clean_value(fila_dict.get("name"))
-            
+        # Pre-cargar los defaults
+        default_category = Category.objects.filter(is_default=True, id=1).first()
+        # default_subcategory = Subcategory.objects.filter(is_default=True, id=1).first()
+        default_subcategory = None
+        default_brand = Brand.objects.filter(is_default=True, id=1).first()
+
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            row_dict = dict(zip(columns, row))
+
+            # Nombre del producto
+            name = clean_value(row_dict.get("name"))
             if not name:
-                print(f'Product "{fila_dict.get("id")}" does not have a product_name.')
-                continue    # no lo va a cargar 
-            
-            # obtener los valores de cada uno a crear
-            category = clean_value(fila_dict.get("category"))
-            subcategory = clean_value(fila_dict.get("subcategory"))
-            brand = clean_value(fila_dict.get("brand"))
-        
-            # Create categories, subcategories, brands if they don't exist
-            if category is None:
-                category_obj = PCategory.get_default_model_or_id(model=True)
-            else:
-                category_obj, _ = PCategory.objects.get_or_create(name=category)    
-            
-            if subcategory is None or category is None:
-                sub_category_obj = PSubcategory.get_default_model_or_id(model=True)
-            else:
-                sub_category_obj, _ = PSubcategory.objects.get_or_create(name=subcategory, category=category_obj)    
-            
-            if brand is None:
-                brand_obj = PBrand.get_default_model_or_id(model=True)
-            else:
-                brand_obj, _ = PBrand.objects.get_or_create(name=brand)    
+                fila_num = int(row_dict.get("id", 1)) + 1
+                print(f'Fila {fila_num}: producto sin nombre, se ignora.')
+                continue
 
-            # Get the rest of the values from the Excel
-            price = clean_value(fila_dict.get("price"), zero=True)
-            stock = clean_value(fila_dict.get("stock"), zero=True)
-            discount = clean_value(fila_dict.get("discount"), zero=True)
-            
-            # Return true or false for availability
-            available_str = fila_dict.get("available", "").lower()
-            available = available_str in ["si", "sí", "yes"]
+            # Categoría
+            category_value = clean_value(row_dict.get("category"))
+            if not category_value:
+                category = default_category
+            else:
+                if category_value in categories_cache:
+                    category = categories_cache[category_value]
+                else:
+                    slug_cat = slugify(category_value)
+                    category, _ = Category.objects.get_or_create(name=category_value, slug=slug_cat)
+                    categories_cache[category_value] = category
 
-            description = clean_value(fila_dict.get("description"))
-            image_url = clean_value(fila_dict.get("image_url"))
-            image_url2 = clean_value(fila_dict.get("image_url2"))
-            
-            # Normalize the name before creating the product
-            normalized_name = utils.normalize_or_None(name)
-            slug = unique_slug(slugify(name), Product)  # get the slugified version of the name
-            
-            # Retrieve or create the product
-            product_obj, created = Product.objects.get_or_create(
-                name=name,
-                slug=slug,
-                normalized_name=normalized_name,
-                price=price,
-                stock=stock,
-                discount=discount,
-                available=available,
-                category=category_obj,
-                subcategory=sub_category_obj,
-                brand=brand_obj,
-                description=description,
-            )
-            
-            # Add image URLs to the products
-            cont = 0
-            if image_url:
-                ProductImage.objects.create(product=product_obj, image_url=image_url)
-                cont += 1
-        
-            if image_url2:
-                ProductImage.objects.create(product=product_obj, image_url=image_url2)
-                cont += 1
-             
+            # Subcategoría
+            subcategory_value = clean_value(row_dict.get("subcategory"))
+            subcat_key = (subcategory_value, category.id)
+            if not subcategory_value:
+                subcategory = default_subcategory
+            else:
+                if subcat_key in subcategories_cache:
+                    subcategory = subcategories_cache[subcat_key]
+                else:
+                    slug_subcat = slugify(subcategory_value)
+                    subcategory, _ = Subcategory.objects.get_or_create(
+                        name=subcategory_value,
+                        slug=slug_subcat,
+                        category=category
+                    )
+                    subcategories_cache[subcat_key] = subcategory
+
+            # Marca
+            brand_value = clean_value(row_dict.get("brand"))
+            if not brand_value:
+                brand = default_brand
+            else:
+                if brand_value in brands_cache:
+                    brand = brands_cache[brand_value]
+                else:
+                    slug_brand = slugify(brand_value)
+                    brand, _ = Brand.objects.get_or_create(name=brand_value, slug=slug_brand)
+                    brands_cache[brand_value] = brand
+
+            # Otros campos
+            price = clean_value(row_dict.get("price"), zero=True)
+            stock = clean_value(row_dict.get("stock"), zero=True)
+            discount = clean_value(row_dict.get("discount"), zero=True)
+            available = str(row_dict.get("available", "")).strip().lower() in ['si', 'sí', 'yes', '1']
+            description = clean_value(row_dict.get("description"))
+
+            normalized_name = normalize_or_None(name)
+            slug = unique_slug(slugify(name), Product)
+
+            # Guardamos producto (update_or_create para actualizar si ya existe)
+            with transaction.atomic():
+                product_obj, created = Product.objects.update_or_create(
+                    name=name,
+                    defaults={
+                        'slug': slug,
+                        'normalized_name': normalized_name,
+                        'price_ars': price,
+                        'stock': stock,
+                        'discount_ars': discount,
+                        'available': available,
+                        'category': category,
+                        'subcategory': subcategory,
+                        'brand': brand,
+                        'description': description,
+                    }
+                )
+
+                # Manejo de imágenes (evita duplicados)
+                image_url = clean_value(row_dict.get("image_url"))
+                image_url2 = clean_value(row_dict.get("image_url2"))
+
+                cont = 0
+                for url in filter(None, [image_url, image_url2]):
+                    if not url:
+                        continue
+                    
+                    if not ProductImage.objects.filter(product=product_obj, image_url=url).exists():
+                        ProductImage.objects.create(product=product_obj, image_url=url)
+                        cont += 1
+
             if created:
                 print(f'Product {product_obj.name} created successfully with {cont} associated images.')
             else:
                 print(f'Product {product_obj.name} updated successfully with {cont} associated images.')
-             
-        # ================================================================
-        # Create other necessary data for the initial project load
-        print("=" * 50)
-        # This calls the function in scripts/ to load the initial orders
-        load_orders_init()
+
+        # por como es el flujo para los search vectors necesitamos llamarlo despues de haber creado los productos
+        # entonces hacemos el update en bulk posterior
+        self.update_normalized_name()
+    
+        # despues actualizar las main_image para evitar consulta extra
+        self.update_main_imagess()
+    
+    def update_normalized_name(self):
+        products = []
+        for product in Product.objects.all():
+            if product.name:
+                product.normalized_name = normalize_or_None(product.name)
+                products.append(product)
+
+        Product.objects.bulk_update(products, ['normalized_name'])
+        Product.objects.update(search_vector=SearchVector('normalized_name', weight='A'))
         
-        print("=" * 50)
-        # This calls the function in scripts/ to load the initial Users
-        load_users_init()
         
-        print("=" * 50)
-        # This calls the function in scripts/ to load the initial Store
-        load_store_init()
+    def update_main_imagess(self):
+        products = Product.objects.all()
+
+        for product in products:
+            images = product.images.all()
             
-        
+            if not images:
+                print(f'Product "{product.name}" has no images.')
+                continue
+
+            # Set the first image as main
+            first_image = images[0]
+            first_image.main_image = True
+            first_image.save()
+
+            # Optionally, set all others to False (cleanup)
+            for img in images[1:]:
+                if img.main_image:
+                    img.main_image = False
+                    img.save()
+
+            # Update product's main_image field
+            product.main_image = first_image.image_url
+            product.save()
+            print(f'✔ Main image updated for product "{product.name}"')
+            
+    

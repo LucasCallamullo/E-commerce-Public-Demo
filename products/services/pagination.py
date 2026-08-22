@@ -1,7 +1,7 @@
 
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from products.services.products import ProductService
+from products.services.product import ProductService
 from django.db.models import QuerySet
 
 class PaginationService:

@@ -6,26 +6,39 @@
     <link href="{% static 'products/css/cards_products.css' %}" rel="stylesheet">
     <link href="{% static 'products/css/products_list.css' %}" rel="stylesheet">
 
-    <title>{{store.name}} | {% if category %}{{category.name}}{% else %}Productos{% endif %}</title>
+    <title>
+        {% if subcategory %}
+            {{ subcategory.name }} | {% if brand %}{{ brand.name }} | {% endif %}
+        {% elif category %}
+            {{ category.name }} | 
+        {% elif brand %}
+            Productos {{ brand.name }} | 
+        {% elif query %}
+            {{ query }} | Resultados | 
+        {% else %}
+            Productos | 
+        {% endif %}
+        {{store.name}}  
+    </title>
 {% endblock %}
 
 
 
 {% block main_content %}
 
-<div class="d-flex w-100 mb-3 gap-1">
+<nav class="d-flex w-100 mb-3 gap-1">
     <a class="btn btn-parallelogram d-desktop-block" href="{% url 'product_list' %}">
         <span> Todos Nuestros Productos </span>
     </a>
     
     {% if category %}
-        <a class="btn btn-parallelogram" href="{% url 'pl_category' category.slug %}">
+        <a class="btn btn-parallelogram" href="{% url 'product_list_category' category.slug %}">
             <span>{{ category.name }}</span>
         </a>
     {% endif %}
 
     {% if subcategory %}
-        <a class="btn btn-parallelogram" href="{% url 'pl_subcategory' category.slug subcategory.slug %}">
+        <a class="btn btn-parallelogram" href="{% url 'product_list_subcategory' category.slug subcategory.slug %}">
             <span>{{ subcategory.name }}</span>
         </a>
     {% endif %}
@@ -35,7 +48,7 @@
             <span class="font-md">Resultados de la busqueda: '{{ query }}'</span>
         </button>
     {% endif %}
-</div>
+</nav>
 
 {# This is for use in a dataForm to send #}
 <form class="d-none" id="form-filters">
@@ -47,6 +60,26 @@
     <input type="hidden" name="page" value="1">
 </form>
 
+{# titulo oculto solo por seo #}
+<h1 class="seo-only">
+    {% if subcategory %}
+        {{ subcategory.name }} - 
+        {% if brand %} {{ brand.name }}{% endif %}
+
+    {% elif category %}
+        {{ category.name }} -
+        {% if brand %} {{ brand.name }}{% endif %}
+
+    {% elif brand %}
+        Productos {{ brand.name }}
+
+    {% elif query %}
+        Resultados para "{{ query }}"
+
+    {% else %}
+        Productos disponibles
+    {% endif %}
+</h1>
 
 <div class="d-grid gap-2 h-min cont-grid-11-13">
 
@@ -67,6 +100,7 @@
             </form>
     
             {# Categories will be inserted here #}
+            <h3 class="seo-only">Todas las categorías</h3>
             <ul class="d-flex-col">
                 <li class="d-flex justify-start">
                     <a class="btn btn-28 w-100 btn-primary bolder justify-start" href="{% url 'product_list' %}">
@@ -77,7 +111,7 @@
                 {% for item in categories_dropmenu.values %}
                 <li class="d-flex-col align-start">
                     <a class="btn btn-28 w-100 btn-primary bolder justify-start" 
-                    href="{% url 'pl_category' item.category.slug %}">
+                    href="{% url 'product_list_category' item.category.slug %}">
                         {{ item.category.name }}
                     </a>
                     
@@ -87,7 +121,7 @@
                             {% for sub_cat in item.subcategories %}
                                 <li class="d-flex ms-3">
                                     <a class="btn btn-28 w-100 btn-primary justify-start" 
-                                    href="{% url 'pl_subcategory' item.category.slug sub_cat.slug %}">
+                                    href="{% url 'product_list_subcategory' item.category.slug sub_cat.slug %}">
                                         {{ sub_cat.name }}
                                     </a>
                                 </li>
@@ -119,10 +153,13 @@
 
     {# contenido principal producto list #}
     <div class="d-flex-col gap-2">
+
+        <h2 class="seo-only">Listado de productos</h2>
+
         {# formulario para ordenar like CSR #}
         <div class="d-flex-col-row gap-2 text-truncate font-md bolder">
-            Ordenar Por:
-            <select class="bg-primary w-min" name="" id="select-to-sort">
+            <h3 class="font-md">Ordenar Por:</h3>
+            <select class="bg-primary w-min select-to-sort" name="" id="select-to-sort">
                 <option value="getList"> Defecto</option>
                 <option value="priceAsc"> Precio Ascendente</option>
                 <option value="priceDesc"> Precio Descendente</option>
@@ -132,12 +169,16 @@
             </select>
         </div>
 
-        <h4 class="text-secondary bolder">
-            Mostrando {{ pagination.results_on_page }} de {{ pagination.total_results }} resultados: 
-        </h4>
+        {# span para la cantidad de reusltados dentro de la pagina #}
+        <span class="text-secondary bolder font-md" id="span-results-page">  
+            Mostrando ({% if products %}1{% else %}0{% endif %} - 
+            {{pagination.results_on_page}}) de {{pagination.total_results}} resultados:
+        </span>
 
         {# Main Content #}
         <section class="d-grid cont-grid-234 h-min gap-2" id="cont-product-cards">
+            {# recorre con un for todos los products renderizando las cartas #}
+            {% include 'products/components/card__product.html' with products=products %}
             
         </section>
     </div>
@@ -148,59 +189,48 @@
     </div>
 </div>
 
-    {# modal unico para rellenar desde las cards #}
-    {% include "products/components/card__modal.html" %}
+{# modal unico para rellenar desde las cards #}
+{% include "products/components/card__modal.html" %}
+
+    {% comment %}
+        {# 
+        Estos bloques crean algo como esto con datos desde el SSR lo que sirve despues para capturar el contenido con 
+        el id del bloque script y obtener su textContent, para parsear y recuperar la lista, es la forma mas segura
+        de hacer este proceso.
+        <script id="products-data" type="application/json">
+            [{"id":1,"name":"Mouse"...}]
+        </script>
+        #}
+    {% endcomment %}
+    {{ products|json_script:"products-data" }}
+    {{ categories|json_script:"categories-data" }}
+    {{ brands|json_script:"brands-data" }}
 
 {% endblock main_content %}
 
 
 {% block extra_scripts %}
-    {% comment %}
-        window.TEMPLATE_URLS = {
-            {# favorites/urls.py #}
-            favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
-            
-            {# products/urls.py #}
-            productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
-            category: "{% url 'pl_category' cat_slug='__CAT__' %}",
-            subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
-            brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}",
-
-            {# products/urls_api.py #}
-            productList: "{% url 'product-update-api' 0 %}".replace('/0/', '{product_id}'),
-            productImages: "{% url 'product-images-api' 0 %}".replace('/0/', '/{product_id}/')
-        };
-        {# /**
-        * Initializes the product store with the initial product data rendered server-side by Django.
-        * 
-        * This script:
-        * - Parses the JSON string `productos_json` injected by Django's server-side rendering (SSR).
-        * - Calls `window.ProductStore.setData` to load this initial set of products into the client-side store.
-        * 
-        * This approach allows the page to load with pre-rendered product data,
-        * and later use the same `ProductStore` for dynamic updates via AJAX calls.
-        */ #}
-        window.ProductList = JSON.parse('{{ productos_json|escapejs }}');
-    {% endcomment %}
     <script>
         window.TEMPLATE_URLS = {
+            // app favorites
             favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
             productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
-            category: "{% url 'pl_category' cat_slug='__CAT__' %}",
-            subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
-            brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}",
-            productList: "{% url 'product-update-api' 0 %}".replace('/0/', '{product_id}'),
-            productImages: "{% url 'product-images-api' 0 %}".replace('/0/', '/{product_id}/')
+            category: "{% url 'product_list_category' '__CAT__' %}",
+            subcategory: "{% url 'product_list_subcategory' '__CAT__' '__SUBCAT__' %}",
+            brand: "{% url 'product_list_brand' '__BRAND__' %}",
+            productList: "{% url 'api_products' %}",
+            productImages: "{% url 'api_product_images' 0 %}".replace('/0/', '/{product_id}/')
         };
-        window.ProductList = JSON.parse('{{ productos_json|escapejs }}');
-        window.BRAND_LIST = JSON.parse('{{ brands_json|escapejs }}');
-        window.CATEGORIES_LIST = JSON.parse('{{ categories|escapejs }}');
     </script>
 
     {% compress js %}
-        <script src="{% static 'products/js/components/pagination.js' %}"></script>
+        {# favorites stuff endpoitns #}
         <script src="{% static 'favorites/js/add_favorites.js' %}"></script>
+
+        {# necesario  para cards modals events #}
+        <script src="{% static 'products/js/logic/product_store.js' %}"></script>
         <script src="{% static 'products/js/logic/cards_products.js' %}"></script>
+        <script src="{% static 'products/js/components/pagination.js' %}"></script>
         <script src="{% static 'products/js/components/cards_products.js' %}"></script>
         <script src="{% static 'products/js/product_list.js' %}"></script>
     {% endcompress %}
